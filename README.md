@@ -353,6 +353,10 @@ ForkSight is an **educational tool** designed for studying chess positions and i
 ---
 
 <p align="center">
+  <img src="https://komarev.com/ghpvc/?username=mrtcnygt0&color=00f3ff&style=for-the-badge&label=PROFILE+VIEWS" />
+</p>
+
+<p align="center">
   <img src="forksight.png" alt="ForkSight" width="50">
   <br>
   <strong>ForkSight</strong> — See every fork. Seize every tactic.

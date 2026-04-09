@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "ForkSight — Chess.com",
+  "version": "1.0",
+  "description": "Chess.com oyunlarında Stockfish ile anlık taktik analizi. Renkli oklar ile en iyi hamleleri gösterir.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://*/*"],
+  "icons": {
+    "128": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "js": ["content.js"],
+      "css": ["style.css"],
+      "matches": ["https://www.chess.com/*", "https://chess.com/*"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icon.png"],
+      "matches": ["https://www.chess.com/*", "https://chess.com/*"]
+    }
+  ]
+}

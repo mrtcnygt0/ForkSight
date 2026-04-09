@@ -1,0 +1,246 @@
+/* ─── Taktik Analizör — chess.com üstü panel ─── */
+
+#taktik-panel {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 280px;
+  background: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  z-index: 99999;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 12px;
+  color: #ddd;
+  overflow: hidden;
+  user-select: none;
+}
+
+.taktik-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #2d8a4e;
+  color: #fff;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.taktik-title {
+  pointer-events: none;
+}
+
+.taktik-body {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.taktik-body.taktik-collapsed {
+  display: none;
+}
+
+/* Ana butonlar */
+.taktik-btn {
+  padding: 8px 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: background 0.15s;
+}
+
+.taktik-analyze-btn {
+  background: #2d8a4e;
+  color: #fff;
+  font-size: 15px;
+  padding: 10px 0;
+}
+.taktik-analyze-btn:hover {
+  background: #35a85c;
+}
+.taktik-analyze-btn:active {
+  background: #257a42;
+}
+
+.taktik-clear-btn {
+  background: #444;
+  color: #ccc;
+}
+.taktik-clear-btn:hover {
+  background: #555;
+}
+
+.taktik-btn-mini {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.taktik-btn-mini:hover {
+  opacity: 0.7;
+}
+
+/* Satırlar */
+.taktik-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.taktik-row label {
+  font-size: 11px;
+  color: #aaa;
+  white-space: nowrap;
+}
+.taktik-row select,
+.taktik-row input[type="range"] {
+  flex: 1;
+}
+.taktik-row select {
+  background: #333;
+  color: #ddd;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 11px;
+}
+
+.taktik-depth {
+  accent-color: #2d8a4e;
+}
+.taktik-depth-val {
+  font-weight: bold;
+  color: #fff;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* FEN */
+.taktik-fen {
+  font-family: "Consolas", monospace;
+  font-size: 9px;
+  color: #888;
+  word-break: break-all;
+  max-height: 28px;
+  overflow: hidden;
+  cursor: text;
+  user-select: text;
+}
+
+/* Status */
+.taktik-status {
+  font-size: 11px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  text-align: center;
+}
+.taktik-status-info {
+  background: #2a2a2a;
+  color: #aaa;
+}
+.taktik-status-working {
+  background: #2a3a2a;
+  color: #80d080;
+}
+.taktik-status-success {
+  background: #1e3a1e;
+  color: #5ddf5d;
+}
+.taktik-status-error {
+  background: #3a1e1e;
+  color: #ee6666;
+}
+
+/* Hamle listesi */
+.taktik-moves {
+  max-height: 140px;
+  overflow-y: auto;
+  font-family: "Consolas", monospace;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.taktik-moves::-webkit-scrollbar {
+  width: 4px;
+}
+.taktik-moves::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 2px;
+}
+.taktik-move-row {
+  padding: 2px 6px;
+}
+
+/* Otomatik mod toggle switch */
+.taktik-auto-row {
+  align-items: center;
+}
+.taktik-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.taktik-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.taktik-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #555;
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+.taktik-slider::before {
+  content: "";
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background: #ddd;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.taktik-switch input:checked + .taktik-slider {
+  background: #2d8a4e;
+}
+.taktik-switch input:checked + .taktik-slider::before {
+  transform: translateX(16px);
+}
+.taktik-auto-label,
+.taktik-autoplay-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #aaa;
+  margin-left: 4px;
+}
+
+.taktik-autoplay-color {
+  background: #333;
+  color: #ddd;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+/* Highlight divleri */
+.taktik-highlight {
+  border-radius: 0;
+  transition: opacity 0.2s;
+}

@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "ForkSight — Lichess",
+  "version": "1.0",
+  "description": "Lichess.org oyunlarında Stockfish ile anlık taktik analizi. Renkli oklar ile en iyi hamleleri gösterir.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://*/*"],
+  "icons": {
+    "128": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "js": ["inject.js"],
+      "matches": ["https://lichess.org/*"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "js": ["content.js"],
+      "css": ["style.css"],
+      "matches": ["https://lichess.org/*"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icon.png"],
+      "matches": ["https://lichess.org/*"]
+    }
+  ]
+}

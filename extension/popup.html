@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        width: 340px;
+        padding: 16px;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #1e1e1e;
+        color: #ddd;
+      }
+      h2 {
+        font-size: 15px;
+        color: #2d8a4e;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .status {
+        padding: 8px 10px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        font-size: 12px;
+        text-align: center;
+      }
+      .status.ok {
+        background: #1e3a1e;
+        color: #5ddf5d;
+      }
+      .status.fail {
+        background: #3a1e1e;
+        color: #ee6666;
+      }
+      .status.checking {
+        background: #2a2a2a;
+        color: #aaa;
+      }
+      .section {
+        background: #252525;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+      .section h3 {
+        font-size: 12px;
+        color: #2d8a4e;
+        margin-bottom: 8px;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        padding: 3px 0;
+      }
+      .row .lbl {
+        color: #999;
+      }
+      .row .val {
+        color: #eee;
+        font-weight: 600;
+      }
+      label {
+        font-size: 11px;
+        color: #aaa;
+        display: block;
+        margin-bottom: 4px;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 7px 10px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 5px;
+        color: #eee;
+        font-size: 12px;
+        outline: none;
+      }
+      input[type="text"]:focus {
+        border-color: #2d8a4e;
+      }
+      .btn {
+        display: block;
+        width: 100%;
+        padding: 7px;
+        background: #2d8a4e;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        text-align: center;
+        margin-top: 6px;
+      }
+      .btn:hover {
+        opacity: 0.9;
+      }
+      .btn-sm {
+        display: inline-block;
+        width: auto;
+        padding: 4px 10px;
+        margin: 0;
+        font-size: 11px;
+      }
+      .shortcuts {
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid #333;
+      }
+      .shortcuts div {
+        display: flex;
+        justify-content: space-between;
+        margin: 3px 0;
+        font-size: 11px;
+      }
+      .shortcuts kbd {
+        background: #2d8a4e;
+        color: #fff;
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      .stat {
+        background: #2a2a2a;
+        border-radius: 6px;
+        padding: 8px;
+        text-align: center;
+      }
+      .stat .v {
+        font-size: 16px;
+        font-weight: bold;
+        color: #2d8a4e;
+      }
+      .stat .l {
+        font-size: 9px;
+        color: #888;
+        margin-top: 2px;
+      }
+      .user-info {
+        font-size: 11px;
+        color: #aaa;
+        margin-bottom: 8px;
+      }
+      .admin-link {
+        font-size: 11px;
+        color: #2d8a4e;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+      .ver {
+        font-size: 10px;
+        color: #555;
+        text-align: center;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>ForkSight — Chess.com</h2>
+    <div id="status" class="status checking">Sunucu kontrol ediliyor…</div>
+    <div id="userInfo" class="user-info" style="display: none"></div>
+
+    <div class="section">
+      <h3>⚙️ Sunucu Ayarları</h3>
+      <label>Sunucu URL:</label>
+      <input
+        type="text"
+        id="apiUrl"
+        placeholder="https://forksight.mertcanyigit.com"
+      />
+      <button class="btn" id="saveUrl" style="margin-top: 6px">
+        💾 Kaydet
+      </button>
+    </div>
+
+    <div class="section" id="statsSection" style="display: none">
+      <h3>📊 Sunucu Durumu</h3>
+      <div class="grid" id="statsGrid"></div>
+    </div>
+
+    <div class="section">
+      <h3>⌨️ Kısayollar</h3>
+      <div class="shortcuts">
+        <div><span>Analiz</span><kbd>F2</kbd></div>
+        <div><span>Temizle</span><kbd>F3</kbd></div>
+      </div>
+    </div>
+
+    <div id="adminSection" style="display: none">
+      <span class="admin-link" id="adminLink">🔧 Admin Paneli</span>
+    </div>
+
+    <div class="ver" id="verInfo"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

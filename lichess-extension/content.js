@@ -1,0 +1,2660 @@
+(function () {
+  "use strict";
+
+  // ─── Eski instance temizliği (extension reload koruması) ───
+  if (typeof window.__taktikCleanup === "function") {
+    try {
+      window.__taktikCleanup();
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  const oldPanel = document.getElementById("taktik-panel");
+  if (oldPanel) oldPanel.remove();
+  const oldOverlay = document.getElementById("taktik-overlay");
+  if (oldOverlay) oldOverlay.remove();
+
+  // ─── i18n ──────────────────────────────────────────────
+  const LANGS = {
+    en: {
+      loginTitle: "ForkSight — Login",
+      usernamePH: "Username",
+      passwordPH: "Password",
+      loginBtn: "🔑 Login",
+      guestBtn: "👤 Continue as Guest",
+      loginRequired: "Username and password required!",
+      loggingIn: "⏳ Logging in...",
+      loginFailed: "Login failed!",
+      serverFailed: "Server connection failed!",
+      langLabel: "Language:",
+      panelTitle: "ForkSight",
+      guest: "👤 Guest",
+      logoutTitle: "Logout",
+      minimizeTitle: "Minimize",
+      autoAnalysis: "Auto Analysis:",
+      off: "Off",
+      on: "On",
+      autoPlay: "Auto Play:",
+      me: "Me",
+      white: "White",
+      black: "Black",
+      antiBan: "🛡️ Anti-Ban:",
+      autoMatch: "🔄 Auto Match:",
+      min10: "10m",
+      min30: "30m",
+      hour1: "1 hour",
+      hour2: "2 hours",
+      day1: "1 day",
+      unlimited: "Unlimited",
+      analyzeBtn: "⚡ ANALYZE (F2)",
+      clearBtn: "🧹 Clear (F3)",
+      resetBtn: "🔄 Engine Reset",
+      depth: "Depth:",
+      movesLabel: "Moves:",
+      turnLabel: "Turn:",
+      automatic: "Automatic",
+      defaultStatus: "F2: Analyze — F3: Clear",
+      guestMode: "👤 Guest mode — limited access",
+      welcome: "✅ Welcome, {0}!",
+      engineResetting: "🔄 Engine resetting...",
+      engineResetDone: "✅ Engine reset done",
+      resetError: "❌ Reset error: {0}",
+      boardNotFound: "❌ Board not found!",
+      readingBoard: "⏳ Reading board…",
+      boardReadError: "❌ Board could not be read!",
+      thinking: "⏳ Stockfish thinking… (d={0}{1})",
+      serverConnFail: "Server connection failed",
+      timeoutMsg: "⚠️ Timeout ({0}/3) — retrying",
+      timeoutReset: "🔄 3 consecutive timeouts — resetting engine...",
+      mateStalemate: "♚ Checkmate or stalemate!",
+      movesFound: "✅ {0} moves ({1}s)",
+      playingMove: "🤖 {0} {1} will be played ({2}s)",
+      cleared: "Cleared",
+      guestNoReset: "❌ Engine reset not available in guest mode",
+      guestNoMpv: "❌ Move count cannot be changed in guest mode",
+      guestNoAuto: "❌ Auto analysis not available in guest mode",
+      guestNoAutoPlay: "❌ Auto play not available in guest mode",
+      guestNoAntiBan: "❌ Anti-ban not available in guest mode",
+      guestNoAutoMatch: "❌ Auto match not available in guest mode",
+      autoMatchActive: "🔄 Auto match active",
+      autoMatchExpired: "⏰ Auto match time expired",
+      activeInf: "∞ Active",
+      gameOver: "🔄 Game over! New match ({0}s)…",
+      rematchSent: "🔍 Rematch sent…",
+      searchingGame: "🔍 Searching for new game…",
+      redirectLobby: "🔍 Redirecting to lobby…",
+      movePlayed: "🤖 Move played: {0}",
+      waitingOpponent: "⏳ Opponent's turn — waiting…",
+      moveCancel: "Move cancelled — position or turn changed",
+      registerBtn: "📝 Register",
+      registerTitle: "ForkSight — Register",
+      confirmPH: "Confirm password",
+      registerSubmit: "📝 Create Account",
+      backToLogin: "← Back to Login",
+      registering: "⏳ Registering...",
+      registerRequired: "All fields are required!",
+      registerPassMismatch: "Passwords do not match!",
+      registerPassShort: "Password must be at least 6 characters!",
+      registerUserShort: "Username must be at least 3 characters!",
+      registerFailed: "Registration failed!",
+      registerClosed: "Registration is currently closed",
+      updateAvailable: "🔄 New version available! Please update extension.",
+      wsConnected: "⚡ WebSocket connected",
+      wsProgress: "⏳ depth {0}…",
+      aboutTitle: "About ForkSight",
+      aboutText:
+        "ForkSight is an advanced chess analysis tool powered by the Stockfish engine. It provides real-time tactical analysis with visual arrows on the board.<br><br><b>⚠️ Disclaimer:</b> This tool was created for <b>educational purposes only</b>. It is designed to help players learn, study positions and improve their chess understanding. We strongly advise against using it for cheating in rated games. Fair play makes chess beautiful.<br><br><b>Version:</b> 1.0",
+      aboutCreator: "Creator",
+      aboutLinks: "Links",
+      premiumTitle: "ForkSight Premium",
+      premiumSubtitle: "Stay one step ahead in chess",
+      premiumDepth: "Unlimited Depth",
+      premiumDepthDesc: "Analysis up to level 30",
+      premiumMpv: "Multiple Variants (5 PV)",
+      premiumMpvDesc: "See the best 5 moves at once",
+      premiumAuto: "Auto Analysis",
+      premiumAutoDesc: "Every move analyzed instantly",
+      premiumAutoplay: "Auto Play",
+      premiumAutoplayDesc: "Engine plays the best move automatically",
+      premiumAntiban: "Anti-Ban System",
+      premiumAntibanDesc: "Detection prevention with random delays",
+      premiumAutomatch: "Auto Match",
+      premiumAutomatchDesc: "Find and play matches consecutively",
+      premiumCta: "\uD83D\uDE80 Upgrade to Premium",
+      premiumContact: "\u2709\uFE0F Contact",
+      premiumLater: "Maybe Later",
+      premiumFreeMsg:
+        "\u26A0\uFE0F Free account \u2014 Get full access with Premium!",
+    },
+    tr: {
+      loginTitle: "ForkSight — Giriş",
+      usernamePH: "Kullanıcı adı",
+      passwordPH: "Şifre",
+      loginBtn: "🔑 Giriş Yap",
+      guestBtn: "👤 Misafir Olarak Devam Et",
+      loginRequired: "Kullanıcı adı ve şifre gerekli!",
+      loggingIn: "⏳ Giriş yapılıyor...",
+      loginFailed: "Giriş başarısız!",
+      serverFailed: "Sunucu bağlantısı başarısız!",
+      langLabel: "Dil:",
+      panelTitle: "ForkSight",
+      guest: "👤 Misafir",
+      logoutTitle: "Çıkış Yap",
+      minimizeTitle: "Küçült",
+      autoAnalysis: "Oto Analiz:",
+      off: "Kapalı",
+      on: "Açık",
+      autoPlay: "Oto Oyna:",
+      me: "Ben",
+      white: "Beyaz",
+      black: "Siyah",
+      antiBan: "🛡️ Anti-Ban:",
+      autoMatch: "🔄 Oto Maç:",
+      min10: "10dk",
+      min30: "30dk",
+      hour1: "1 saat",
+      hour2: "2 saat",
+      day1: "1 gün",
+      unlimited: "Sınırsız",
+      analyzeBtn: "⚡ TAKTİK VER (F2)",
+      clearBtn: "🧹 Temizle (F3)",
+      resetBtn: "🔄 Engine Reset",
+      depth: "Derinlik:",
+      movesLabel: "Hamle:",
+      turnLabel: "Sıra:",
+      automatic: "Otomatik",
+      defaultStatus: "F2: Analiz — F3: Temizle",
+      guestMode: "👤 Misafir modu — sınırlı erişim",
+      welcome: "✅ Hoş geldin, {0}!",
+      engineResetting: "🔄 Engine resetleniyor...",
+      engineResetDone: "✅ Engine resetlendi",
+      resetError: "❌ Reset hatası: {0}",
+      boardNotFound: "❌ Tahta bulunamadı!",
+      readingBoard: "⏳ Tahta okunuyor…",
+      boardReadError: "❌ Tahta okunamadı!",
+      thinking: "⏳ Stockfish düşünüyor… (d={0}{1})",
+      serverConnFail: "Sunucu bağlantısı başarısız",
+      timeoutMsg: "⚠️ Timeout ({0}/3) — tekrar denenecek",
+      timeoutReset: "🔄 3 ardışık timeout — engine resetleniyor...",
+      mateStalemate: "♚ Mat veya pat!",
+      movesFound: "✅ {0} hamle ({1}s)",
+      playingMove: "🤖 {0} {1} oynanacak ({2}s)",
+      cleared: "Temizlendi",
+      guestNoReset: "❌ Misafir modunda engine reset kullanılamaz",
+      guestNoMpv: "❌ Misafir modunda hamle sayısı değiştirilemez",
+      guestNoAuto: "❌ Misafir modunda oto analiz kullanılamaz",
+      guestNoAutoPlay: "❌ Misafir modunda oto oynama kullanılamaz",
+      guestNoAntiBan: "❌ Misafir modunda anti-ban kullanılamaz",
+      guestNoAutoMatch: "❌ Misafir modunda oto maç kullanılamaz",
+      autoMatchActive: "🔄 Oto maç aktif",
+      autoMatchExpired: "⏰ Oto maç süresi doldu",
+      activeInf: "∞ Aktif",
+      gameOver: "🔄 Oyun bitti! Yeni maç ({0}s)…",
+      rematchSent: "🔍 Rematch gönderildi…",
+      searchingGame: "🔍 Yeni oyun aranıyor…",
+      redirectLobby: "🔍 Lobby'e yönlendiriliyor…",
+      movePlayed: "🤖 Hamle oynandı: {0}",
+      waitingOpponent: "⏳ Rakibin sırası — bekleniyor…",
+      moveCancel: "Hamle iptal — pozisyon veya sıra değişti",
+      registerBtn: "📝 Kayıt Ol",
+      registerTitle: "ForkSight — Kayıt",
+      confirmPH: "Şifre tekrar",
+      registerSubmit: "📝 Hesap Oluştur",
+      backToLogin: "← Girişe Dön",
+      registering: "⏳ Kayıt yapılıyor...",
+      registerRequired: "Tüm alanlar zorunlu!",
+      registerPassMismatch: "Şifreler eşleşmiyor!",
+      registerPassShort: "Şifre en az 6 karakter olmalı!",
+      registerUserShort: "Kullanıcı adı en az 3 karakter olmalı!",
+      registerFailed: "Kayıt başarısız!",
+      registerClosed: "Kayıt şu anda kapalı",
+      updateAvailable: "🔄 Yeni sürüm mevcut! Lütfen eklentiyi güncelleyin.",
+      wsConnected: "⚡ WebSocket bağlandı",
+      wsProgress: "⏳ derinlik {0}…",
+      aboutTitle: "ForkSight Hakkında",
+      aboutText:
+        "ForkSight, Stockfish motoru tarafından desteklenen gelişmiş bir satranç analiz aracıdır. Tahta üzerinde görsel oklar ile gerçek zamanlı taktik analiz sunar.<br><br><b>⚠️ Uyarı:</b> Bu araç yalnızca <b>eğitim amaçlı</b> oluşturulmuştur. Oyuncuların öğrenmesine, pozisyonları çalışmasına ve satranç anlayışlarını geliştirmesine yardımcı olmak için tasarlanmıştır. Dereceli oyunlarda hile yapmak için kullanmamanızı şiddetle tavsiye ederiz. Adil oyun satrancı güzel kılar.<br><br><b>Sürüm:</b> 1.0",
+      aboutCreator: "Yaratıcı",
+      aboutLinks: "Bağlantılar",
+      premiumTitle: "ForkSight Premium",
+      premiumSubtitle: "Satrançta bir adım önde olun",
+      premiumDepth: "Sınırsız Derinlik",
+      premiumDepthDesc: "30 seviyeye kadar analiz",
+      premiumMpv: "Çoklu Varyant (5 PV)",
+      premiumMpvDesc: "En iyi 5 hamleyi aynı anda gör",
+      premiumAuto: "Otomatik Analiz",
+      premiumAutoDesc: "Her hamle anında analiz edilir",
+      premiumAutoplay: "Otomatik Oynama",
+      premiumAutoplayDesc: "Motor en iyi hamleyi otomatik oynar",
+      premiumAntiban: "Anti-Ban Sistemi",
+      premiumAntibanDesc: "Rastgele gecikmelerle tespit önleme",
+      premiumAutomatch: "Otomatik Maç",
+      premiumAutomatchDesc: "Art arda maç bul ve oyna",
+      premiumCta: "🚀 Premium'a Geç",
+      premiumContact: "✉️ İletişim",
+      premiumLater: "Belki Daha Sonra",
+      premiumFreeMsg: "⚠️ Free hesap — Premium ile tüm özelliklere erişin!",
+    },
+    de: {
+      loginTitle: "ForkSight — Anmeldung",
+      usernamePH: "Benutzername",
+      passwordPH: "Passwort",
+      loginBtn: "🔑 Anmelden",
+      guestBtn: "👤 Als Gast fortfahren",
+      loginRequired: "Benutzername und Passwort erforderlich!",
+      loggingIn: "⏳ Anmeldung läuft...",
+      loginFailed: "Anmeldung fehlgeschlagen!",
+      serverFailed: "Serververbindung fehlgeschlagen!",
+      langLabel: "Sprache:",
+      panelTitle: "ForkSight",
+      guest: "👤 Gast",
+      logoutTitle: "Abmelden",
+      minimizeTitle: "Minimieren",
+      autoAnalysis: "Auto-Analyse:",
+      off: "Aus",
+      on: "An",
+      autoPlay: "Auto-Spielen:",
+      me: "Ich",
+      white: "Weiß",
+      black: "Schwarz",
+      antiBan: "🛡️ Anti-Ban:",
+      autoMatch: "🔄 Auto-Match:",
+      min10: "10Min",
+      min30: "30Min",
+      hour1: "1 Std",
+      hour2: "2 Std",
+      day1: "1 Tag",
+      unlimited: "Unbegrenzt",
+      analyzeBtn: "⚡ ANALYSIEREN (F2)",
+      clearBtn: "🧹 Löschen (F3)",
+      resetBtn: "🔄 Engine Reset",
+      depth: "Tiefe:",
+      movesLabel: "Züge:",
+      turnLabel: "Zug:",
+      automatic: "Automatisch",
+      defaultStatus: "F2: Analyse — F3: Löschen",
+      guestMode: "👤 Gastmodus — eingeschränkter Zugang",
+      welcome: "✅ Willkommen, {0}!",
+      engineResetting: "🔄 Engine wird zurückgesetzt...",
+      engineResetDone: "✅ Engine zurückgesetzt",
+      resetError: "❌ Reset-Fehler: {0}",
+      boardNotFound: "❌ Brett nicht gefunden!",
+      readingBoard: "⏳ Brett wird gelesen…",
+      boardReadError: "❌ Brett konnte nicht gelesen werden!",
+      thinking: "⏳ Stockfish denkt nach… (d={0}{1})",
+      serverConnFail: "Serververbindung fehlgeschlagen",
+      timeoutMsg: "⚠️ Timeout ({0}/3) — wird erneut versucht",
+      timeoutReset: "🔄 3 Timeouts nacheinander — Engine wird zurückgesetzt...",
+      mateStalemate: "♚ Schachmatt oder Patt!",
+      movesFound: "✅ {0} Züge ({1}s)",
+      playingMove: "🤖 {0} {1} wird gespielt ({2}s)",
+      cleared: "Gelöscht",
+      guestNoReset: "❌ Engine Reset im Gastmodus nicht verfügbar",
+      guestNoMpv: "❌ Zuganzahl im Gastmodus nicht änderbar",
+      guestNoAuto: "❌ Auto-Analyse im Gastmodus nicht verfügbar",
+      guestNoAutoPlay: "❌ Auto-Spielen im Gastmodus nicht verfügbar",
+      guestNoAntiBan: "❌ Anti-Ban im Gastmodus nicht verfügbar",
+      guestNoAutoMatch: "❌ Auto-Match im Gastmodus nicht verfügbar",
+      autoMatchActive: "🔄 Auto-Match aktiv",
+      autoMatchExpired: "⏰ Auto-Match Zeit abgelaufen",
+      activeInf: "∞ Aktiv",
+      gameOver: "🔄 Spiel vorbei! Neues Match ({0}s)…",
+      rematchSent: "🔍 Revanche gesendet…",
+      searchingGame: "🔍 Neues Spiel wird gesucht…",
+      redirectLobby: "🔍 Weiterleitung zur Lobby…",
+      movePlayed: "🤖 Zug gespielt: {0}",
+      waitingOpponent: "⏳ Gegner am Zug — warte…",
+      moveCancel: "Zug abgebrochen — Position oder Zugrecht geändert",
+      registerBtn: "📝 Registrieren",
+      registerTitle: "ForkSight — Registrierung",
+      confirmPH: "Passwort bestätigen",
+      registerSubmit: "📝 Konto erstellen",
+      backToLogin: "← Zurück zur Anmeldung",
+      registering: "⏳ Registrierung läuft...",
+      registerRequired: "Alle Felder sind erforderlich!",
+      registerPassMismatch: "Passwörter stimmen nicht überein!",
+      registerPassShort: "Passwort muss mindestens 6 Zeichen lang sein!",
+      registerUserShort: "Benutzername muss mindestens 3 Zeichen lang sein!",
+      registerFailed: "Registrierung fehlgeschlagen!",
+      registerClosed: "Registrierung ist derzeit geschlossen",
+      updateAvailable:
+        "🔄 Neue Version verfügbar! Bitte Extension aktualisieren.",
+      wsConnected: "⚡ WebSocket verbunden",
+      wsProgress: "⏳ Tiefe {0}…",
+      aboutTitle: "Über ForkSight",
+      aboutText:
+        "ForkSight ist ein fortschrittliches Schachanalyse-Tool, das von der Stockfish-Engine angetrieben wird. Es bietet Echtzeit-Taktikanalyse mit visuellen Pfeilen auf dem Brett.<br><br><b>⚠️ Hinweis:</b> Dieses Tool wurde ausschließlich für <b>Bildungszwecke</b> erstellt. Es soll Spielern helfen, zu lernen, Positionen zu studieren und ihr Schachverständnis zu verbessern. Wir raten dringend davon ab, es zum Schummeln in gewerteten Partien zu verwenden. Faires Spiel macht Schach schön.<br><br><b>Version:</b> 1.0",
+      aboutCreator: "Ersteller",
+      aboutLinks: "Links",
+      premiumTitle: "ForkSight Premium",
+      premiumSubtitle: "Immer einen Schritt voraus im Schach",
+      premiumDepth: "Unbegrenzte Tiefe",
+      premiumDepthDesc: "Analyse bis Stufe 30",
+      premiumMpv: "Mehrere Varianten (5 PV)",
+      premiumMpvDesc: "Die besten 5 Züge gleichzeitig sehen",
+      premiumAuto: "Auto-Analyse",
+      premiumAutoDesc: "Jeder Zug wird sofort analysiert",
+      premiumAutoplay: "Auto-Spielen",
+      premiumAutoplayDesc: "Engine spielt automatisch den besten Zug",
+      premiumAntiban: "Anti-Ban System",
+      premiumAntibanDesc: "Erkennung verhindern mit zufälligen Verzögerungen",
+      premiumAutomatch: "Auto-Match",
+      premiumAutomatchDesc: "Partien nacheinander finden und spielen",
+      premiumCta: "\uD83D\uDE80 Auf Premium upgraden",
+      premiumContact: "\u2709\uFE0F Kontakt",
+      premiumLater: "Vielleicht später",
+      premiumFreeMsg:
+        "\u26A0\uFE0F Free-Konto \u2014 Voller Zugang mit Premium!",
+    },
+  };
+  let currentLang = "en";
+  function t(key, ...args) {
+    const s = LANGS[currentLang]?.[key] || LANGS.en[key] || key;
+    return args.length === 0
+      ? s
+      : s.replace(/\{(\d+)\}/g, (_, i) => args[i] ?? "");
+  }
+
+  // ─── Config ───────────────────────────────────────────
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const VIEWBOX = 800;
+  const SQ = 100;
+
+  const ARROW_COLORS = [
+    "rgba(0, 180, 50, 0.9)",
+    "rgba(50, 140, 255, 0.85)",
+    "rgba(255, 190, 0, 0.80)",
+    "rgba(220, 50, 50, 0.75)",
+    "rgba(170, 0, 255, 0.70)",
+  ];
+  const ARROW_WIDTHS = [14, 11, 9, 7, 6];
+
+  const HIGHLIGHT_COLORS = [
+    "rgba(0, 180, 50, 0.35)",
+    "rgba(50, 140, 255, 0.30)",
+    "rgba(255, 190, 0, 0.28)",
+    "rgba(220, 50, 50, 0.25)",
+    "rgba(170, 0, 255, 0.22)",
+  ];
+
+  // ─── State ────────────────────────────────────────────
+  let boardEl = null; // cg-board element
+  let cgWrap = null; // div.cg-wrap
+  let svgOverlay = null;
+  let panelEl = null;
+  let isAnalyzing = false;
+  let autoMode = false;
+  let lastFen = "";
+  let boardObserver = null;
+  let autoDebounceTimer = null;
+  let autoPlayEnabled = false;
+  let autoPlayColor = "auto";
+  let antiBanEnabled = false;
+  let moveCounter = 0;
+  let autoMatchEnabled = false;
+  let autoMatchEndTime = null;
+  let gameEndCheckTimer = null;
+  let gameResultWatchTimer = null;
+  let lastGameEndDetected = 0;
+  let winStreak = 0;
+  let throwThisGame = false;
+  let throwBlunderAt = 0;
+  let totalGames = { wins: 0, losses: 0, draws: 0 };
+  let consecutiveTimeouts = 0;
+  let isGuest = true; // Misafir modu (varsayılan: true — giriş yapılana kadar)
+  let isPremium = false;
+  let loggedInUser = null;
+  let wsConnection = null;
+  let wsApiBase = null;
+  let settings = {
+    depth: 18,
+    multipv: 3,
+    turnOverride: "auto",
+  };
+
+  // ─── Premium Popup ──────────────────────────────────────
+  function showPremiumPopup() {
+    if (document.getElementById("taktik-premium-popup")) return;
+    const overlay = document.createElement("div");
+    overlay.id = "taktik-premium-popup";
+    overlay.innerHTML = `
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999999;display:flex;align-items:center;justify-content:center">
+        <div style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);border-radius:20px;padding:40px 36px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px rgba(233,196,106,0.15);border:1px solid rgba(233,196,106,0.3);position:relative;text-align:center">
+          
+          <div style="font-size:56px;margin-bottom:12px;filter:drop-shadow(0 0 20px rgba(255,215,0,0.5))">👑</div>
+          
+          <h2 style="color:#ffd700;font-size:24px;font-weight:800;margin:0 0 8px;text-shadow:0 0 20px rgba(255,215,0,0.3)">${t("premiumTitle")}</h2>
+          <p style="color:#8899aa;font-size:13px;margin:0 0 24px">${t("premiumSubtitle")}</p>
+
+          <div style="text-align:left;margin-bottom:24px">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08)">
+              <span style="font-size:20px">🎯</span>
+              <div><div style="color:#e0e0e0;font-weight:600;font-size:14px">${t("premiumDepth")}</div><div style="color:#667;font-size:12px">${t("premiumDepthDesc")}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08)">
+              <span style="font-size:20px">📊</span>
+              <div><div style="color:#e0e0e0;font-weight:600;font-size:14px">${t("premiumMpv")}</div><div style="color:#667;font-size:12px">${t("premiumMpvDesc")}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08)">
+              <span style="font-size:20px">⚡</span>
+              <div><div style="color:#e0e0e0;font-weight:600;font-size:14px">${t("premiumAuto")}</div><div style="color:#667;font-size:12px">${t("premiumAutoDesc")}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08)">
+              <span style="font-size:20px">🤖</span>
+              <div><div style="color:#e0e0e0;font-weight:600;font-size:14px">${t("premiumAutoplay")}</div><div style="color:#667;font-size:12px">${t("premiumAutoplayDesc")}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08)">
+              <span style="font-size:20px">🛡️</span>
+              <div><div style="color:#e0e0e0;font-weight:600;font-size:14px">${t("premiumAntiban")}</div><div style="color:#667;font-size:12px">${t("premiumAntibanDesc")}</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 0">
+              <span style="font-size:20px">🔄</span>
+              <div><div style="color:#e0e0e0;font-weight:600;font-size:14px">${t("premiumAutomatch")}</div><div style="color:#667;font-size:12px">${t("premiumAutomatchDesc")}</div></div>
+            </div>
+          </div>
+
+          <a href="https://github.com/mrtcnygt0" target="_blank" style="display:block;padding:14px 24px;background:linear-gradient(135deg,#ffd700,#ffaa00);color:#1a1a2e;font-weight:800;font-size:16px;border-radius:12px;text-decoration:none;margin-bottom:12px;box-shadow:0 4px 20px rgba(255,215,0,0.3)">
+            ${t("premiumCta")}
+          </a>
+
+          <div style="display:flex;gap:12px;justify-content:center;margin-bottom:16px">
+            <a href="https://mertcanyigit.com" target="_blank" style="color:#6688aa;font-size:12px;text-decoration:none">🌐 mertcanyigit.com</a>
+            <a href="mailto:mertcanyigit54@outlook.com" style="color:#6688aa;font-size:12px;text-decoration:none">${t("premiumContact")}</a>
+          </div>
+
+          <button class="taktik-premium-close" style="background:transparent;border:1px solid #445;color:#889;padding:8px 24px;border-radius:8px;cursor:pointer;font-size:13px">
+            ${t("premiumLater")}
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    // Event listener'ları CSP-uyumlu şekilde ekle (inline onclick yerine)
+    overlay.querySelector(".taktik-premium-close").addEventListener("click", () => overlay.remove());
+    overlay.querySelector("div").addEventListener("click", (e) => {
+      if (e.target === overlay.querySelector("div")) overlay.remove();
+    });
+  }
+  }
+
+  // ─── Auth (Giriş Sistemi) ─────────────────────────────
+  function applyGuestRestrictions() {
+    isGuest = true;
+    loggedInUser = null;
+    // Misafir kısıtlamaları
+    settings.depth = Math.min(settings.depth, 8);
+    settings.multipv = 1;
+    autoPlayEnabled = false;
+    autoMode = false;
+    antiBanEnabled = false;
+    autoMatchEnabled = false;
+    stopBoardWatch();
+  }
+
+  function removeGuestRestrictions() {
+    isGuest = false;
+    // isPremium server'dan gelir
+  }
+
+  function showLoginModal() {
+    // Kayıtlı oturum varsa token ile otomatik giriş
+    chrome.storage.local.get(
+      ["taktik_lang", "taktik_token", "taktik_user"],
+      async (saved) => {
+        if (saved.taktik_lang && LANGS[saved.taktik_lang])
+          currentLang = saved.taktik_lang;
+        if (saved.taktik_token && saved.taktik_user) {
+          try {
+            const resp = await new Promise((resolve, reject) => {
+              chrome.runtime.sendMessage({ type: "verify_token" }, (r) => {
+                if (chrome.runtime.lastError)
+                  reject(new Error(chrome.runtime.lastError.message));
+                else resolve(r);
+              });
+            });
+            if (resp && resp.ok) {
+              loggedInUser = resp.username || saved.taktik_user;
+              isGuest = false;
+              isPremium = !!resp.is_premium;
+              onAuthComplete();
+              return;
+            }
+          } catch (e) {
+            /* sunucu kapalı, normal modal göster */
+          }
+        }
+        showLoginModalUI();
+      },
+    );
+  }
+
+  function showLoginModalUI() {
+    // Eski modal varsa kaldır
+    const old = document.getElementById("taktik-login-modal");
+    if (old) old.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "taktik-login-modal";
+    modal.innerHTML = `
+      <div class="taktik-login-overlay"></div>
+      <div class="taktik-login-box">
+        <div class="taktik-login-header">${t("loginTitle")}</div>
+        <div class="taktik-login-body">
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="color:#aaa;font-size:13px;white-space:nowrap">${t("langLabel")}</label>
+            <select class="taktik-login-lang" style="flex:1;padding:8px;border:1px solid #444;border-radius:6px;background:#2a2a2a;color:#eee;font-size:13px">
+              <option value="en"${currentLang === "en" ? " selected" : ""}>English</option>
+              <option value="tr"${currentLang === "tr" ? " selected" : ""}>Türkçe</option>
+              <option value="de"${currentLang === "de" ? " selected" : ""}>Deutsch</option>
+            </select>
+          </div>
+          <input type="text" class="taktik-login-user" placeholder="${t("usernamePH")}" autocomplete="off" />
+          <input type="password" class="taktik-login-pass" placeholder="${t("passwordPH")}" autocomplete="off" />
+          <div class="taktik-login-error" style="display:none"></div>
+          <button class="taktik-btn taktik-login-submit">${t("loginBtn")}</button>
+          <button class="taktik-btn taktik-login-guest" style="background:#555;margin-top:6px">${t("guestBtn")}</button>
+          <button class="taktik-btn taktik-login-register" style="background:transparent;border:1px solid #bf811d;margin-top:6px;font-size:12px">${t("registerBtn")}</button>
+        </div>
+      </div>
+    `;
+
+    // Stiller
+    const style = document.createElement("style");
+    style.textContent = `
+      .taktik-login-overlay {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.7); z-index: 99998;
+      }
+      .taktik-login-box {
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: #1e1e1e; border: 2px solid #bf811d; border-radius: 12px;
+        padding: 0; width: 320px; z-index: 99999; font-family: Arial, sans-serif;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      }
+      .taktik-login-header {
+        background: #bf811d; color: #fff; padding: 12px 16px; font-size: 15px;
+        font-weight: bold; border-radius: 10px 10px 0 0; text-align: center;
+      }
+      .taktik-login-body {
+        padding: 20px 16px; display: flex; flex-direction: column; gap: 10px;
+      }
+      .taktik-login-body input {
+        padding: 10px 12px; border: 1px solid #444; border-radius: 6px;
+        background: #2a2a2a; color: #eee; font-size: 14px; outline: none;
+      }
+      .taktik-login-body input:focus { border-color: #bf811d; }
+      .taktik-login-error {
+        color: #ff5555; font-size: 13px; text-align: center; padding: 4px 0;
+      }
+      .taktik-login-submit {
+        background: #bf811d !important; font-size: 14px !important;
+      }
+    `;
+    modal.appendChild(style);
+    document.body.appendChild(modal);
+
+    const userInput = modal.querySelector(".taktik-login-user");
+    const passInput = modal.querySelector(".taktik-login-pass");
+    const errorDiv = modal.querySelector(".taktik-login-error");
+    const submitBtn = modal.querySelector(".taktik-login-submit");
+    const guestBtn = modal.querySelector(".taktik-login-guest");
+    const registerBtn = modal.querySelector(".taktik-login-register");
+    const langSel = modal.querySelector(".taktik-login-lang");
+
+    langSel.onchange = () => {
+      currentLang = langSel.value;
+      modal.querySelector(".taktik-login-header").textContent = t("loginTitle");
+      langSel.previousElementSibling.textContent = t("langLabel");
+      userInput.placeholder = t("usernamePH");
+      passInput.placeholder = t("passwordPH");
+      submitBtn.textContent = t("loginBtn");
+      guestBtn.textContent = t("guestBtn");
+    };
+
+    async function doLogin() {
+      const username = userInput.value.trim();
+      const password = passInput.value.trim();
+      if (!username || !password) {
+        errorDiv.style.display = "block";
+        errorDiv.textContent = t("loginRequired");
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.textContent = t("loggingIn");
+      errorDiv.style.display = "none";
+
+      try {
+        const resp = await new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage(
+            { type: "login", data: { username, password } },
+            (r) => {
+              if (chrome.runtime.lastError)
+                reject(new Error(chrome.runtime.lastError.message));
+              else resolve(r);
+            },
+          );
+        });
+        if (resp && resp.ok) {
+          loggedInUser = resp.username;
+          isGuest = false;
+          isPremium = !!resp.is_premium;
+          chrome.storage.local.set({
+            taktik_user: username,
+            taktik_lang: currentLang,
+          });
+          modal.remove();
+          onAuthComplete();
+        } else {
+          errorDiv.style.display = "block";
+          errorDiv.textContent = resp?.error || t("loginFailed");
+          submitBtn.disabled = false;
+          submitBtn.textContent = t("loginBtn");
+        }
+      } catch (e) {
+        errorDiv.style.display = "block";
+        errorDiv.textContent = t("serverFailed");
+        submitBtn.disabled = false;
+        submitBtn.textContent = t("loginBtn");
+      }
+    }
+
+    submitBtn.onclick = doLogin;
+    passInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doLogin();
+    });
+    userInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") passInput.focus();
+    });
+
+    guestBtn.onclick = () => {
+      chrome.storage.local.set({ taktik_lang: currentLang });
+      applyGuestRestrictions();
+      modal.remove();
+      onAuthComplete();
+    };
+
+    registerBtn.onclick = () => showRegisterForm(modal);
+
+    userInput.focus();
+  }
+
+  function showRegisterForm(modal) {
+    const body = modal.querySelector(".taktik-login-body");
+    const header = modal.querySelector(".taktik-login-header");
+    header.textContent = t("registerTitle");
+    body.innerHTML = `
+      <input type="text" class="taktik-reg-user" placeholder="${t("usernamePH")}" autocomplete="off" />
+      <input type="password" class="taktik-reg-pass" placeholder="${t("passwordPH")}" autocomplete="off" />
+      <input type="password" class="taktik-reg-confirm" placeholder="${t("confirmPH")}" autocomplete="off" />
+      <div class="taktik-login-error" style="display:none"></div>
+      <button class="taktik-btn taktik-reg-submit" style="background:#bf811d">${t("registerSubmit")}</button>
+      <button class="taktik-btn taktik-reg-back" style="background:transparent;border:1px solid #555;margin-top:6px;font-size:12px">${t("backToLogin")}</button>
+    `;
+    const regUser = body.querySelector(".taktik-reg-user");
+    const regPass = body.querySelector(".taktik-reg-pass");
+    const regConfirm = body.querySelector(".taktik-reg-confirm");
+    const regError = body.querySelector(".taktik-login-error");
+    const regSubmit = body.querySelector(".taktik-reg-submit");
+    const regBack = body.querySelector(".taktik-reg-back");
+
+    regBack.onclick = () => {
+      modal.remove();
+      showLoginModalUI();
+    };
+
+    regSubmit.onclick = async () => {
+      const username = regUser.value.trim();
+      const password = regPass.value;
+      const confirm = regConfirm.value;
+      regError.style.display = "none";
+      if (!username || !password || !confirm) {
+        regError.style.display = "block";
+        regError.textContent = t("registerRequired");
+        return;
+      }
+      if (username.length < 3) {
+        regError.style.display = "block";
+        regError.textContent = t("registerUserShort");
+        return;
+      }
+      if (password.length < 6) {
+        regError.style.display = "block";
+        regError.textContent = t("registerPassShort");
+        return;
+      }
+      if (password !== confirm) {
+        regError.style.display = "block";
+        regError.textContent = t("registerPassMismatch");
+        return;
+      }
+      regSubmit.disabled = true;
+      regSubmit.textContent = t("registering");
+      try {
+        const resp = await new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage(
+            { type: "register", data: { username, password } },
+            (r) => {
+              if (chrome.runtime.lastError)
+                reject(new Error(chrome.runtime.lastError.message));
+              else resolve(r);
+            },
+          );
+        });
+        if (resp && resp.ok) {
+          loggedInUser = resp.username;
+          isGuest = false;
+          isPremium = !!resp.is_premium;
+          chrome.storage.local.set({
+            taktik_user: username,
+            taktik_lang: currentLang,
+          });
+          modal.remove();
+          onAuthComplete();
+        } else {
+          regError.style.display = "block";
+          regError.textContent = resp?.error || t("registerFailed");
+          regSubmit.disabled = false;
+          regSubmit.textContent = t("registerSubmit");
+        }
+      } catch (e) {
+        regError.style.display = "block";
+        regError.textContent = t("serverFailed");
+        regSubmit.disabled = false;
+        regSubmit.textContent = t("registerSubmit");
+      }
+    };
+    regUser.focus();
+  }
+
+  function onAuthComplete() {
+    createPanel();
+    if (isGuest) {
+      updateStatus(t("guestMode"), "info");
+    } else if (!isPremium) {
+      updateStatus(t("premiumFreeMsg"), "info");
+    } else {
+      updateStatus(t("welcome", loggedInUser), "success");
+    }
+    applyUIRestrictions();
+    connectWebSocket();
+    checkExtensionVersion();
+    startGameResultWatch();
+  }
+
+  // ─── WebSocket ────────────────────────────────────────
+  function connectWebSocket() {
+    if (!isPremium) return;
+    chrome.storage.local.get("taktik_api_base", (r) => {
+      const httpUrl = r.taktik_api_base || "https://forksight.mertcanyigit.com";
+      wsApiBase = httpUrl;
+      const wsUrl = httpUrl.replace(/^http/, "ws") + "/ws";
+      try {
+        wsConnection = new WebSocket(wsUrl);
+        wsConnection.onopen = () => {
+          /* bağlandı */
+        };
+        wsConnection.onclose = () => {
+          wsConnection = null;
+        };
+        wsConnection.onerror = () => {
+          wsConnection = null;
+        };
+      } catch (e) {
+        wsConnection = null;
+      }
+    });
+  }
+
+  function analyzeViaWS(fen, depth, multipv, max_time) {
+    return new Promise((resolve) => {
+      if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
+        resolve(null);
+        return;
+      }
+      chrome.storage.local.get("taktik_token", (r) => {
+        const token = r.taktik_token || "";
+        let lastProgress = null;
+        const handler = (event) => {
+          try {
+            const msg = JSON.parse(event.data);
+            if (msg.type === "progress") {
+              lastProgress = msg;
+              updateStatus(t("wsProgress", msg.depth), "info");
+            } else if (msg.type === "result") {
+              wsConnection.removeEventListener("message", handler);
+              resolve(msg.data);
+            } else if (msg.type === "error") {
+              wsConnection.removeEventListener("message", handler);
+              resolve(null);
+            }
+          } catch (e) {
+            resolve(null);
+          }
+        };
+        wsConnection.addEventListener("message", handler);
+        wsConnection.send(
+          JSON.stringify({ fen, depth, multipv, max_time, token }),
+        );
+        setTimeout(() => {
+          wsConnection.removeEventListener("message", handler);
+          resolve(null);
+        }, 30000);
+      });
+    });
+  }
+
+  // ─── Versiyon Kontrolü ────────────────────────────────
+  function checkExtensionVersion() {
+    chrome.runtime.sendMessage({ type: "version" }, (resp) => {
+      if (chrome.runtime.lastError || !resp || resp.error) return;
+      if (resp.min_extension_version) {
+        const current = chrome.runtime.getManifest?.()?.version || "1.0";
+        if (current < resp.min_extension_version) {
+          showUpdateToast();
+        }
+      }
+    });
+  }
+
+  function showUpdateToast() {
+    const toast = document.createElement("div");
+    toast.style.cssText =
+      "position:fixed;top:20px;right:20px;background:#1e1e1e;border:2px solid #bf811d;border-radius:8px;padding:12px 18px;z-index:999999;color:#eee;font-size:13px;font-family:Arial,sans-serif;box-shadow:0 4px 20px rgba(0,0,0,0.5);cursor:pointer";
+    toast.textContent = t("updateAvailable");
+    toast.onclick = () => toast.remove();
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 10000);
+  }
+
+  function applyUIRestrictions() {
+    if (!panelEl || isPremium) return;
+    // Non-premium: depth max 8
+    settings.depth = Math.min(settings.depth, 8);
+    settings.multipv = 1;
+    const depthSlider = panelEl.querySelector(".taktik-depth");
+    if (depthSlider) {
+      depthSlider.max = "8";
+      depthSlider.value = String(settings.depth);
+      const depthVal = panelEl.querySelector(".taktik-depth-val");
+      if (depthVal) depthVal.textContent = String(settings.depth);
+    }
+    // Multipv 1'e sabitle
+    const mpvSel = panelEl.querySelector(".taktik-mpv");
+    if (mpvSel) {
+      mpvSel.value = "1";
+      settings.multipv = 1;
+    }
+    // Toggle'ları kapat (disabled yapmadan — onclick premium popup gösterecek)
+    const resetToggle = (sel) => {
+      const el = panelEl.querySelector(sel);
+      if (el) el.checked = false;
+    };
+    resetToggle(".taktik-auto-toggle");
+    resetToggle(".taktik-autoplay-toggle");
+    resetToggle(".taktik-antiban-toggle");
+    resetToggle(".taktik-automatch-toggle");
+    // Engine reset butonunu soluklaştır
+    const resetBtn = panelEl.querySelector(".taktik-reset-btn");
+    if (resetBtn) {
+      resetBtn.style.opacity = "0.5";
+    }
+  }
+
+  // ─── Helpers ──────────────────────────────────────────
+  async function resetEngine() {
+    updateStatus(t("engineResetting"), "info");
+    try {
+      const resp = await new Promise((resolve) => {
+        chrome.runtime.sendMessage({ type: "reset" }, resolve);
+      });
+      if (resp && resp.ok) {
+        consecutiveTimeouts = 0;
+        updateStatus(t("engineResetDone"), "success");
+      } else {
+        updateStatus(t("resetError", resp?.error || "unknown"), "error");
+      }
+    } catch (e) {
+      updateStatus(t("resetError", e.message), "error");
+    }
+  }
+
+  function svgEl(tag, attrs) {
+    const el = document.createElementNS(SVG_NS, tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    return el;
+  }
+
+  // ─── Lichess Board Helpers ────────────────────────────
+  function findBoard() {
+    // Birden fazla selector dene (Lichess SPA'da DOM değişebilir)
+    cgWrap = document.querySelector(".cg-wrap");
+    if (!cgWrap) cgWrap = document.querySelector("cg-wrap")?.parentElement;
+    if (!cgWrap) return null;
+    boardEl = cgWrap.querySelector("cg-board");
+    if (!boardEl) boardEl = document.querySelector("cg-board");
+    return boardEl;
+  }
+
+  function isFlipped() {
+    return cgWrap?.classList.contains("orientation-black") || false;
+  }
+
+  function getPlayerColor() {
+    return isFlipped() ? "b" : "w";
+  }
+
+  /**
+   * Lichess'te taşlar <piece class="white king" style="transform: translate(Xpx, Ypx)">
+   * Pozisyon = translate piksel değerinden hesaplanır.
+   */
+  function readBoardFEN() {
+    // Her okumada board referansını yenile (SPA navigasyonu)
+    if (!boardEl || !boardEl.isConnected) findBoard();
+    if (!boardEl) return null;
+    const boardRect = boardEl.getBoundingClientRect();
+    if (boardRect.width === 0) {
+      // Board stale olabilir, yeniden bul
+      findBoard();
+      if (!boardEl) return null;
+      const retryRect = boardEl.getBoundingClientRect();
+      if (retryRect.width === 0) return null;
+      return readBoardFENInner(retryRect.width / 8);
+    }
+    return readBoardFENInner(boardRect.width / 8);
+  }
+
+  function readBoardFENInner(sqSize) {
+    // 8x8 grid — null ile başlat
+    const grid = Array.from({ length: 8 }, () => Array(8).fill(null));
+
+    const pieces = boardEl.querySelectorAll("piece:not(.ghost):not(.fading)");
+    for (const p of pieces) {
+      // Sınıf: "white king", "black pawn" vb.
+      const cls = p.className;
+      if (cls.includes("dragging")) continue; // sürüklenen taşı atla
+
+      let color = null,
+        role = null;
+      if (cls.includes("white")) color = "w";
+      else if (cls.includes("black")) color = "b";
+      else continue;
+
+      if (cls.includes("king")) role = "k";
+      else if (cls.includes("queen")) role = "q";
+      else if (cls.includes("rook")) role = "r";
+      else if (cls.includes("bishop")) role = "b";
+      else if (cls.includes("knight")) role = "n";
+      else if (cls.includes("pawn")) role = "p";
+      else continue;
+
+      // Pozisyonu translate'den oku
+      let px, py;
+      const inlineTransform = p.style.transform || "";
+      const mTranslate = inlineTransform.match(
+        /translate\(\s*([\d.]+)px\s*,\s*([\d.]+)px\s*\)/,
+      );
+      if (mTranslate) {
+        px = parseFloat(mTranslate[1]);
+        py = parseFloat(mTranslate[2]);
+      } else {
+        // Fallback: computedStyle'dan matrix() oku
+        const computed = window.getComputedStyle(p).transform || "";
+        const mMatrix = computed.match(
+          /matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([\d.-]+)\s*,\s*([\d.-]+)\s*\)/,
+        );
+        if (mMatrix) {
+          px = parseFloat(mMatrix[1]);
+          py = parseFloat(mMatrix[2]);
+        } else {
+          continue;
+        }
+      }
+
+      // Piksel → kare
+      let col, row;
+      if (isFlipped()) {
+        col = 7 - Math.round(px / sqSize);
+        row = Math.round(py / sqSize);
+      } else {
+        col = Math.round(px / sqSize);
+        row = 7 - Math.round(py / sqSize);
+      }
+
+      if (col < 0 || col > 7 || row < 0 || row > 7) continue;
+
+      const fenChar = color === "w" ? role.toUpperCase() : role;
+      grid[7 - row][col] = fenChar;
+    }
+
+    // Grid → FEN string
+    let fen = "";
+    for (let r = 0; r < 8; r++) {
+      let empty = 0;
+      for (let c = 0; c < 8; c++) {
+        if (grid[r][c]) {
+          if (empty > 0) {
+            fen += empty;
+            empty = 0;
+          }
+          fen += grid[r][c];
+        } else {
+          empty++;
+        }
+      }
+      if (empty > 0) fen += empty;
+      if (r < 7) fen += "/";
+    }
+    return fen;
+  }
+
+  // ─── Castling Rights Detection ─────────────────────────
+  function detectCastlingRights() {
+    let wK = true,
+      wQ = true,
+      bK = true,
+      bQ = true;
+
+    // Board'dan doğrulama: taşlar başlangıç karesinde mi?
+    if (!boardEl || !boardEl.isConnected) findBoard();
+    if (boardEl) {
+      const boardRect = boardEl.getBoundingClientRect();
+      const sqSize = boardRect.width / 8;
+      if (sqSize > 0) {
+        const pieceAt = (fileIdx, rankIdx) => {
+          // file: 0=a, rankIdx: 0=1. sıra
+          let px, py;
+          if (isFlipped()) {
+            px = (7 - fileIdx) * sqSize;
+            py = rankIdx * sqSize;
+          } else {
+            px = fileIdx * sqSize;
+            py = (7 - rankIdx) * sqSize;
+          }
+          const pieces = boardEl.querySelectorAll(
+            "piece:not(.ghost):not(.fading)",
+          );
+          for (const p of pieces) {
+            let ppx, ppy;
+            const inlineT = p.style.transform || "";
+            const mT = inlineT.match(
+              /translate\(\s*([\d.]+)px\s*,\s*([\d.]+)px\s*\)/,
+            );
+            if (mT) {
+              ppx = parseFloat(mT[1]);
+              ppy = parseFloat(mT[2]);
+            } else {
+              const comp = window.getComputedStyle(p).transform || "";
+              const mM = comp.match(
+                /matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([\d.-]+)\s*,\s*([\d.-]+)\s*\)/,
+              );
+              if (mM) {
+                ppx = parseFloat(mM[1]);
+                ppy = parseFloat(mM[2]);
+              } else {
+                continue;
+              }
+            }
+            if (
+              Math.abs(ppx - px) < sqSize * 0.3 &&
+              Math.abs(ppy - py) < sqSize * 0.3
+            ) {
+              return p.className;
+            }
+          }
+          return null;
+        };
+
+        // e1 = file 4, rank 0
+        const e1 = pieceAt(4, 0);
+        if (!e1 || !e1.includes("white") || !e1.includes("king")) {
+          wK = false;
+          wQ = false;
+        }
+        // a1 = file 0, rank 0
+        const a1 = pieceAt(0, 0);
+        if (!a1 || !a1.includes("white") || !a1.includes("rook")) wQ = false;
+        // h1 = file 7, rank 0
+        const h1 = pieceAt(7, 0);
+        if (!h1 || !h1.includes("white") || !h1.includes("rook")) wK = false;
+        // e8 = file 4, rank 7
+        const e8 = pieceAt(4, 7);
+        if (!e8 || !e8.includes("black") || !e8.includes("king")) {
+          bK = false;
+          bQ = false;
+        }
+        // a8 = file 0, rank 7
+        const a8 = pieceAt(0, 7);
+        if (!a8 || !a8.includes("black") || !a8.includes("rook")) bQ = false;
+        // h8 = file 7, rank 7
+        const h8 = pieceAt(7, 7);
+        if (!h8 || !h8.includes("black") || !h8.includes("rook")) bK = false;
+      }
+    }
+
+    // Hamle listesinden kontrol
+    const moveTags = document.querySelectorAll(
+      "l4x kwdb, .moves kwdb, .tview2 kwdb, move",
+    );
+    for (let i = 0; i < moveTags.length; i++) {
+      const isWhite = i % 2 === 0;
+      const txt = (moveTags[i].textContent || "").trim();
+
+      if (txt.includes("O-O")) {
+        if (isWhite) {
+          wK = false;
+          wQ = false;
+        } else {
+          bK = false;
+          bQ = false;
+        }
+        continue;
+      }
+      if (/^K/.test(txt)) {
+        if (isWhite) {
+          wK = false;
+          wQ = false;
+        } else {
+          bK = false;
+          bQ = false;
+        }
+        continue;
+      }
+      if (/^R/.test(txt)) {
+        const colMatch = txt.match(/^R([a-h])/);
+        if (colMatch) {
+          const srcCol = colMatch[1];
+          if (isWhite) {
+            if (srcCol === "a") wQ = false;
+            if (srcCol === "h") wK = false;
+          } else {
+            if (srcCol === "a") bQ = false;
+            if (srcCol === "h") bK = false;
+          }
+        }
+      }
+    }
+
+    let rights = "";
+    if (wK) rights += "K";
+    if (wQ) rights += "Q";
+    if (bK) rights += "k";
+    if (bQ) rights += "q";
+    return rights || "-";
+  }
+
+  // ─── Turn Detection ───────────────────────────────────
+  function detectRealTurn() {
+    // Yöntem 1: Lichess'te aktif saat = oynayacak tarafın saati
+    const runningClock = document.querySelector(".rclock.running");
+    if (runningClock) {
+      if (runningClock.classList.contains("rclock-bottom")) {
+        return getPlayerColor();
+      } else {
+        return getPlayerColor() === "w" ? "b" : "w";
+      }
+    }
+
+    // Yöntem 2: Hamle sayısından
+    const moveTags = document.querySelectorAll(
+      "l4x kwdb, .moves kwdb, .tview2 kwdb, move",
+    );
+    if (moveTags.length > 0) {
+      return moveTags.length % 2 === 0 ? "w" : "b";
+    }
+
+    return "w";
+  }
+
+  function detectTurn() {
+    if (settings.turnOverride !== "auto") return settings.turnOverride;
+    return detectRealTurn();
+  }
+
+  // ─── Square → Pixel (SVG coordinates) ─────────────────
+  function sqToPixel(col, row) {
+    const flip = isFlipped();
+    const x = flip ? (8 - col) * SQ + SQ / 2 : (col - 1) * SQ + SQ / 2;
+    const y = flip ? (row - 1) * SQ + SQ / 2 : (8 - row) * SQ + SQ / 2;
+    return { x, y };
+  }
+
+  function uciToCoords(uci) {
+    return {
+      fromCol: uci.charCodeAt(0) - 96,
+      fromRow: parseInt(uci[1]),
+      toCol: uci.charCodeAt(2) - 96,
+      toRow: parseInt(uci[3]),
+    };
+  }
+
+  // ─── SVG Overlay ──────────────────────────────────────
+  function ensureOverlay() {
+    if (svgOverlay && svgOverlay.parentElement) return svgOverlay;
+    if (!boardEl || !boardEl.isConnected) findBoard();
+    if (!boardEl) return null;
+
+    svgOverlay = svgEl("svg", {
+      id: "taktik-overlay",
+      viewBox: `0 0 ${VIEWBOX} ${VIEWBOX}`,
+      preserveAspectRatio: "xMidYMid meet",
+    });
+    svgOverlay.style.cssText =
+      "position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:50;";
+
+    // Lichess'te cg-board zaten position:relative
+    boardEl.appendChild(svgOverlay);
+    return svgOverlay;
+  }
+
+  function clearArrows() {
+    if (svgOverlay) svgOverlay.innerHTML = "";
+    document.querySelectorAll(".taktik-highlight").forEach((el) => el.remove());
+  }
+
+  function drawArrow(svg, x1, y1, x2, y2, color, width) {
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const headLen = width * 2.2;
+    const spread = Math.PI / 5.5;
+
+    const lineEndX = x2 - headLen * Math.cos(angle);
+    const lineEndY = y2 - headLen * Math.sin(angle);
+
+    const line = svgEl("line", {
+      x1,
+      y1,
+      x2: lineEndX,
+      y2: lineEndY,
+      stroke: color,
+      "stroke-width": width,
+      "stroke-linecap": "round",
+    });
+
+    const p1x = x2 - headLen * 1.8 * Math.cos(angle - spread);
+    const p1y = y2 - headLen * 1.8 * Math.sin(angle - spread);
+    const p2x = x2 - headLen * 1.8 * Math.cos(angle + spread);
+    const p2y = y2 - headLen * 1.8 * Math.sin(angle + spread);
+
+    const head = svgEl("polygon", {
+      points: `${x2},${y2} ${p1x},${p1y} ${p2x},${p2y}`,
+      fill: color,
+    });
+
+    svg.appendChild(line);
+    svg.appendChild(head);
+  }
+
+  function drawSquareHighlight(col, row, color) {
+    const flip = isFlipped();
+    const pctX = flip ? (8 - col) * 12.5 : (col - 1) * 12.5;
+    const pctY = flip ? (row - 1) * 12.5 : (8 - row) * 12.5;
+
+    const div = document.createElement("div");
+    div.className = "taktik-highlight";
+    div.style.cssText = `
+      position:absolute;
+      left:${pctX}%;top:${pctY}%;
+      width:12.5%;height:12.5%;
+      background:${color};
+      pointer-events:none;
+      z-index:45;
+    `;
+    boardEl.appendChild(div);
+  }
+
+  function renderMoves(moves) {
+    const svg = ensureOverlay();
+    clearArrows();
+
+    for (let i = 0; i < moves.length && i < ARROW_COLORS.length; i++) {
+      const m = moves[i];
+      const c = uciToCoords(m.move);
+      const from = sqToPixel(c.fromCol, c.fromRow);
+      const to = sqToPixel(c.toCol, c.toRow);
+
+      drawSquareHighlight(c.fromCol, c.fromRow, HIGHLIGHT_COLORS[i]);
+      drawSquareHighlight(c.toCol, c.toRow, HIGHLIGHT_COLORS[i]);
+
+      drawArrow(
+        svg,
+        from.x,
+        from.y,
+        to.x,
+        to.y,
+        ARROW_COLORS[i],
+        ARROW_WIDTHS[i],
+      );
+
+      if (m.score) {
+        const label = svgEl("text", {
+          x: to.x + 18,
+          y: to.y - 14,
+          fill: ARROW_COLORS[i],
+          "font-size": "22",
+          "font-weight": "bold",
+          "font-family": "Arial, sans-serif",
+          "paint-order": "stroke",
+          stroke: "rgba(0,0,0,0.7)",
+          "stroke-width": "4",
+        });
+        label.textContent = m.score;
+        svg.appendChild(label);
+      }
+    }
+  }
+
+  // ─── Server Communication ────────────────────────────
+  async function analyzePosition() {
+    if (isAnalyzing) return;
+    // Board referansını yenile
+    findBoard();
+    if (!boardEl) {
+      updateStatus(t("boardNotFound"), "error");
+      return;
+    }
+
+    isAnalyzing = true;
+    updateStatus(t("readingBoard"), "working");
+    clearArrows();
+
+    const fenBoard = readBoardFEN();
+    if (!fenBoard) {
+      updateStatus(t("boardReadError"), "error");
+      isAnalyzing = false;
+      return;
+    }
+
+    const turn = detectTurn();
+    const castling = detectCastlingRights();
+    const fen = `${fenBoard} ${turn} ${castling} - 0 1`;
+
+    // Kalan süreye göre derinliği otomatik ayarla
+    const clock = getClockInfo();
+    const remaining = clock.mySeconds ?? 999;
+    let effectiveDepth = settings.depth;
+    if (!isPremium) effectiveDepth = Math.min(effectiveDepth, 8);
+    if (remaining < 5) effectiveDepth = Math.min(effectiveDepth, 3);
+    else if (remaining < 10) effectiveDepth = Math.min(effectiveDepth, 5);
+    else if (remaining < 20) effectiveDepth = Math.min(effectiveDepth, 7);
+    else if (remaining < 40) effectiveDepth = Math.min(effectiveDepth, 9);
+    else if (remaining < 60) effectiveDepth = Math.min(effectiveDepth, 11);
+    else if (remaining < 120) effectiveDepth = Math.min(effectiveDepth, 13);
+    else if (remaining < 300) effectiveDepth = Math.min(effectiveDepth, 15);
+
+    // Kalan süreye göre server timeout'u
+    let maxTime = 0;
+    if (remaining < 5) maxTime = 1.5;
+    else if (remaining < 10) maxTime = 2;
+    else if (remaining < 20) maxTime = 3;
+    else if (remaining < 40) maxTime = 5;
+    else if (remaining < 60) maxTime = 8;
+    else if (remaining < 120) maxTime = 12;
+    else if (remaining < 300) maxTime = 15;
+
+    updateStatus(
+      t(
+        "thinking",
+        effectiveDepth,
+        effectiveDepth < settings.depth ? " ⏱" : "",
+      ),
+      "working",
+    );
+    updateFenDisplay(fen);
+
+    // Auto-play açıkken sadece 1 hamle yeterli (hız için)
+    const effectiveMultipv = autoPlayEnabled ? 1 : settings.multipv;
+
+    try {
+      // WebSocket ile dene (varsa), yoksa HTTP fallback
+      let response = null;
+      if (
+        wsConnection &&
+        wsConnection.readyState === WebSocket.OPEN &&
+        !isGuest
+      ) {
+        response = await analyzeViaWS(
+          fen,
+          effectiveDepth,
+          effectiveMultipv,
+          maxTime,
+        );
+      }
+      if (!response) {
+        response = await new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage(
+            {
+              type: "analyze",
+              data: {
+                fen,
+                depth: effectiveDepth,
+                multipv: effectiveMultipv,
+                max_time: maxTime,
+              },
+            },
+            (resp) => {
+              if (chrome.runtime.lastError)
+                reject(new Error(chrome.runtime.lastError.message));
+              else resolve(resp);
+            },
+          );
+        });
+      }
+
+      if (!response || !response.ok) {
+        updateStatus(`❌ ${response?.error || t("serverConnFail")}`, "error");
+        isAnalyzing = false;
+        return;
+      }
+
+      if (response.moves.length === 0) {
+        if (response.timeout) {
+          consecutiveTimeouts++;
+          if (consecutiveTimeouts >= 3) {
+            updateStatus(t("timeoutReset"), "error");
+            isAnalyzing = false;
+            await resetEngine();
+            if (autoMode) setTimeout(() => analyzePosition(), 500);
+            return;
+          }
+          updateStatus(t("timeoutMsg", consecutiveTimeouts), "error");
+          isAnalyzing = false;
+          if (autoMode) setTimeout(() => analyzePosition(), 1000);
+          return;
+        }
+        updateStatus(t("mateStalemate"), "info");
+        isAnalyzing = false;
+        return;
+      }
+
+      renderMoves(response.moves);
+      updateMoveList(response.moves);
+      consecutiveTimeouts = 0;
+      updateStatus(
+        t("movesFound", response.moves.length, response.time),
+        "success",
+      );
+
+      // Otomatik oynama
+      if (autoPlayEnabled && response.moves.length > 0) {
+        const apColor =
+          autoPlayColor === "auto" ? getPlayerColor() : autoPlayColor;
+        const realTurn = detectRealTurn();
+        if (realTurn === apColor) {
+          const chosen = antiBanEnabled
+            ? antiBanChooseMove(response.moves)
+            : { move: response.moves[0].move, delay: 50 };
+          const delayMs = chosen.delay;
+          const fenAtDecision = readBoardFEN();
+          updateStatus(
+            t(
+              "playingMove",
+              antiBanEnabled ? "🛡️" : "",
+              chosen.move,
+              (delayMs / 1000).toFixed(1),
+            ),
+            "working",
+          );
+          setTimeout(() => {
+            const fenNow = readBoardFEN();
+            const turnNow = detectRealTurn();
+            if (fenNow !== fenAtDecision || turnNow !== apColor) {
+              console.log("[Taktik] " + t("moveCancel"));
+              return;
+            }
+            playMoveOnBoard(chosen.move);
+            moveCounter++;
+          }, delayMs);
+        }
+      }
+    } catch (err) {
+      updateStatus(`❌ ${err.message}`, "error");
+    }
+
+    isAnalyzing = false;
+  }
+
+  // ─── UI Panel ─────────────────────────────────────────
+  function createPanel() {
+    if (panelEl) return;
+
+    panelEl = document.createElement("div");
+    panelEl.id = "taktik-panel";
+    const userBadge = isGuest
+      ? `<span style="color:#aaa;font-size:11px;margin-left:6px">${t("guest")}</span>`
+      : isPremium
+        ? `<span style="color:#ffd700;font-size:11px;margin-left:6px">👑 ${loggedInUser}</span>`
+        : `<span style="color:#aaa;font-size:11px;margin-left:6px">✓ ${loggedInUser} <span style="color:#ff9040;font-size:10px">(Free)</span></span>`;
+    panelEl.innerHTML = `
+      <div class="taktik-header">
+        <span class="taktik-title">${t("panelTitle")} ${userBadge}</span>
+        <div style="display:flex;gap:4px;align-items:center">
+          <select class="taktik-lang-sel" title="${t("langLabel")}" style="font-size:11px;padding:1px 2px;background:#333;color:#eee;border:1px solid #555;border-radius:4px;cursor:pointer">
+            <option value="en"${currentLang === "en" ? " selected" : ""}>EN</option>
+            <option value="tr"${currentLang === "tr" ? " selected" : ""}>TR</option>
+            <option value="de"${currentLang === "de" ? " selected" : ""}>DE</option>
+          </select>
+          <button class="taktik-btn-mini taktik-about-btn" title="${t("aboutTitle")}" style="font-size:13px;color:#8bb8ff;cursor:pointer">ℹ</button>
+          <button class="taktik-btn-mini taktik-logout-btn" title="${t("logoutTitle")}" style="font-size:12px;color:#ff5555">⏻</button>
+          <button class="taktik-btn-mini taktik-toggle-btn" title="${t("minimizeTitle")}">—</button>
+        </div>
+      </div>
+      <div class="taktik-body">
+        <div class="taktik-row taktik-auto-row">
+          <label>${t("autoAnalysis")}</label>
+          <label class="taktik-switch">
+            <input type="checkbox" class="taktik-auto-toggle">
+            <span class="taktik-slider"></span>
+          </label>
+          <span class="taktik-auto-label">${t("off")}</span>
+        </div>
+        <div class="taktik-row taktik-auto-row">
+          <label>${t("autoPlay")}</label>
+          <label class="taktik-switch">
+            <input type="checkbox" class="taktik-autoplay-toggle">
+            <span class="taktik-slider"></span>
+          </label>
+          <span class="taktik-autoplay-label">${t("off")}</span>
+          <select class="taktik-autoplay-color">
+            <option value="auto">${t("me")}</option>
+            <option value="w">${t("white")}</option>
+            <option value="b">${t("black")}</option>
+          </select>
+        </div>
+        <div class="taktik-row taktik-auto-row">
+          <label>${t("antiBan")}</label>
+          <label class="taktik-switch">
+            <input type="checkbox" class="taktik-antiban-toggle">
+            <span class="taktik-slider"></span>
+          </label>
+          <span class="taktik-antiban-label">${t("off")}</span>
+        </div>
+        <div class="taktik-row taktik-auto-row">
+          <label>${t("autoMatch")}</label>
+          <label class="taktik-switch">
+            <input type="checkbox" class="taktik-automatch-toggle">
+            <span class="taktik-slider"></span>
+          </label>
+          <span class="taktik-automatch-label">${t("off")}</span>
+          <select class="taktik-automatch-duration">
+            <option value="10">${t("min10")}</option>
+            <option value="30">${t("min30")}</option>
+            <option value="60" selected>${t("hour1")}</option>
+            <option value="120">${t("hour2")}</option>
+            <option value="1440">${t("day1")}</option>
+            <option value="0">${t("unlimited")}</option>
+          </select>
+        </div>
+        <button class="taktik-btn taktik-analyze-btn">${t("analyzeBtn")}</button>
+        <button class="taktik-btn taktik-clear-btn">${t("clearBtn")}</button>
+        <button class="taktik-btn taktik-reset-btn" style="background:#c62828;margin-top:4px">${t("resetBtn")}</button>
+
+        <div class="taktik-row">
+          <label>${t("depth")}</label>
+          <input type="range" class="taktik-depth" min="5" max="25" value="${settings.depth}">
+          <span class="taktik-depth-val">${settings.depth}</span>
+        </div>
+        <div class="taktik-row">
+          <label>${t("movesLabel")}</label>
+          <select class="taktik-mpv">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+          <label style="margin-left:8px">${t("turnLabel")}</label>
+          <select class="taktik-turn">
+            <option value="auto">${t("automatic")}</option>
+            <option value="w">${t("white")}</option>
+            <option value="b">${t("black")}</option>
+          </select>
+        </div>
+
+        <div class="taktik-fen" title="FEN">—</div>
+        <div class="taktik-status">${t("defaultStatus")}</div>
+        <div class="taktik-moves"></div>
+      </div>
+    `;
+
+    document.body.appendChild(panelEl);
+
+    // Event listeners
+    panelEl.querySelector(".taktik-analyze-btn").onclick = analyzePosition;
+    panelEl.querySelector(".taktik-clear-btn").onclick = () => {
+      clearArrows();
+      updateStatus(t("cleared"), "info");
+      panelEl.querySelector(".taktik-moves").innerHTML = "";
+    };
+    panelEl.querySelector(".taktik-reset-btn").onclick = () => {
+      if (!isPremium) {
+        if (!isGuest) showPremiumPopup();
+        else updateStatus(t("guestNoReset"), "error");
+        return;
+      }
+      resetEngine();
+    };
+
+    const depthSlider = panelEl.querySelector(".taktik-depth");
+    const depthVal = panelEl.querySelector(".taktik-depth-val");
+    depthSlider.oninput = () => {
+      let val = parseInt(depthSlider.value);
+      if (!isPremium && val > 8) {
+        val = 8;
+        depthSlider.value = "8";
+      }
+      settings.depth = val;
+      depthVal.textContent = settings.depth;
+    };
+
+    panelEl.querySelector(".taktik-mpv").onchange = (e) => {
+      if (!isPremium) {
+        e.target.value = "1";
+        settings.multipv = 1;
+        if (!isGuest) showPremiumPopup();
+        return;
+      }
+      settings.multipv = parseInt(e.target.value);
+    };
+    panelEl.querySelector(".taktik-turn").onchange = (e) => {
+      settings.turnOverride = e.target.value;
+    };
+
+    // Otomatik mod toggle
+    const autoToggle = panelEl.querySelector(".taktik-auto-toggle");
+    const autoLabel = panelEl.querySelector(".taktik-auto-label");
+    autoToggle.onchange = () => {
+      if (!isPremium) {
+        autoToggle.checked = false;
+        if (!isGuest) showPremiumPopup();
+        else updateStatus(t("guestNoAuto"), "error");
+        return;
+      }
+      autoMode = autoToggle.checked;
+      autoLabel.textContent = autoMode ? t("on") : t("off");
+      autoLabel.style.color = autoMode ? "#5ddf5d" : "#aaa";
+      if (autoMode) {
+        startBoardWatch();
+        analyzePosition();
+      } else {
+        stopBoardWatch();
+      }
+    };
+
+    // Otomatik oynama toggle
+    const autoPlayToggle = panelEl.querySelector(".taktik-autoplay-toggle");
+    const autoPlayLabel = panelEl.querySelector(".taktik-autoplay-label");
+    const autoPlayColorSel = panelEl.querySelector(".taktik-autoplay-color");
+    autoPlayToggle.onchange = () => {
+      if (!isPremium) {
+        autoPlayToggle.checked = false;
+        if (!isGuest) showPremiumPopup();
+        else updateStatus(t("guestNoAutoPlay"), "error");
+        return;
+      }
+      autoPlayEnabled = autoPlayToggle.checked;
+      autoPlayLabel.textContent = autoPlayEnabled ? t("on") : t("off");
+      autoPlayLabel.style.color = autoPlayEnabled ? "#ff9040" : "#aaa";
+      if (autoPlayEnabled && !autoMode) {
+        autoToggle.checked = true;
+        autoToggle.onchange();
+      }
+    };
+    autoPlayColorSel.onchange = () => {
+      autoPlayColor = autoPlayColorSel.value;
+    };
+
+    // Anti-ban toggle
+    const antiBanToggle = panelEl.querySelector(".taktik-antiban-toggle");
+    const antiBanLabel = panelEl.querySelector(".taktik-antiban-label");
+    antiBanToggle.onchange = () => {
+      if (!isPremium) {
+        antiBanToggle.checked = false;
+        if (!isGuest) showPremiumPopup();
+        else updateStatus(t("guestNoAntiBan"), "error");
+        return;
+      }
+      antiBanEnabled = antiBanToggle.checked;
+      antiBanLabel.textContent = antiBanEnabled ? t("on") : t("off");
+      antiBanLabel.style.color = antiBanEnabled ? "#ff5050" : "#aaa";
+      if (antiBanEnabled) {
+        settings.multipv = Math.max(settings.multipv, 3);
+        const mpvSel = panelEl.querySelector(".taktik-mpv");
+        if (mpvSel) mpvSel.value = String(settings.multipv);
+      }
+    };
+
+    // Oto maç toggle
+    const autoMatchToggle = panelEl.querySelector(".taktik-automatch-toggle");
+    const autoMatchLabel = panelEl.querySelector(".taktik-automatch-label");
+    const autoMatchDuration = panelEl.querySelector(
+      ".taktik-automatch-duration",
+    );
+    autoMatchToggle.onchange = () => {
+      if (!isPremium) {
+        autoMatchToggle.checked = false;
+        if (!isGuest) showPremiumPopup();
+        else updateStatus(t("guestNoAutoMatch"), "error");
+        return;
+      }
+      if (autoMatchToggle.checked) {
+        const mins = parseInt(autoMatchDuration.value);
+        startAutoMatch(mins);
+        if (!autoPlayEnabled) {
+          const apt = panelEl.querySelector(".taktik-autoplay-toggle");
+          if (apt && !apt.checked) {
+            apt.checked = true;
+            apt.onchange();
+          }
+        }
+      } else {
+        stopAutoMatch();
+      }
+    };
+    autoMatchDuration.onchange = () => {
+      if (autoMatchEnabled) {
+        const mins = parseInt(autoMatchDuration.value);
+        autoMatchEndTime = mins > 0 ? Date.now() + mins * 60000 : null;
+        updateAutoMatchTimer();
+      }
+    };
+
+    // Küçültme/büyütme
+    const toggleBtn = panelEl.querySelector(".taktik-toggle-btn");
+    const body = panelEl.querySelector(".taktik-body");
+    toggleBtn.onclick = () => {
+      body.classList.toggle("taktik-collapsed");
+      toggleBtn.textContent = body.classList.contains("taktik-collapsed")
+        ? "+"
+        : "—";
+    };
+
+    // Çıkış butonu
+    panelEl.querySelector(".taktik-logout-btn").onclick = () => doLogout();
+
+    // Hakkında butonu
+    panelEl.querySelector(".taktik-about-btn").onclick = () => showAboutModal();
+
+    // Dil değiştirme
+    panelEl.querySelector(".taktik-lang-sel").onchange = (e) => {
+      currentLang = e.target.value;
+      chrome.storage.local.set({ taktik_lang: currentLang });
+      const savedAuto = autoMode;
+      const savedAutoPlay = autoPlayEnabled;
+      const savedAntiBan = antiBanEnabled;
+      const savedAutoMatch = autoMatchEnabled;
+      panelEl.remove();
+      panelEl = null;
+      createPanel();
+      if (savedAuto) {
+        const el = panelEl.querySelector(".taktik-auto-toggle");
+        if (el) el.checked = true;
+        const lb = panelEl.querySelector(".taktik-auto-label");
+        if (lb) {
+          lb.textContent = t("on");
+          lb.style.color = "#5ddf5d";
+        }
+      }
+      if (savedAutoPlay) {
+        const el = panelEl.querySelector(".taktik-autoplay-toggle");
+        if (el) el.checked = true;
+        const lb = panelEl.querySelector(".taktik-autoplay-label");
+        if (lb) {
+          lb.textContent = t("on");
+          lb.style.color = "#ff9040";
+        }
+      }
+      if (savedAntiBan) {
+        const el = panelEl.querySelector(".taktik-antiban-toggle");
+        if (el) el.checked = true;
+        const lb = panelEl.querySelector(".taktik-antiban-label");
+        if (lb) {
+          lb.textContent = t("on");
+          lb.style.color = "#ff5050";
+        }
+      }
+      if (savedAutoMatch) {
+        const el = panelEl.querySelector(".taktik-automatch-toggle");
+        if (el) el.checked = true;
+        updateAutoMatchTimer();
+      }
+      if (isGuest) applyUIRestrictions();
+    };
+
+    makeDraggable(panelEl, panelEl.querySelector(".taktik-header"));
+  }
+
+  // ─── Hakkında Modal ───────────────────────────────────
+  function showAboutModal() {
+    const old = document.getElementById("forksight-about-modal");
+    if (old) {
+      old.remove();
+      return;
+    }
+
+    const logoUrl = chrome.runtime.getURL("icon.png");
+    const overlay = document.createElement("div");
+    overlay.id = "forksight-about-modal";
+    overlay.style.cssText =
+      "position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',Arial,sans-serif";
+    overlay.innerHTML = `
+      <div style="background:#1a1a2e;border:1px solid #333;border-radius:16px;padding:28px 32px;max-width:420px;width:90%;color:#ddd;position:relative;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
+        <button id="forksight-about-close" style="position:absolute;top:10px;right:14px;background:none;border:none;color:#888;font-size:20px;cursor:pointer;line-height:1">&times;</button>
+        <div style="text-align:center;margin-bottom:16px">
+          <img src="${logoUrl}" style="width:80px;height:80px;border-radius:12px;margin-bottom:8px" alt="ForkSight">
+          <h2 style="margin:0;font-size:20px;color:#7ec87e;font-weight:700">ForkSight</h2>
+        </div>
+        <p style="font-size:12.5px;line-height:1.7;color:#bbb;margin-bottom:16px">${t("aboutText")}</p>
+        <div style="border-top:1px solid #333;padding-top:12px">
+          <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:600">${t("aboutCreator")}</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <span style="font-size:13px;font-weight:600;color:#eee">Mert Can Yiğit</span>
+          </div>
+          <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:600">${t("aboutLinks")}</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a href="https://github.com/mrtcnygt0" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#24292e;color:#fff;border-radius:6px;text-decoration:none;font-size:11px;font-weight:600">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+              GitHub
+            </a>
+            <a href="https://mertcanyigit.com" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#2d5a2d;color:#fff;border-radius:6px;text-decoration:none;font-size:11px;font-weight:600">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              Website
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+    document.getElementById("forksight-about-close").onclick = () =>
+      overlay.remove();
+  }
+
+  function doLogout() {
+    chrome.storage.local.remove([
+      "taktik_user",
+      "taktik_lang",
+      "taktik_token",
+      "taktik_refresh_token",
+      "taktik_is_admin",
+    ]);
+    chrome.runtime.sendMessage({ type: "logout" });
+    if (wsConnection) {
+      try {
+        wsConnection.close();
+      } catch (e) {}
+      wsConnection = null;
+    }
+    loggedInUser = null;
+    isGuest = true;
+    autoMode = false;
+    autoPlayEnabled = false;
+    antiBanEnabled = false;
+    autoMatchEnabled = false;
+    stopBoardWatch();
+    stopAutoMatch();
+    stopGameResultWatch();
+    clearArrows();
+    if (panelEl) {
+      panelEl.remove();
+      panelEl = null;
+    }
+    showLoginModal();
+  }
+
+  function makeDraggable(el, handle) {
+    let dx = 0,
+      dy = 0,
+      x = 0,
+      y = 0;
+    handle.style.cursor = "grab";
+    handle.onmousedown = (e) => {
+      if (["BUTTON", "SELECT", "OPTION"].includes(e.target.tagName)) return;
+      e.preventDefault();
+      x = e.clientX;
+      y = e.clientY;
+      handle.style.cursor = "grabbing";
+      document.onmousemove = (ev) => {
+        dx = ev.clientX - x;
+        dy = ev.clientY - y;
+        x = ev.clientX;
+        y = ev.clientY;
+        el.style.top = el.offsetTop + dy + "px";
+        el.style.left = el.offsetLeft + dx + "px";
+        el.style.right = "auto";
+      };
+      document.onmouseup = () => {
+        handle.style.cursor = "grab";
+        document.onmousemove = null;
+        document.onmouseup = null;
+      };
+    };
+  }
+
+  function updateStatus(text, type) {
+    const el = panelEl?.querySelector(".taktik-status");
+    if (!el) return;
+    el.textContent = text;
+    el.className = `taktik-status taktik-status-${type || "info"}`;
+  }
+
+  function updateFenDisplay(fen) {
+    const el = panelEl?.querySelector(".taktik-fen");
+    if (el) el.textContent = fen;
+  }
+
+  function updateMoveList(moves) {
+    const el = panelEl?.querySelector(".taktik-moves");
+    if (!el) return;
+    el.innerHTML = moves
+      .map((m, i) => {
+        const color = ARROW_COLORS[i] || "#ccc";
+        const pv = m.pv_san?.join(" ") || m.pv_uci?.join(" ") || "";
+        return `<div class="taktik-move-row" style="border-left:3px solid ${color};padding-left:6px;margin:3px 0">
+          <strong>${m.score}</strong> ${pv}
+        </div>`;
+      })
+      .join("");
+  }
+
+  // ─── Keyboard Shortcuts ───────────────────────────────
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "F2") {
+      e.preventDefault();
+      analyzePosition();
+    }
+    if (e.key === "F3") {
+      e.preventDefault();
+      clearArrows();
+      updateStatus(t("cleared"), "info");
+      if (panelEl) panelEl.querySelector(".taktik-moves").innerHTML = "";
+    }
+  });
+
+  // ─── Anti-Ban Mantığı ─────────────────────────────────
+  function getClockInfo() {
+    // Lichess saat: div.rclock div.time
+    const clocks = document.querySelectorAll(".rclock .time");
+    let myClock = null,
+      oppClock = null;
+
+    for (const c of clocks) {
+      const rclock = c.closest(".rclock");
+      if (!rclock) continue;
+      if (rclock.classList.contains("rclock-bottom")) {
+        myClock = c;
+      } else if (rclock.classList.contains("rclock-top")) {
+        oppClock = c;
+      }
+    }
+
+    function parseClockText(el) {
+      if (!el) return null;
+      const txt = (el.textContent || "").replace(/\s/g, "").trim();
+      // "4:32" veya "0:15.3" formatı
+      const m = txt.match(/(\d+):(\d+)/);
+      if (m) return parseInt(m[1]) * 60 + parseInt(m[2]);
+      // Sadece saniye "15.3"
+      const s = txt.match(/^(\d+)\.?\d*$/);
+      if (s) return parseInt(s[1]);
+      return null;
+    }
+
+    const mySeconds = parseClockText(myClock);
+    const oppSeconds = parseClockText(oppClock);
+
+    const maxSeen = Math.max(mySeconds || 0, oppSeconds || 0);
+    let gameTimeControl = 300;
+    if (maxSeen > 540) gameTimeControl = 600;
+    else if (maxSeen > 240) gameTimeControl = 300;
+    else if (maxSeen > 120) gameTimeControl = 180;
+    else if (maxSeen > 0) gameTimeControl = 60;
+
+    return { mySeconds, oppSeconds, gameTimeControl };
+  }
+
+  function antiBanChooseMove(moves) {
+    if (throwThisGame && moves.length >= 2) {
+      const throwMove = getThrowMove(moves);
+      if (throwMove) {
+        const throwDelay = 2000 + Math.random() * 4000;
+        return { move: throwMove, delay: Math.round(throwDelay) };
+      }
+    }
+
+    const complexity = moves.length >= 3 ? evaluateComplexity(moves) : 0.3;
+    const clock = getClockInfo();
+    const remaining = clock.mySeconds ?? 120;
+    const tc = clock.gameTimeControl;
+
+    let minDelay, maxDelay;
+    if (tc >= 600) {
+      minDelay = 3000;
+      maxDelay = 15000;
+    } else if (tc >= 300) {
+      minDelay = 2000;
+      maxDelay = 10000;
+    } else if (tc >= 180) {
+      minDelay = 1000;
+      maxDelay = 6000;
+    } else {
+      minDelay = 500;
+      maxDelay = 3000;
+    }
+
+    let timePressFactor = 1.0;
+    if (remaining < 30) timePressFactor = 0.3;
+    else if (remaining < 60) timePressFactor = 0.5;
+    else if (remaining < 120) timePressFactor = 0.7;
+    minDelay = Math.round(minDelay * timePressFactor);
+    maxDelay = Math.round(maxDelay * timePressFactor);
+
+    const range = maxDelay - minDelay;
+    const baseDelay = minDelay + Math.random() * range * 0.5;
+    const complexityDelay = complexity * range * 0.4;
+    const humanJitter = (Math.random() - 0.5) * range * 0.15;
+    let delay = Math.round(baseDelay + complexityDelay + humanJitter);
+    delay = Math.max(minDelay, Math.min(delay, maxDelay));
+
+    let chosenIdx = 0;
+    const roll = Math.random();
+
+    if (moves.length >= 3) {
+      const s1 = parseScore(moves[0].score);
+      const s2 = parseScore(moves[1].score);
+      const s3 = moves[2] ? parseScore(moves[2].score) : s1 - 2;
+      const diff12 = Math.abs(s1 - s2);
+      const diff13 = Math.abs(s1 - s3);
+
+      if (diff12 < 0.3) {
+        if (roll < 0.4) chosenIdx = 1;
+      } else if (diff12 < 0.7) {
+        if (roll < 0.2) chosenIdx = 1;
+      } else {
+        if (roll < 0.05 && diff13 < 1.5) chosenIdx = 1;
+      }
+      if (diff13 < 0.4 && Math.random() < 0.1) chosenIdx = 2;
+    } else if (moves.length === 2) {
+      const s1 = parseScore(moves[0].score);
+      const s2 = parseScore(moves[1].score);
+      if (Math.abs(s1 - s2) < 0.5 && roll < 0.25) chosenIdx = 1;
+    }
+
+    if (
+      moveCounter > 0 &&
+      moveCounter % (8 + Math.floor(Math.random() * 8)) === 0
+    ) {
+      if (moves.length >= 2) {
+        const s1 = parseScore(moves[0].score);
+        const s2 = parseScore(moves[1].score);
+        if (Math.abs(s1 - s2) < 1.0) {
+          chosenIdx = 1;
+          delay += 1500;
+        }
+      }
+    }
+
+    return { move: moves[chosenIdx].move, delay };
+  }
+
+  // ─── Throw Game ───────────────────────────────────────
+  function shouldThrowNextGame() {
+    const threshold = 3 + Math.floor(Math.random() * 4);
+    return winStreak >= threshold;
+  }
+
+  function setupThrowGame() {
+    throwThisGame = true;
+    throwBlunderAt = 8 + Math.floor(Math.random() * 9);
+  }
+
+  function getThrowMove(moves) {
+    if (moveCounter < throwBlunderAt - 2) return null;
+    if (moveCounter >= throwBlunderAt - 2 && moveCounter < throwBlunderAt) {
+      if (moves.length >= 2 && Math.random() < 0.4) {
+        const idx = moves.length >= 3 ? (Math.random() < 0.5 ? 1 : 2) : 1;
+        return moves[idx].move;
+      }
+      return null;
+    }
+    if (moveCounter === throwBlunderAt) {
+      if (moves.length >= 3) return moves[moves.length - 1].move;
+      else if (moves.length >= 2) return moves[1].move;
+      return null;
+    }
+    if (moveCounter > throwBlunderAt) {
+      if (moves.length >= 2 && Math.random() < 0.5) {
+        const idx = Math.min(
+          moves.length - 1,
+          1 + Math.floor(Math.random() * (moves.length - 1)),
+        );
+        return moves[idx].move;
+      }
+    }
+    return null;
+  }
+
+  function detectGameResult() {
+    // Lichess sonuç: div.result-wrap > p.result (dil bağımsız notasyon)
+    const resultEl = document.querySelector(".result-wrap .result, .status");
+    if (resultEl) {
+      const t = (resultEl.textContent || "").trim();
+      if (t === "1-0" || t === "0-1" || t === "½-½" || t === "1/2-1/2") {
+        const playerColor = getPlayerColor();
+        if (t === "1-0") return playerColor === "w" ? "win" : "loss";
+        if (t === "0-1") return playerColor === "b" ? "win" : "loss";
+        return "draw";
+      }
+    }
+    // Status mesajından (Lichess çoğunlukla İngilizce ama çok dilli olabilir)
+    const statusEl = document.querySelector(".result-wrap .status, .rresult");
+    if (statusEl) {
+      const txt = (statusEl.textContent || "").toLowerCase();
+      // WIN
+      if (txt.includes("checkmate") || txt.includes("wins") || txt.includes("victorious")) {
+        if (txt.includes("white")) return getPlayerColor() === "w" ? "win" : "loss";
+        if (txt.includes("black")) return getPlayerColor() === "b" ? "win" : "loss";
+        return "win";
+      }
+      // DRAW
+      if (txt.includes("draw") || txt.includes("stalemate") || txt.includes("½")) return "draw";
+      // LOSS (resign/timeout → kimin olduğunu anla)
+      if (txt.includes("resign") || txt.includes("timeout") || txt.includes("abort")) {
+        // Lichess: "White resigned" veya "Black left the game"
+        if (txt.includes("white")) return getPlayerColor() === "w" ? "loss" : "win";
+        if (txt.includes("black")) return getPlayerColor() === "b" ? "loss" : "win";
+        return "loss";
+      }
+    }
+    return null;
+  }
+
+  function evaluateComplexity(moves) {
+    if (moves.length < 2) return 0.2;
+    const scores = moves.map((m) => parseScore(m.score));
+    const spread = Math.abs(scores[0] - scores[scores.length - 1]);
+    if (spread < 0.3) return 0.8;
+    if (spread < 1.0) return 0.5;
+    return 0.2;
+  }
+
+  function parseScore(scoreStr) {
+    if (!scoreStr) return 0;
+    if (scoreStr.startsWith("M")) {
+      const m = parseInt(scoreStr.slice(1));
+      return m > 0 ? 100 - m : -100 - m;
+    }
+    return parseFloat(scoreStr) || 0;
+  }
+
+  // ─── Oyun Sonucu İzleyici (her zaman aktif) ────────────
+  function startGameResultWatch() {
+    stopGameResultWatch();
+    gameResultWatchTimer = setInterval(() => {
+      detectAndReportGameEnd();
+    }, 3000);
+  }
+
+  function stopGameResultWatch() {
+    if (gameResultWatchTimer) {
+      clearInterval(gameResultWatchTimer);
+      gameResultWatchTimer = null;
+    }
+  }
+
+  function isGameEndDetected() {
+    // Yöntem 1: Lichess result-wrap
+    const resultWrap = document.querySelector(".result-wrap");
+    if (resultWrap) {
+      const resultText = (
+        resultWrap.querySelector(".result")?.textContent || ""
+      ).trim();
+      if (
+        resultText === "1-0" ||
+        resultText === "0-1" ||
+        resultText === "½-½"
+      ) {
+        return true;
+      }
+    }
+    // Yöntem 2: Lichess oyun sonu durumu (status)
+    const statusText = document.querySelector(".result-wrap .status, .rresult");
+    if (statusText) {
+      const txt = (statusText.textContent || "").toLowerCase();
+      const keywords = [
+        "checkmate",
+        "resign",
+        "timeout",
+        "draw",
+        "stalemate",
+        "wins",
+        "aborted",
+        "victorious",
+      ];
+      if (keywords.some((kw) => txt.includes(kw))) return true;
+    }
+    // Yöntem 3: Rematch butonu görünmesi
+    const rematch = document.querySelector(
+      'button.rematch, a.rematch, [data-act="rematch"]',
+    );
+    if (rematch && rematch.offsetParent !== null) return true;
+    return false;
+  }
+
+  function detectAndReportGameEnd() {
+    if (Date.now() - lastGameEndDetected < 30000) return;
+    if (!isGameEndDetected()) return;
+
+    lastGameEndDetected = Date.now();
+
+    // ─── Oyun sonucunu sunucuya bildir ───
+    const gameResult = detectGameResult();
+    if (gameResult && loggedInUser) {
+      const playerColor = getPlayerColor();
+      let opponentName = "";
+      try {
+        // Lichess: Birden fazla strateji ile rakip adını bul
+        // Strateji 1: .ruser-top (üstteki oyuncu = rakip)
+        const topUser = document.querySelector(
+          ".ruser-top .username, .ruser-top a.user-link, .ruser-top .text"
+        );
+        if (topUser) {
+          opponentName = topUser.textContent.trim();
+        }
+        // Strateji 2: tüm .ruser'lardan dene
+        if (!opponentName) {
+          const allUsers = document.querySelectorAll(
+            ".ruser .username, .ruser a.user-link, .ruser .text"
+          );
+          const names = [];
+          allUsers.forEach((el) => {
+            const n = el.textContent.trim();
+            if (n && !names.includes(n)) names.push(n);
+          });
+          if (names.length >= 2) {
+            opponentName = names[0];
+          } else if (names.length === 1) {
+            opponentName = names[0];
+          }
+        }
+        // Strateji 3: game__meta içindeki kullanıcı bilgisi
+        if (!opponentName) {
+          const metaUsers = document.querySelectorAll(
+            ".game__meta a.user-link, .round__app a.user-link"
+          );
+          const found = [];
+          metaUsers.forEach((el) => {
+            const n = el.textContent.trim();
+            if (n && !found.includes(n)) found.push(n);
+          });
+          if (found.length >= 1) opponentName = found[0];
+        }
+      } catch (e) {}
+      let timeControl = "";
+      try {
+        const tcEl = document.querySelector(
+          ".setup .time, .game__meta .header .setup span",
+        );
+        if (tcEl) timeControl = tcEl.textContent.trim();
+      } catch (e) {}
+      chrome.runtime.sendMessage({
+        type: "game_result",
+        data: {
+          site: "lichess.org",
+          game_id: (location.pathname.match(/\/(\w{8,12})(?:\/|$)/) || [])[1] || "",
+          result: gameResult,
+          color: playerColor === "w" ? "white" : "black",
+          opponent: opponentName.slice(0, 50),
+          time_control: timeControl.slice(0, 30),
+          auto_played: autoPlayEnabled,
+        },
+      });
+      console.log(
+        `[Taktik] 🎮 Oyun sonucu bildirildi: ${gameResult} vs ${opponentName}`,
+      );
+    }
+
+    // ─── Anti-ban: sonucu kaydet ve throw kararı ver ───
+    if (antiBanEnabled) {
+      const result = gameResult || detectGameResult();
+      if (result === "win") {
+        totalGames.wins++;
+        winStreak++;
+      } else if (result === "loss") {
+        totalGames.losses++;
+        winStreak = 0;
+        throwThisGame = false;
+      } else if (result === "draw") {
+        totalGames.draws++;
+      }
+      console.log(
+        `[Taktik] Seri: ${winStreak}W | Toplam: ${totalGames.wins}W/${totalGames.losses}L/${totalGames.draws}D`,
+      );
+      if (shouldThrowNextGame()) {
+        setupThrowGame();
+        console.log(
+          `[Taktik] 🎭 Sonraki oyun kasıtlı kayıp (hamle: ~${throwBlunderAt})`,
+        );
+      } else {
+        throwThisGame = false;
+      }
+    }
+
+    return true;
+  }
+
+  // ─── Auto Match Farm ─────────────────────────────────
+  function startAutoMatch(durationMinutes) {
+    autoMatchEnabled = true;
+    autoMatchEndTime =
+      durationMinutes > 0 ? Date.now() + durationMinutes * 60000 : null;
+    lastGameEndDetected = 0;
+    startGameEndWatch();
+    updateAutoMatchTimer();
+    updateStatus(t("autoMatchActive"), "success");
+  }
+
+  function stopAutoMatch() {
+    autoMatchEnabled = false;
+    autoMatchEndTime = null;
+    stopGameEndWatch();
+    const label = panelEl?.querySelector(".taktik-automatch-label");
+    if (label) {
+      label.textContent = t("off");
+      label.style.color = "#aaa";
+    }
+    const toggle = panelEl?.querySelector(".taktik-automatch-toggle");
+    if (toggle) toggle.checked = false;
+  }
+
+  function updateAutoMatchTimer() {
+    const label = panelEl?.querySelector(".taktik-automatch-label");
+    if (!label) return;
+    if (!autoMatchEnabled) {
+      label.textContent = t("off");
+      label.style.color = "#aaa";
+      return;
+    }
+    if (!autoMatchEndTime) {
+      label.textContent = t("activeInf");
+      label.style.color = "#50ff50";
+      return;
+    }
+    const remaining = autoMatchEndTime - Date.now();
+    if (remaining <= 0) {
+      stopAutoMatch();
+      updateStatus(t("autoMatchExpired"), "info");
+      return;
+    }
+    const totalMins = Math.ceil(remaining / 60000);
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    label.textContent = hrs > 0 ? `${hrs}s ${mins}dk` : `${totalMins}dk`;
+    label.style.color = "#50ff50";
+  }
+
+  function startGameEndWatch() {
+    stopGameEndWatch();
+    gameEndCheckTimer = setInterval(() => {
+      if (!autoMatchEnabled) {
+        stopGameEndWatch();
+        return;
+      }
+      if (autoMatchEndTime && Date.now() > autoMatchEndTime) {
+        stopAutoMatch();
+        updateStatus(t("autoMatchExpired"), "info");
+        return;
+      }
+      updateAutoMatchTimer();
+      checkGameEnd();
+    }, 2500);
+  }
+
+  function stopGameEndWatch() {
+    if (gameEndCheckTimer) {
+      clearInterval(gameEndCheckTimer);
+      gameEndCheckTimer = null;
+    }
+  }
+
+  function checkGameEnd() {
+    // detectAndReportGameEnd tüm sonuç tespiti ve raporlamayı yapar
+    // true dönerse oyun bitmiş demektir, auto-match navigasyonuna devam et
+    if (!detectAndReportGameEnd()) return;
+
+    // Yeni maç başlat
+    const delay = 3000 + Math.random() * 5000;
+    updateStatus(t("gameOver", (delay / 1000).toFixed(1)), "working");
+    setTimeout(() => {
+      if (!autoMatchEnabled) return;
+      moveCounter = 0;
+      lastFen = "";
+
+      // Lichess: Rematch butonuna tıkla, yoksa lobby'e git
+      const rematchBtn = document.querySelector(
+        'button.rematch, a.rematch, [data-act="rematch"]',
+      );
+      if (rematchBtn && rematchBtn.offsetParent !== null) {
+        rematchBtn.click();
+        updateStatus(t("rematchSent"), "working");
+        setTimeout(() => {
+          // Rematch kabul edilmemişse lobby'e git
+          if (!document.querySelector("cg-board")) {
+            navigateToLobby();
+          } else {
+            resetForNewGame();
+          }
+        }, 8000);
+        return;
+      }
+
+      navigateToLobby();
+    }, delay);
+  }
+
+  function navigateToLobby() {
+    // Anasayfaya git veya mevcut pool'da yeni oyun ara
+    const poolBtns = document.querySelectorAll(
+      ".lobby__app .hook__btn, .lobby__start button, [data-id]",
+    );
+    if (poolBtns.length > 0) {
+      // Lobby zaten açıksa bir pool'a tıkla
+      const randomPool = poolBtns[Math.floor(Math.random() * poolBtns.length)];
+      randomPool.click();
+      updateStatus(t("searchingGame"), "working");
+    } else {
+      window.location.href = "https://lichess.org/";
+      updateStatus(t("redirectLobby"), "working");
+    }
+    setTimeout(() => resetForNewGame(), 5000);
+  }
+
+  function resetForNewGame() {
+    setTimeout(() => {
+      if (autoMode) {
+        findBoard();
+        if (boardEl) startBoardWatch();
+      }
+    }, 5000);
+  }
+
+  // ─── Auto Play (Otomatik Oynama) ──────────────────────
+  function playMoveOnBoard(uci) {
+    if (!boardEl || !boardEl.isConnected) findBoard();
+    if (!boardEl || uci.length < 4) return;
+
+    const fromCol = uci.charCodeAt(0) - 96; // a=1, b=2, ...
+    const fromRow = parseInt(uci[1]);
+    const toCol = uci.charCodeAt(2) - 96;
+    const toRow = parseInt(uci[3]);
+
+    const boardRect = boardEl.getBoundingClientRect();
+    const sqSize = boardRect.width / 8;
+    const flip = isFlipped();
+
+    function sqToClientXY(col, row) {
+      const px = flip
+        ? (8 - col) * sqSize + sqSize / 2
+        : (col - 1) * sqSize + sqSize / 2;
+      const py = flip
+        ? (row - 1) * sqSize + sqSize / 2
+        : (8 - row) * sqSize + sqSize / 2;
+      return { clientX: boardRect.left + px, clientY: boardRect.top + py };
+    }
+
+    const from = sqToClientXY(fromCol, fromRow);
+    const to = sqToClientXY(toCol, toRow);
+
+    const evtOpts = { bubbles: true, cancelable: true, view: window };
+
+    // ─── Chessground Drag Simülasyonu ───
+    // inject.js isTrusted bypass'ı sağlıyor
+    // mousedown → boardEl'e (Chessground burada dinliyor)
+    // mousemove → document'e (Chessground burada dinliyor)
+    // mouseup   → document'e (Chessground burada dinliyor)
+
+    // 1. mousedown: kaynak kareye bas (drag başlasın)
+    boardEl.dispatchEvent(
+      new MouseEvent("mousedown", {
+        ...evtOpts,
+        clientX: from.clientX,
+        clientY: from.clientY,
+        button: 0,
+        buttons: 1,
+      }),
+    );
+
+    // 2. mousemove: hedef kareye sürükle (document'e!)
+    setTimeout(() => {
+      document.dispatchEvent(
+        new MouseEvent("mousemove", {
+          ...evtOpts,
+          clientX: to.clientX,
+          clientY: to.clientY,
+          button: 0,
+          buttons: 1,
+        }),
+      );
+
+      // 3. mouseup: hedef karede bırak (document'e!)
+      // processDrag rAF ile çalışır, started=true olması için yeterli süre ver
+      setTimeout(() => {
+        document.dispatchEvent(
+          new MouseEvent("mouseup", {
+            ...evtOpts,
+            clientX: to.clientX,
+            clientY: to.clientY,
+            button: 0,
+            buttons: 0,
+          }),
+        );
+
+        // Promosyon
+        if (uci.length === 5) {
+          setTimeout(() => {
+            const promoMap = {
+              q: "queen",
+              r: "rook",
+              b: "bishop",
+              n: "knight",
+            };
+            const promoRole = promoMap[uci[4]] || "queen";
+            const promoPiece = document.querySelector(
+              `square.cg-promotion piece.${promoRole}, .promotion-choice piece.${promoRole}`,
+            );
+            if (promoPiece)
+              promoPiece.dispatchEvent(
+                new MouseEvent("click", { bubbles: true }),
+              );
+          }, 300);
+        }
+
+        updateStatus(t("movePlayed", uci), "success");
+      }, 150);
+    }, 60);
+  }
+
+  // ─── Auto Watch (Otomatik Mod) ────────────────────────
+  function startBoardWatch() {
+    stopBoardWatch();
+    if (!boardEl || !boardEl.isConnected) findBoard();
+    if (!boardEl) return;
+
+    lastFen = readBoardFEN() || "";
+
+    boardObserver = new MutationObserver(() => {
+      if (!autoMode || isAnalyzing) return;
+
+      clearTimeout(autoDebounceTimer);
+      autoDebounceTimer = setTimeout(() => {
+        const currentFen = readBoardFEN();
+        if (currentFen && currentFen !== lastFen) {
+          lastFen = currentFen;
+
+          if (autoPlayEnabled) {
+            const myColor =
+              autoPlayColor === "auto" ? getPlayerColor() : autoPlayColor;
+            const currentTurn = detectRealTurn();
+            if (currentTurn !== myColor) {
+              updateStatus(t("waitingOpponent"), "info");
+              return;
+            }
+          }
+
+          analyzePosition();
+        }
+      }, 150);
+    });
+
+    boardObserver.observe(boardEl, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
+  }
+
+  function stopBoardWatch() {
+    if (boardObserver) {
+      boardObserver.disconnect();
+      boardObserver = null;
+    }
+    clearTimeout(autoDebounceTimer);
+  }
+
+  // ─── Cleanup kayıt (reload koruması) ───────────────────
+  window.__taktikCleanup = function () {
+    autoMode = false;
+    autoPlayEnabled = false;
+    autoMatchEnabled = false;
+    antiBanEnabled = false;
+    isAnalyzing = false;
+    stopBoardWatch();
+    stopGameEndWatch();
+    clearTimeout(autoDebounceTimer);
+    if (panelEl) {
+      panelEl.remove();
+      panelEl = null;
+    }
+    if (svgOverlay) {
+      svgOverlay.remove();
+      svgOverlay = null;
+    }
+  };
+
+  // ─── Board Detection & Init ───────────────────────────
+  function tryInit() {
+    if (!findBoard()) return false;
+    // Board bulundu — giriş modalını göster
+    showLoginModal();
+    return true;
+  }
+
+  if (!tryInit()) {
+    const obs = new MutationObserver(() => {
+      if (tryInit()) obs.disconnect();
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    setTimeout(() => obs.disconnect(), 30000);
+  }
+})();

@@ -1,0 +1,58 @@
+# ─── Server & Backend (PRIVATE - Never commit) ───
+server.py
+server_old.py
+server_v2.py
+manage_users.py
+admin_panel.html
+setup_domain.py
+start_server.bat
+requirements.txt
+
+# ─── Database & Secrets ───
+*.db
+*.sqlite
+*.sqlite3
+server jwt secret.txt
+users.json.migrated
+
+# ─── Server Config & Deployment ───
+nginx-stockfish.conf
+stockfish-server.service
+setup_https.sh
+setup_vds.sh
+*.service
+
+# ─── Stockfish Engine Binary ───
+stockfish/
+
+# ─── Backups ───
+backups/
+
+# ─── Archives ───
+*.zip
+*.tar.gz
+*.rar
+
+# ─── OS / IDE ───
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── Python ───
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+
+# ─── Node (if any) ───
+node_modules/
+package-lock.json
+
+# ─── Logs ───
+*.log

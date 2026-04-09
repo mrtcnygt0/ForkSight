@@ -223,7 +223,7 @@ Download the latest release from the [**Releases**](../../releases) page:
 </tbody>
 </table>
 
-> 🔑 **Want Premium?** See the [Contact](#-contact) section below to get your account.
+> 🔑 **Want Premium?** Just **$5/month** via [GitHub Sponsors](https://github.com/sponsors/mrtcnygt0). Your account will be upgraded within 24 hours!
 
 ---
 
@@ -306,7 +306,15 @@ If ForkSight has helped you learn or enjoy chess more, please consider supportin
 
 ## 📬 Contact
 
-**Want to get Premium access?** Reach out to us:
+**Want to get Premium access?** Sponsor us on GitHub for **$5/month** and get upgraded within 24 hours:
+
+<p align="center">
+  <a href="https://github.com/sponsors/mrtcnygt0">
+    <img src="https://img.shields.io/badge/💎%20Get%20Premium%20—%20$5%2Fmo-ffd700?style=for-the-badge&logo=github-sponsors&logoColor=black" alt="Get Premium">
+  </a>
+</p>
+
+After sponsoring, send your **ForkSight username** to activate Premium:
 
 | Channel        | Link                                                            |
 | -------------- | --------------------------------------------------------------- |

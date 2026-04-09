@@ -122,7 +122,7 @@
       premiumAntibanDesc: "Detection prevention with random delays",
       premiumAutomatch: "Auto Match",
       premiumAutomatchDesc: "Find and play matches consecutively",
-      premiumCta: "\uD83D\uDE80 Upgrade to Premium",
+      premiumCta: "\uD83D\uDE80 Upgrade to Premium — $5/mo",
       premiumContact: "\u2709\uFE0F Contact",
       premiumLater: "Maybe Later",
       premiumFreeMsg:
@@ -232,7 +232,7 @@
       premiumAntibanDesc: "Rastgele gecikmelerle tespit önleme",
       premiumAutomatch: "Otomatik Maç",
       premiumAutomatchDesc: "Art arda maç bul ve oyna",
-      premiumCta: "🚀 Premium'a Geç",
+      premiumCta: "🚀 Premium'a Geç — $5/ay",
       premiumContact: "✉️ İletişim",
       premiumLater: "Belki Daha Sonra",
       premiumFreeMsg: "⚠️ Free hesap — Premium ile tüm özelliklere erişin!",
@@ -343,7 +343,7 @@
         "Erkennung verhindern mit zuf\u00E4lligen Verz\u00F6gerungen",
       premiumAutomatch: "Auto-Match",
       premiumAutomatchDesc: "Partien nacheinander finden und spielen",
-      premiumCta: "\uD83D\uDE80 Auf Premium upgraden",
+      premiumCta: "\uD83D\uDE80 Auf Premium upgraden — $5/Mo.",
       premiumContact: "\u2709\uFE0F Kontakt",
       premiumLater: "Vielleicht sp\u00E4ter",
       premiumFreeMsg:
@@ -455,7 +455,7 @@
             </div>
           </div>
 
-          <a href="https://github.com/mrtcnygt0" target="_blank" style="display:block;padding:14px 24px;background:linear-gradient(135deg,#ffd700,#ffaa00);color:#1a1a2e;font-weight:800;font-size:16px;border-radius:12px;text-decoration:none;margin-bottom:12px;box-shadow:0 4px 20px rgba(255,215,0,0.3)">
+          <a href="https://github.com/sponsors/mrtcnygt0" target="_blank" style="display:block;padding:14px 24px;background:linear-gradient(135deg,#ffd700,#ffaa00);color:#1a1a2e;font-weight:800;font-size:16px;border-radius:12px;text-decoration:none;margin-bottom:12px;box-shadow:0 4px 20px rgba(255,215,0,0.3)">
             ${t("premiumCta")}
           </a>
 

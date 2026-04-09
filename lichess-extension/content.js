@@ -474,11 +474,12 @@
     `;
     document.body.appendChild(overlay);
     // Event listener'ları CSP-uyumlu şekilde ekle (inline onclick yerine)
-    overlay.querySelector(".taktik-premium-close").addEventListener("click", () => overlay.remove());
+    overlay
+      .querySelector(".taktik-premium-close")
+      .addEventListener("click", () => overlay.remove());
     overlay.querySelector("div").addEventListener("click", (e) => {
       if (e.target === overlay.querySelector("div")) overlay.remove();
     });
-  }
   }
 
   // ─── Auth (Giriş Sistemi) ─────────────────────────────
@@ -2155,18 +2156,35 @@
     if (statusEl) {
       const txt = (statusEl.textContent || "").toLowerCase();
       // WIN
-      if (txt.includes("checkmate") || txt.includes("wins") || txt.includes("victorious")) {
-        if (txt.includes("white")) return getPlayerColor() === "w" ? "win" : "loss";
-        if (txt.includes("black")) return getPlayerColor() === "b" ? "win" : "loss";
+      if (
+        txt.includes("checkmate") ||
+        txt.includes("wins") ||
+        txt.includes("victorious")
+      ) {
+        if (txt.includes("white"))
+          return getPlayerColor() === "w" ? "win" : "loss";
+        if (txt.includes("black"))
+          return getPlayerColor() === "b" ? "win" : "loss";
         return "win";
       }
       // DRAW
-      if (txt.includes("draw") || txt.includes("stalemate") || txt.includes("½")) return "draw";
+      if (
+        txt.includes("draw") ||
+        txt.includes("stalemate") ||
+        txt.includes("½")
+      )
+        return "draw";
       // LOSS (resign/timeout → kimin olduğunu anla)
-      if (txt.includes("resign") || txt.includes("timeout") || txt.includes("abort")) {
+      if (
+        txt.includes("resign") ||
+        txt.includes("timeout") ||
+        txt.includes("abort")
+      ) {
         // Lichess: "White resigned" veya "Black left the game"
-        if (txt.includes("white")) return getPlayerColor() === "w" ? "loss" : "win";
-        if (txt.includes("black")) return getPlayerColor() === "b" ? "loss" : "win";
+        if (txt.includes("white"))
+          return getPlayerColor() === "w" ? "loss" : "win";
+        if (txt.includes("black"))
+          return getPlayerColor() === "b" ? "loss" : "win";
         return "loss";
       }
     }
@@ -2260,7 +2278,7 @@
         // Lichess: Birden fazla strateji ile rakip adını bul
         // Strateji 1: .ruser-top (üstteki oyuncu = rakip)
         const topUser = document.querySelector(
-          ".ruser-top .username, .ruser-top a.user-link, .ruser-top .text"
+          ".ruser-top .username, .ruser-top a.user-link, .ruser-top .text",
         );
         if (topUser) {
           opponentName = topUser.textContent.trim();
@@ -2268,7 +2286,7 @@
         // Strateji 2: tüm .ruser'lardan dene
         if (!opponentName) {
           const allUsers = document.querySelectorAll(
-            ".ruser .username, .ruser a.user-link, .ruser .text"
+            ".ruser .username, .ruser a.user-link, .ruser .text",
           );
           const names = [];
           allUsers.forEach((el) => {
@@ -2284,7 +2302,7 @@
         // Strateji 3: game__meta içindeki kullanıcı bilgisi
         if (!opponentName) {
           const metaUsers = document.querySelectorAll(
-            ".game__meta a.user-link, .round__app a.user-link"
+            ".game__meta a.user-link, .round__app a.user-link",
           );
           const found = [];
           metaUsers.forEach((el) => {
@@ -2305,7 +2323,8 @@
         type: "game_result",
         data: {
           site: "lichess.org",
-          game_id: (location.pathname.match(/\/(\w{8,12})(?:\/|$)/) || [])[1] || "",
+          game_id:
+            (location.pathname.match(/\/(\w{8,12})(?:\/|$)/) || [])[1] || "",
           result: gameResult,
           color: playerColor === "w" ? "white" : "black",
           opponent: opponentName.slice(0, 50),

@@ -308,10 +308,10 @@ If ForkSight has helped you learn or enjoy chess more, please consider supportin
 
 **Want to get Premium access?** Choose your plan and sponsor us on GitHub:
 
-| Plan | Price | |
-|------|-------|-|
-| 📅 **Monthly** | **$2.99/mo** (₺99/ay) | Cancel anytime |
-| ♾️ **Lifetime** | **$19.99** (₺799) | One-time payment, forever access |
+| Plan            | Price                 |                                  |
+| --------------- | --------------------- | -------------------------------- |
+| 📅 **Monthly**  | **$2.99/mo** (₺99/ay) | Cancel anytime                   |
+| ♾️ **Lifetime** | **$19.99** (₺799)     | One-time payment, forever access |
 
 <p align="center">
   <a href="https://github.com/sponsors/mrtcnygt0">

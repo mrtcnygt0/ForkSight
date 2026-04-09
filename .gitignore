@@ -1,3 +1,6 @@
+# ─── Release zips ───
+*.zip
+
 # ─── Server & Backend (PRIVATE - Never commit) ───
 server.py
 server_old.py

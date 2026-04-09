@@ -229,6 +229,11 @@ Download the latest release from the [**Releases**](../../releases) page:
 
 ## 📸 Screenshots
 
+<p align="center">
+  <img src="screenshots/gameplay.gif" alt="ForkSight Gameplay Demo" width="700"><br>
+  <strong>Live Gameplay Demo</strong> — Real-time Stockfish analysis in action
+</p>
+
 <table>
 <tr>
 <td align="center" width="50%">

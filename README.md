@@ -223,7 +223,7 @@ Download the latest release from the [**Releases**](../../releases) page:
 </tbody>
 </table>
 
-> 🔑 **Want Premium?** Just **$5/month** via [GitHub Sponsors](https://github.com/sponsors/mrtcnygt0). Your account will be upgraded within 24 hours!
+> 🔑 **Want Premium?** Starting at just **$2.99/month** or **$19.99 lifetime** via [GitHub Sponsors](https://github.com/sponsors/mrtcnygt0). Your account will be upgraded within 24 hours!
 
 ---
 
@@ -306,11 +306,16 @@ If ForkSight has helped you learn or enjoy chess more, please consider supportin
 
 ## 📬 Contact
 
-**Want to get Premium access?** Sponsor us on GitHub for **$5/month** and get upgraded within 24 hours:
+**Want to get Premium access?** Choose your plan and sponsor us on GitHub:
+
+| Plan | Price | |
+|------|-------|-|
+| 📅 **Monthly** | **$2.99/mo** (₺99/ay) | Cancel anytime |
+| ♾️ **Lifetime** | **$19.99** (₺799) | One-time payment, forever access |
 
 <p align="center">
   <a href="https://github.com/sponsors/mrtcnygt0">
-    <img src="https://img.shields.io/badge/💎%20Get%20Premium%20—%20$5%2Fmo-ffd700?style=for-the-badge&logo=github-sponsors&logoColor=black" alt="Get Premium">
+    <img src="https://img.shields.io/badge/💎%20Get%20Premium%20—%20from%20$2.99%2Fmo-ffd700?style=for-the-badge&logo=github-sponsors&logoColor=black" alt="Get Premium">
   </a>
 </p>
 

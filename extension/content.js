@@ -122,7 +122,8 @@
       premiumAntibanDesc: "Detection prevention with random delays",
       premiumAutomatch: "Auto Match",
       premiumAutomatchDesc: "Find and play matches consecutively",
-      premiumCta: "\uD83D\uDE80 Upgrade to Premium — $5/mo",
+      premiumCta: "\uD83D\uDE80 Upgrade to Premium — from $2.99/mo",
+      premiumPrice: "Monthly: $2.99 | Lifetime: $19.99",
       premiumContact: "\u2709\uFE0F Contact",
       premiumLater: "Maybe Later",
       premiumFreeMsg:
@@ -232,7 +233,8 @@
       premiumAntibanDesc: "Rastgele gecikmelerle tespit önleme",
       premiumAutomatch: "Otomatik Maç",
       premiumAutomatchDesc: "Art arda maç bul ve oyna",
-      premiumCta: "🚀 Premium'a Geç — $5/ay",
+      premiumCta: "🚀 Premium'a Geç — ₺99/ay",
+      premiumPrice: "Aylık: ₺99 | Ömür Boyu: ₺799",
       premiumContact: "✉️ İletişim",
       premiumLater: "Belki Daha Sonra",
       premiumFreeMsg: "⚠️ Free hesap — Premium ile tüm özelliklere erişin!",
@@ -343,7 +345,8 @@
         "Erkennung verhindern mit zuf\u00E4lligen Verz\u00F6gerungen",
       premiumAutomatch: "Auto-Match",
       premiumAutomatchDesc: "Partien nacheinander finden und spielen",
-      premiumCta: "\uD83D\uDE80 Auf Premium upgraden — $5/Mo.",
+      premiumCta: "\uD83D\uDE80 Auf Premium upgraden — ab $2.99/Mo.",
+      premiumPrice: "Monatlich: $2.99 | Lebenslang: $19.99",
       premiumContact: "\u2709\uFE0F Kontakt",
       premiumLater: "Vielleicht sp\u00E4ter",
       premiumFreeMsg:
@@ -455,9 +458,10 @@
             </div>
           </div>
 
-          <a href="https://github.com/sponsors/mrtcnygt0" target="_blank" style="display:block;padding:14px 24px;background:linear-gradient(135deg,#ffd700,#ffaa00);color:#1a1a2e;font-weight:800;font-size:16px;border-radius:12px;text-decoration:none;margin-bottom:12px;box-shadow:0 4px 20px rgba(255,215,0,0.3)">
+          <a href="https://github.com/sponsors/mrtcnygt0" target="_blank" style="display:block;padding:14px 24px;background:linear-gradient(135deg,#ffd700,#ffaa00);color:#1a1a2e;font-weight:800;font-size:16px;border-radius:12px;text-decoration:none;margin-bottom:8px;box-shadow:0 4px 20px rgba(255,215,0,0.3)">
             ${t("premiumCta")}
           </a>
+          <p style="color:#8899aa;font-size:11px;margin:0 0 12px;letter-spacing:0.5px">${t("premiumPrice")}</p>
 
           <div style="display:flex;gap:12px;justify-content:center;margin-bottom:16px">
             <a href="https://mertcanyigit.com" target="_blank" style="color:#6688aa;font-size:12px;text-decoration:none">🌐 mertcanyigit.com</a>

@@ -2,25 +2,44 @@
  * inject.js — MAIN world'da document_start'ta çalışır.
  * Chessground kütüphanesi mousedown handler'ında e.isTrusted kontrolü yapar.
  * Sentetik (programatik) olaylar isTrusted=false olduğu için reddedilir.
- * Bu script addEventListener'ı patchleyerek cg-board üzerindeki mousedown
+ * Bu script addEventListener'ı patchleyerek cg-board üzerindeki mouse/pointer/touch
  * olaylarını Proxy ile sarar ve isTrusted'ı true olarak raporlar.
  */
 (function () {
   "use strict";
 
   const origAddEventListener = EventTarget.prototype.addEventListener;
+  const patchedTypes = new Set([
+    "mousedown",
+    "mouseup",
+    "mousemove",
+    "pointerdown",
+    "pointerup",
+    "pointermove",
+    "touchstart",
+    "touchend",
+    "touchmove",
+    "click",
+    "dblclick",
+    "dragstart",
+    "drag",
+    "dragend",
+    "drop",
+  ]);
 
   EventTarget.prototype.addEventListener = function (type, listener, options) {
-    // Sadece cg-board elementlerinin mousedown/touchstart handler'larını sar
+    // Sadece chess board elementlerinin event handler'larını sar
     if (
-      (type === "mousedown" || type === "touchstart") &&
-      this.tagName === "CG-BOARD" &&
-      typeof listener === "function"
+      patchedTypes.has(type) &&
+      typeof listener === "function" &&
+      this instanceof Element &&
+      (this.tagName === "CG-BOARD" ||
+        this.closest?.("cg-board") ||
+        this.classList?.contains("cg-wrap"))
     ) {
       const origListener = listener;
       const wrappedListener = function (e) {
         if (!e.isTrusted) {
-          // Proxy ile isTrusted'ı true olarak raporla
           const proxy = new Proxy(e, {
             get(target, prop, receiver) {
               if (prop === "isTrusted") return true;

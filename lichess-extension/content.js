@@ -65,7 +65,8 @@
       eloCeiling: "🎯 Elo Cap:",
       eloCeilingOff: "Off",
       bookMove: "📖 Book move: {0} ({1}s)",
-      autoMatch: "🔄 Auto Match:",
+      stealthOn: "👻 Stealth ON (F4)",
+      stealthOff: "👁️ Stealth OFF (F4)",
       min10: "10m",
       min30: "30m",
       hour1: "1 hour",
@@ -179,7 +180,8 @@
       eloCeiling: "🎯 Elo Tavanı:",
       eloCeilingOff: "Kapalı",
       bookMove: "📖 Kitap hamlesi: {0} ({1}s)",
-      autoMatch: "🔄 Oto Maç:",
+      stealthOn: "👻 Gizli mod AÇIK (F4)",
+      stealthOff: "👁️ Gizli mod KAPALI (F4)",
       min10: "10dk",
       min30: "30dk",
       hour1: "1 saat",
@@ -292,7 +294,8 @@
       eloCeiling: "🎯 Elo-Grenze:",
       eloCeilingOff: "Aus",
       bookMove: "📖 Buchzug: {0} ({1}s)",
-      autoMatch: "🔄 Auto-Match:",
+      stealthOn: "👻 Tarnmodus AN (F4)",
+      stealthOff: "👁️ Tarnmodus AUS (F4)",
       min10: "10Min",
       min30: "30Min",
       hour1: "1 Std",
@@ -436,6 +439,7 @@
   let throwBlunderAt = 0;
   let totalGames = { wins: 0, losses: 0, draws: 0 };
   let consecutiveTimeouts = 0;
+  let stealthMode = false;
   let isGuest = true; // Misafir modu (varsayılan: true — giriş yapılana kadar)
   let isPremium = false;
   let loggedInUser = null;
@@ -1512,6 +1516,7 @@
   }
 
   function renderMoves(moves) {
+    if (stealthMode) return;
     const svg = ensureOverlay();
     clearArrows();
 
@@ -2239,6 +2244,19 @@
       clearArrows();
       updateStatus(t("cleared"), "info");
       if (panelEl) panelEl.querySelector(".taktik-moves").innerHTML = "";
+    }
+    if (e.key === "F4") {
+      e.preventDefault();
+      stealthMode = !stealthMode;
+      if (stealthMode) {
+        if (panelEl) panelEl.style.display = "none";
+        clearArrows();
+        if (svgOverlay) svgOverlay.style.display = "none";
+        document.querySelectorAll(".taktik-highlight").forEach((el) => el.remove());
+      } else {
+        if (panelEl) panelEl.style.display = "";
+        if (svgOverlay) svgOverlay.style.display = "";
+      }
     }
   });
 

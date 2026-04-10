@@ -1621,7 +1621,9 @@
     // Anti-ban açıkken en az 3 hamle lazım (suboptimal seçim için)
     // Anti-ban kapalıysa auto-play'de 1 yeterli (hız için)
     const effectiveMultipv = autoPlayEnabled
-      ? (antiBanEnabled ? Math.max(3, settings.multipv) : 1)
+      ? antiBanEnabled
+        ? Math.max(3, settings.multipv)
+        : 1
       : settings.multipv;
 
     try {
@@ -2385,8 +2387,26 @@
       p3rd += 0.03;
     }
 
+    // ─── Kritik pozisyon tespiti: skor farkı kontrolü ───
+    // Taş değişimi, asılı taş kurtarma gibi zorunlu hamlelerde
+    // en iyi hamleden sapma yapılmamalı
+    let forceBest = false;
+    if (moves.length >= 2) {
+      const s1 = parseScore(moves[0].score);
+      const s2 = parseScore(moves[1].score);
+      const gap = Math.abs(s1 - s2);
+      if (gap > 2.0) {
+        // Büyük fark: taş kaybı riski — zorla en iyi hamle
+        forceBest = true;
+      } else if (gap > 1.0) {
+        // Orta fark: olasılıkları çok düşür
+        p2nd *= 0.15;
+        p3rd *= 0.05;
+      }
+    }
+
     // ─── Elo tavanı: hedef Elo'ya göre hata oranını ayarla ───
-    if (settings.eloCeiling > 0) {
+    if (settings.eloCeiling > 0 && !forceBest) {
       const elo = settings.eloCeiling;
       const errorMult = Math.max(0.05, 3.0 - (elo - 800) * (2.95 / 2000));
       p2nd *= errorMult;
@@ -2407,7 +2427,7 @@
       }
     }
 
-    if (moves.length >= 3) {
+    if (!forceBest && moves.length >= 3) {
       const s1 = parseScore(moves[0].score);
       const s2 = parseScore(moves[1].score);
       const s3 = parseScore(moves[2].score);
@@ -2419,16 +2439,17 @@
       if (diff13 < 0.5) p3rd += 0.08;
 
       if (roll < p3rd && diff13 < 1.5) chosenIdx = 2;
-      else if (roll < p2nd + p3rd) chosenIdx = 1;
-    } else if (moves.length === 2) {
+      else if (roll < p2nd + p3rd && diff12 < 2.0) chosenIdx = 1;
+    } else if (!forceBest && moves.length === 2) {
       const s1 = parseScore(moves[0].score);
       const s2 = parseScore(moves[1].score);
       if (Math.abs(s1 - s2) < 0.5) p2nd += 0.15;
-      if (roll < p2nd) chosenIdx = 1;
+      if (roll < p2nd && Math.abs(s1 - s2) < 2.0) chosenIdx = 1;
     }
 
     // ─── Periyodik insan hatası (her 8-15 hamlede) ───
     if (
+      !forceBest &&
       moveCounter > 0 &&
       moveCounter % (8 + Math.floor(Math.random() * 8)) === 0
     ) {

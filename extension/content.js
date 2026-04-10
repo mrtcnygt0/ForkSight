@@ -62,6 +62,9 @@
       white: "White",
       black: "Black",
       antiBan: "🛡️ Anti-Ban:",
+      eloCeiling: "🎯 Elo Cap:",
+      eloCeilingOff: "Off",
+      bookMove: "📖 Book move: {0} ({1}s)",
       autoMatch: "🔄 Auto Match:",
       min10: "10m",
       min30: "30m",
@@ -173,6 +176,9 @@
       white: "Beyaz",
       black: "Siyah",
       antiBan: "🛡️ Anti-Ban:",
+      eloCeiling: "🎯 Elo Tavanı:",
+      eloCeilingOff: "Kapalı",
+      bookMove: "📖 Kitap hamlesi: {0} ({1}s)",
       autoMatch: "🔄 Oto Maç:",
       min10: "10dk",
       min30: "30dk",
@@ -283,6 +289,9 @@
       white: "Weiß",
       black: "Schwarz",
       antiBan: "🛡️ Anti-Ban:",
+      eloCeiling: "🎯 Elo-Grenze:",
+      eloCeilingOff: "Aus",
+      bookMove: "📖 Buchzug: {0} ({1}s)",
       autoMatch: "🔄 Auto-Match:",
       min10: "10Min",
       min30: "30Min",
@@ -436,9 +445,116 @@
     depth: 18,
     multipv: 3,
     turnOverride: "auto", // "auto" | "w" | "b"
+    eloCeiling: 0, // 0 = off, 800-2800
   };
 
-  // ─── Shadow DOM İçin Panel Stilleri ──────────────────
+  // ─── Açılış Kitaplığı (ilk 6 hamle için engine gizleme) ───
+  const OPENING_BOOK = {
+    // Başlangıç pozisyonu
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w": [
+      { move: "e2e4", weight: 40 }, { move: "d2d4", weight: 35 },
+      { move: "c2c4", weight: 12 }, { move: "g1f3", weight: 10 },
+      { move: "b1c3", weight: 3 },
+    ],
+    // 1.e4
+    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b": [
+      { move: "e7e5", weight: 35 }, { move: "c7c5", weight: 30 },
+      { move: "e7e6", weight: 15 }, { move: "c7c6", weight: 10 },
+      { move: "d7d5", weight: 5 }, { move: "g7g6", weight: 5 },
+    ],
+    // 1.d4
+    "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b": [
+      { move: "d7d5", weight: 35 }, { move: "g8f6", weight: 35 },
+      { move: "e7e6", weight: 15 }, { move: "f7f5", weight: 5 },
+      { move: "d7d6", weight: 5 }, { move: "c7c5", weight: 5 },
+    ],
+    // 1.e4 e5
+    "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w": [
+      { move: "g1f3", weight: 60 }, { move: "f1c4", weight: 15 },
+      { move: "b1c3", weight: 10 }, { move: "f2f4", weight: 8 },
+      { move: "d2d4", weight: 7 },
+    ],
+    // 1.e4 c5 (Sicilian)
+    "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w": [
+      { move: "g1f3", weight: 55 }, { move: "b1c3", weight: 20 },
+      { move: "c2c3", weight: 12 }, { move: "d2d4", weight: 8 },
+      { move: "f2f4", weight: 5 },
+    ],
+    // 1.e4 e6 (French)
+    "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w": [
+      { move: "d2d4", weight: 65 }, { move: "d2d3", weight: 15 },
+      { move: "g1f3", weight: 10 }, { move: "b1c3", weight: 10 },
+    ],
+    // 1.e4 c6 (Caro-Kann)
+    "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR w": [
+      { move: "d2d4", weight: 60 }, { move: "b1c3", weight: 15 },
+      { move: "g1f3", weight: 15 }, { move: "c2c4", weight: 10 },
+    ],
+    // 1.d4 d5
+    "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w": [
+      { move: "c2c4", weight: 50 }, { move: "g1f3", weight: 25 },
+      { move: "b1c3", weight: 10 }, { move: "c1f4", weight: 10 },
+      { move: "e2e3", weight: 5 },
+    ],
+    // 1.d4 Nf6
+    "rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w": [
+      { move: "c2c4", weight: 50 }, { move: "g1f3", weight: 25 },
+      { move: "c1g5", weight: 10 }, { move: "b1c3", weight: 10 },
+      { move: "e2e3", weight: 5 },
+    ],
+    // 1.e4 e5 2.Nf3
+    "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b": [
+      { move: "b8c6", weight: 55 }, { move: "g8f6", weight: 25 },
+      { move: "d7d6", weight: 10 }, { move: "f7f5", weight: 5 },
+      { move: "d7d5", weight: 5 },
+    ],
+    // 1.e4 e5 2.Nf3 Nc6
+    "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w": [
+      { move: "f1b5", weight: 40 }, { move: "f1c4", weight: 30 },
+      { move: "d2d4", weight: 15 }, { move: "b1c3", weight: 10 },
+      { move: "d2d3", weight: 5 },
+    ],
+    // 1.d4 d5 2.c4 (QGD)
+    "rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b": [
+      { move: "e7e6", weight: 40 }, { move: "c7c6", weight: 25 },
+      { move: "d5c4", weight: 20 }, { move: "e7e5", weight: 10 },
+      { move: "g8f6", weight: 5 },
+    ],
+    // 1.d4 Nf6 2.c4
+    "rnbqkb1r/pppppppp/5n2/8/2PP4/8/PP2PPPP/RNBQKBNR b": [
+      { move: "e7e6", weight: 35 }, { move: "g7g6", weight: 30 },
+      { move: "c7c5", weight: 15 }, { move: "e7e5", weight: 10 },
+      { move: "d7d5", weight: 10 },
+    ],
+    // 1.c4 (English)
+    "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b": [
+      { move: "e7e5", weight: 30 }, { move: "g8f6", weight: 25 },
+      { move: "c7c5", weight: 20 }, { move: "e7e6", weight: 15 },
+      { move: "g7g6", weight: 10 },
+    ],
+    // 1.Nf3 (Reti)
+    "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b": [
+      { move: "d7d5", weight: 35 }, { move: "g8f6", weight: 30 },
+      { move: "c7c5", weight: 15 }, { move: "e7e6", weight: 10 },
+      { move: "g7g6", weight: 10 },
+    ],
+  };
+
+  function getBookMove(fen) {
+    // FEN'in sadece board + turn kısmını al (castling/ep/clocks'u yoksay)
+    const parts = fen.split(" ");
+    const key = parts[0] + " " + parts[1];
+    const candidates = OPENING_BOOK[key];
+    if (!candidates) return null;
+    // Ağırlıklı rastgele seçim
+    const totalWeight = candidates.reduce((s, c) => s + c.weight, 0);
+    let roll = Math.random() * totalWeight;
+    for (const c of candidates) {
+      roll -= c.weight;
+      if (roll <= 0) return c.move;
+    }
+    return candidates[0].move;
+  }
   const PANEL_STYLES = `
     .taktik-panel {
       position: fixed; top: 10px; right: 10px; width: 280px;
@@ -1348,6 +1464,11 @@
     const remaining = clock.mySeconds ?? 999;
     let effectiveDepth = settings.depth;
     if (!isPremium) effectiveDepth = Math.min(effectiveDepth, 8);
+    // Elo tavanına göre derinlik sınırla
+    if (settings.eloCeiling > 0) {
+      const eloDepthCap = Math.round(3 + (settings.eloCeiling - 800) * 17 / 2000); // 800→3, 1500→9, 2000→13, 2800→20
+      effectiveDepth = Math.min(effectiveDepth, Math.max(3, eloDepthCap));
+    }
     if (remaining < 5) {
       effectiveDepth = Math.min(effectiveDepth, 3);
     } else if (remaining < 10) {
@@ -1472,20 +1593,32 @@
         // Sıra kontrolü: gerçek board sırasını oku (turnOverride'ı yok say)
         const realTurn = detectRealTurn();
         if (realTurn === apColor) {
-          const chosen = antiBanEnabled
-            ? antiBanChooseMove(response.moves)
-            : { move: response.moves[0].move, delay: 50 };
+          // ─── Açılış kitaplığı: ilk 6 hamlede engine pattern'i gizle ───
+          let chosen;
+          const currentFen = readBoardFEN();
+          const bookMove = (antiBanEnabled && moveCounter < 6) ? getBookMove(currentFen) : null;
+          if (bookMove) {
+            const bookDelay = gaussianRandom(1200 + Math.random() * 2000, 500);
+            chosen = { move: bookMove, delay: Math.max(300, Math.round(bookDelay)) };
+            updateStatus(t("bookMove", bookMove, (chosen.delay / 1000).toFixed(1)), "working");
+          } else {
+            chosen = antiBanEnabled
+              ? antiBanChooseMove(response.moves)
+              : { move: response.moves[0].move, delay: 50 };
+          }
           const delayMs = chosen.delay;
-          const fenAtDecision = readBoardFEN();
-          updateStatus(
-            t(
-              "playingMove",
-              antiBanEnabled ? "🛡️" : "",
-              chosen.move,
-              (delayMs / 1000).toFixed(1),
-            ),
-            "working",
-          );
+          const fenAtDecision = currentFen;
+          if (!bookMove) {
+            updateStatus(
+              t(
+                "playingMove",
+                antiBanEnabled ? "🛡️" : "",
+                chosen.move,
+                (delayMs / 1000).toFixed(1),
+              ),
+              "working",
+            );
+          }
           setTimeout(() => {
             const fenNow = readBoardFEN();
             const turnNow = detectRealTurn();
@@ -1573,6 +1706,11 @@
             <span class="taktik-slider"></span>
           </label>
           <span class="taktik-antiban-label">${t("off")}</span>
+        </div>
+        <div class="taktik-row">
+          <label>${t("eloCeiling")}</label>
+          <input type="range" class="taktik-elo-slider" min="0" max="2800" step="100" value="0" style="flex:1;accent-color:#ff9040">
+          <span class="taktik-elo-val" style="font-weight:bold;color:#ff9040;min-width:32px;text-align:center;font-size:11px">${t("eloCeilingOff")}</span>
         </div>
         <div class="taktik-row taktik-auto-row">
           <label>${t("autoMatch")}</label>
@@ -1730,6 +1868,16 @@
         const mpvSel = panelEl.querySelector(".taktik-mpv");
         if (mpvSel) mpvSel.value = String(settings.multipv);
       }
+    };
+
+    // Elo ceiling slider
+    const eloSlider = panelEl.querySelector(".taktik-elo-slider");
+    const eloVal = panelEl.querySelector(".taktik-elo-val");
+    eloSlider.oninput = () => {
+      const v = parseInt(eloSlider.value);
+      settings.eloCeiling = v;
+      eloVal.textContent = v === 0 ? t("eloCeilingOff") : String(v);
+      eloVal.style.color = v === 0 ? "#aaa" : "#ff9040";
     };
 
     // Oto maç toggle
@@ -2155,6 +2303,20 @@
     } else if (remaining < 60) {
       p2nd += 0.08;
       p3rd += 0.03;
+    }
+
+    // ─── Elo tavanı: hedef Elo'ya göre hata oranını ayarla ───
+    if (settings.eloCeiling > 0) {
+      const elo = settings.eloCeiling;
+      // Elo arttıkça errorMult azalır: 800→3.0, 1200→2.0, 1600→1.3, 2000→0.7, 2400→0.3, 2800→0.05
+      const errorMult = Math.max(0.05, 3.0 - (elo - 800) * (2.95 / 2000));
+      p2nd *= errorMult;
+      p3rd *= errorMult;
+      // Düşük Elo'da 4. ve 5. hamleleri de seç (büyük hatalar)
+      if (elo <= 1200 && moves.length >= 3 && Math.random() < (1200 - elo) / 2000) {
+        const worstIdx = Math.min(moves.length - 1, 2 + Math.floor(Math.random() * (moves.length - 2)));
+        return { move: moves[worstIdx].move, delay: Math.max(100, Math.round(delay)) };
+      }
     }
 
     if (moves.length >= 3) {

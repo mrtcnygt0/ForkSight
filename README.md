@@ -99,18 +99,18 @@
 
 ### Premium-Only Features
 
-| Feature                | Description                                                  |
-| ---------------------- | ------------------------------------------------------------ |
-| 🤖 **Auto Analysis**   | Automatically analyzes every position as the game progresses |
-| 🎯 **Auto Play**       | Plays the best move automatically on your behalf             |
-| 🛡️ **Anti-Ban System** | Intelligent behavior patterns to maintain natural play style |
-| � **Opening Book**    | First 6 moves from a 15-position book with weighted selection |
-| 🎯 **Elo Ceiling**     | Simulate any Elo level (800–2800) with realistic error rates |
-| �🔄 **Auto Match**      | Automatically queues and starts new games (10m to unlimited) |
-| ⚡ **High Depth**      | Analyze up to depth 25 (Free: max 8)                         |
-| 📊 **Multi-PV**        | See up to 5 best lines simultaneously (Free: 1 line)         |
-| 🔄 **Engine Reset**    | Reset the analysis engine on demand                          |
-| ⚡ **WebSocket**       | Real-time streaming analysis with live depth updates         |
+| Feature                | Description                                                   |
+| ---------------------- | ------------------------------------------------------------- |
+| 🤖 **Auto Analysis**   | Automatically analyzes every position as the game progresses  |
+| 🎯 **Auto Play**       | Plays the best move automatically on your behalf              |
+| 🛡️ **Anti-Ban System** | Intelligent behavior patterns to maintain natural play style  |
+| � **Opening Book**     | First 6 moves from a 15-position book with weighted selection |
+| 🎯 **Elo Ceiling**     | Simulate any Elo level (800–2800) with realistic error rates  |
+| �🔄 **Auto Match**     | Automatically queues and starts new games (10m to unlimited)  |
+| ⚡ **High Depth**      | Analyze up to depth 25 (Free: max 8)                          |
+| 📊 **Multi-PV**        | See up to 5 best lines simultaneously (Free: 1 line)          |
+| 🔄 **Engine Reset**    | Reset the analysis engine on demand                           |
+| ⚡ **WebSocket**       | Real-time streaming analysis with live depth updates          |
 
 ---
 

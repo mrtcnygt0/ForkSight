@@ -1832,7 +1832,9 @@
       if (panelEl) panelEl.style.display = "none";
       clearArrows();
       if (svgOverlay) svgOverlay.style.display = "none";
-      document.querySelectorAll(".taktik-highlight").forEach((el) => el.remove());
+      document
+        .querySelectorAll(".taktik-highlight")
+        .forEach((el) => el.remove());
     };
 
     panelEl.querySelector(".taktik-reset-btn").onclick = () => {

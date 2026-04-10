@@ -67,6 +67,7 @@
       bookMove: "📖 Book move: {0} ({1}s)",
       stealthOn: "👻 Stealth ON (F4)",
       stealthOff: "👁️ Stealth OFF (F4)",
+      stealthBtn: "👻 Hide (F4)",
       min10: "10m",
       min30: "30m",
       hour1: "1 hour",
@@ -182,6 +183,7 @@
       bookMove: "📖 Kitap hamlesi: {0} ({1}s)",
       stealthOn: "👻 Gizli mod AÇIK (F4)",
       stealthOff: "👁️ Gizli mod KAPALI (F4)",
+      stealthBtn: "👻 Gizle (F4)",
       min10: "10dk",
       min30: "30dk",
       hour1: "1 saat",
@@ -296,6 +298,7 @@
       bookMove: "📖 Buchzug: {0} ({1}s)",
       stealthOn: "👻 Tarnmodus AN (F4)",
       stealthOff: "👁️ Tarnmodus AUS (F4)",
+      stealthBtn: "👻 Verbergen (F4)",
       min10: "10Min",
       min30: "30Min",
       hour1: "1 Std",
@@ -1851,6 +1854,7 @@
         </div>
         <button class="taktik-btn taktik-analyze-btn">${t("analyzeBtn")}</button>
         <button class="taktik-btn taktik-clear-btn">${t("clearBtn")}</button>
+        <button class="taktik-btn taktik-stealth-btn" style="background:#1a1a2e;color:#7c7cff;margin-top:4px;font-size:11px">${t("stealthBtn")}</button>
         <button class="taktik-btn taktik-reset-btn" style="background:#c62828;margin-top:4px">${t("resetBtn")}</button>
 
         <div class="taktik-row">
@@ -1889,6 +1893,13 @@
       clearArrows();
       updateStatus(t("cleared"), "info");
       panelEl.querySelector(".taktik-moves").innerHTML = "";
+    };
+    panelEl.querySelector(".taktik-stealth-btn").onclick = () => {
+      stealthMode = true;
+      if (panelEl) panelEl.style.display = "none";
+      clearArrows();
+      if (svgOverlay) svgOverlay.style.display = "none";
+      document.querySelectorAll(".taktik-highlight").forEach((el) => el.remove());
     };
     panelEl.querySelector(".taktik-reset-btn").onclick = () => {
       if (!isPremium) {
@@ -2252,7 +2263,9 @@
         if (panelEl) panelEl.style.display = "none";
         clearArrows();
         if (svgOverlay) svgOverlay.style.display = "none";
-        document.querySelectorAll(".taktik-highlight").forEach((el) => el.remove());
+        document
+          .querySelectorAll(".taktik-highlight")
+          .forEach((el) => el.remove());
       } else {
         if (panelEl) panelEl.style.display = "";
         if (svgOverlay) svgOverlay.style.display = "";

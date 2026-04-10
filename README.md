@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/Engine-Stockfish%2016+-EEEED2?style=for-the-badge&labelColor=769656" alt="Engine">
   <img src="https://img.shields.io/badge/Manifest-V3-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Manifest V3">
   <img src="https://img.shields.io/badge/License-Proprietary-E74C3C?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.2-86b817?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.3-86b817?style=for-the-badge" alt="Version">
 </p>
 
 <p align="center">
@@ -29,7 +29,7 @@
 
 ## 🎯 What is ForkSight?
 
-**ForkSight** is a powerful Chrome extension that brings **professional-grade Stockfish analysis** directly into your browser while you play on **Chess.com** and **Lichess.org**. It overlays real-time tactical insights on the board with color-coded arrows, helping you study positions, understand best moves, and improve your chess skills.
+**ForkSight** is a powerful Chrome extension that brings **professional-grade Stockfish analysis** directly into your browser while you play on **Chess.com** and **Lichess.org**. It overlays real-time tactical insights on the board with color-coded arrows, and features a **Coach Mode** that gives you move-quality feedback, tactic alerts, and missed-move highlights — helping you study positions, understand best moves, and improve your chess skills.
 
 > ⚠️ **Educational Use Only** — ForkSight was built as a learning and study tool. We strongly discourage using it in rated games. Fair play keeps chess beautiful. ♟️
 
@@ -67,7 +67,7 @@
 - Seamless overlay on Chess.com & Lichess
 - Automatic board detection & orientation
 - Works with all time controls
-- Keyboard shortcuts (**F2** analyze, **F3** clear)
+- Keyboard shortcuts (**F2** analyze, **F3** clear, **F4** stealth)
 - Draggable, minimizable floating panel
 
 </td>
@@ -97,6 +97,20 @@
 </tr>
 </table>
 
+### 🎓 Coach Mode
+
+A built-in coaching system that evaluates your play in real-time **without giving you the moves**. Learn from your mistakes as you play:
+
+| Feature                       | Description                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| 📊 **Eval Bar**               | Live position evaluation from your perspective                                 |
+| ✅ **Move Quality**           | Instant feedback after every move (Perfect / Good / OK / Inaccuracy / Blunder) |
+| 🔴 **Missed Move Highlights** | Red squares on the board showing the best move you missed                      |
+| 🎯 **Tactic Detection**       | Alerts you when a tactic exists — without revealing the move                   |
+| 💡 **Hint System**            | 5 hints per game when you're stuck                                             |
+| 📈 **Game Stats**             | Tracks your errors and tactics found per game                                  |
+| 🎚️ **Coach Depth**            | Adjustable analysis depth for coach evaluations                                |
+
 ### Premium-Only Features
 
 | Feature                | Description                                                   |
@@ -120,8 +134,8 @@
 
 Download the latest release from the [**Releases**](../../releases) page:
 
-- `ForkSight-ChessCom-v1.2.zip` — for **Chess.com**
-- `ForkSight-Lichess-v1.2.zip` — for **Lichess.org**
+- `ForkSight-ChessCom-v1.3.zip` — for **Chess.com**
+- `ForkSight-Lichess-v1.3.zip` — for **Lichess.org**
 
 ### Step 2 — Install in Chrome
 
@@ -174,6 +188,16 @@ Download the latest release from the [**Releases**](../../releases) page:
 </tr>
 <tr>
 <td>Multi-Language</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td>Coach Mode</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td>Stealth Mode (F4)</td>
 <td align="center">✅</td>
 <td align="center">✅</td>
 </tr>
@@ -254,21 +278,33 @@ Download the latest release from the [**Releases**](../../releases) page:
 <em>Real-time Stockfish analysis with color-coded arrows</em>
 </td>
 <td align="center" width="50%">
-<img src="screenshots/about-dialog.png" alt="About Dialog" width="100%"><br>
-<strong>About Dialog</strong><br>
-<em>Project information and creator details</em>
+<img src="screenshots/coach-panel.png" alt="Coach Mode Panel" width="100%"><br>
+<strong>Coach Mode</strong><br>
+<em>Eval bar, move feedback, tactic detection and game stats</em>
 </td>
 </tr>
 <tr>
 <td align="center">
+<img src="screenshots/coach-good-move.png" alt="Good Move Feedback" width="100%"><br>
+<strong>Move Quality Feedback</strong><br>
+<em>Instant feedback after every move with tactic alerts</em>
+</td>
+<td align="center">
+<img src="screenshots/coach-blunder.png" alt="Blunder Detection" width="100%"><br>
+<strong>Blunder & Missed Move</strong><br>
+<em>Red highlights showing the best move you missed</em>
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="screenshots/coach-tactic.png" alt="Tactic Detection" width="100%"><br>
+<strong>Tactic Detection</strong><br>
+<em>Alerts when a tactic exists without revealing the move</em>
+</td>
+<td align="center">
 <img src="screenshots/login-screen.png" alt="Login Screen" width="100%"><br>
 <strong>Login Screen</strong><br>
 <em>Secure authentication with guest mode option</em>
-</td>
-<td align="center">
-<img src="screenshots/popup.png" alt="Popup" width="100%"><br>
-<strong>Extension Popup</strong><br>
-<em>Server status and quick settings</em>
 </td>
 </tr>
 </table>
@@ -277,10 +313,11 @@ Download the latest release from the [**Releases**](../../releases) page:
 
 ## ⌨️ Keyboard Shortcuts
 
-| Shortcut | Action                    |
-| -------- | ------------------------- |
-| `F2`     | Analyze current position  |
-| `F3`     | Clear arrows and analysis |
+| Shortcut | Action                           |
+| -------- | -------------------------------- |
+| `F2`     | Analyze current position         |
+| `F3`     | Clear arrows and analysis        |
+| `F4`     | Toggle stealth mode (hide panel) |
 
 ---
 

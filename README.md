@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/Engine-Stockfish%2016+-EEEED2?style=for-the-badge&labelColor=769656" alt="Engine">
   <img src="https://img.shields.io/badge/Manifest-V3-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Manifest V3">
   <img src="https://img.shields.io/badge/License-Proprietary-E74C3C?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.0-86b817?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.2-86b817?style=for-the-badge" alt="Version">
 </p>
 
 <p align="center">
@@ -104,7 +104,9 @@
 | 🤖 **Auto Analysis**   | Automatically analyzes every position as the game progresses |
 | 🎯 **Auto Play**       | Plays the best move automatically on your behalf             |
 | 🛡️ **Anti-Ban System** | Intelligent behavior patterns to maintain natural play style |
-| 🔄 **Auto Match**      | Automatically queues and starts new games (10m to unlimited) |
+| � **Opening Book**    | First 6 moves from a 15-position book with weighted selection |
+| 🎯 **Elo Ceiling**     | Simulate any Elo level (800–2800) with realistic error rates |
+| �🔄 **Auto Match**      | Automatically queues and starts new games (10m to unlimited) |
 | ⚡ **High Depth**      | Analyze up to depth 25 (Free: max 8)                         |
 | 📊 **Multi-PV**        | See up to 5 best lines simultaneously (Free: 1 line)         |
 | 🔄 **Engine Reset**    | Reset the analysis engine on demand                          |
@@ -118,8 +120,8 @@
 
 Download the latest release from the [**Releases**](../../releases) page:
 
-- `forksight-chesscom-v1.0.zip` — for **Chess.com**
-- `forksight-lichess-v1.0.zip` — for **Lichess.org**
+- `ForkSight-ChessCom-v1.2.zip` — for **Chess.com**
+- `ForkSight-Lichess-v1.2.zip` — for **Lichess.org**
 
 ### Step 2 — Install in Chrome
 
@@ -197,6 +199,16 @@ Download the latest release from the [**Releases**](../../releases) page:
 </tr>
 <tr>
 <td>Anti-Ban System</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td>Opening Book</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td>Elo Ceiling</td>
 <td align="center">❌</td>
 <td align="center">✅</td>
 </tr>

@@ -154,6 +154,28 @@
       premiumLater: "Maybe Later",
       premiumFreeMsg:
         "\u26A0\uFE0F Free account \u2014 Get full access with Premium!",
+      coachTab: "\uD83C\uDF93 Coach",
+      fullTab: "\u2694\uFE0F Full",
+      coachEvalBar: "Evaluation",
+      coachHint: "\uD83D\uDCA1 Hint",
+      coachHintsLeft: "{0}/{1} \uD83D\uDD11",
+      coachBlunderAlert: "\u26A0\uFE0F Blunder Alert:",
+      coachTacticDetect: "\uD83C\uDFAF Tactic Detection:",
+      coachLastMove: "Last Move:",
+      coachPerfect: "\uD83C\uDFC6 Excellent move!",
+      coachGood: "\u2705 Good move ({0})",
+      coachOk: "\uD83D\uDD38 Not bad ({0})",
+      coachInaccuracy: "\u274C Inaccuracy ({0}) Better: {1}",
+      coachBlunder: "\uD83D\uDC80 Blunder! ({0}) You missed: {1}",
+      coachWinning: "Winning",
+      coachEqual: "Equal",
+      coachLosing: "Losing",
+      coachGameStats: "\uD83D\uDCC8 This game: {0} errors, {1} tactics",
+      coachTacticFound: "\uD83C\uDFAF TACTIC AVAILABLE!",
+      coachNoHints: "No hints left this game",
+      coachHintShown: "\uD83D\uDCA1 Best move shown (5s)",
+      coachWaiting: "Waiting for your move\u2026",
+      coachDepth: "Coach Depth",
     },
     tr: {
       loginTitle: "ForkSight — Giriş",
@@ -269,6 +291,28 @@
       premiumContact: "✉️ İletişim",
       premiumLater: "Belki Daha Sonra",
       premiumFreeMsg: "⚠️ Free hesap — Premium ile tüm özelliklere erişin!",
+      coachTab: "\uD83C\uDF93 Koç",
+      fullTab: "\u2694\uFE0F Tam",
+      coachEvalBar: "Değerlendirme",
+      coachHint: "\uD83D\uDCA1 İpucu",
+      coachHintsLeft: "{0}/{1} \uD83D\uDD11",
+      coachBlunderAlert: "\u26A0\uFE0F Blunder Uyarısı:",
+      coachTacticDetect: "\uD83C\uDFAF Taktik Algılama:",
+      coachLastMove: "Son Hamle:",
+      coachPerfect: "\uD83C\uDFC6 Mükemmel hamle!",
+      coachGood: "\u2705 İyi hamle ({0})",
+      coachOk: "\uD83D\uDD38 Fena değil ({0})",
+      coachInaccuracy: "\u274C Hata ({0}) Daha iyi: {1}",
+      coachBlunder: "\uD83D\uDC80 Blunder! ({0}) Kaçırdığın: {1}",
+      coachWinning: "Kazanıyor",
+      coachEqual: "Eşit",
+      coachLosing: "Kaybediyor",
+      coachGameStats: "\uD83D\uDCC8 Bu maç: {0} hata, {1} taktik",
+      coachTacticFound: "\uD83C\uDFAF TAKTİK MEVCUT!",
+      coachNoHints: "Bu maçta ipucu hakkın kalmadı",
+      coachHintShown: "\uD83D\uDCA1 En iyi hamle gösterildi (5sn)",
+      coachWaiting: "Hamlenizi bekliyorum\u2026",
+      coachDepth: "Koç Derinliği",
     },
     de: {
       loginTitle: "ForkSight — Anmeldung",
@@ -386,6 +430,28 @@
       premiumLater: "Vielleicht später",
       premiumFreeMsg:
         "\u26A0\uFE0F Free-Konto \u2014 Voller Zugang mit Premium!",
+      coachTab: "\uD83C\uDF93 Coach",
+      fullTab: "\u2694\uFE0F Voll",
+      coachEvalBar: "Bewertung",
+      coachHint: "\uD83D\uDCA1 Hinweis",
+      coachHintsLeft: "{0}/{1} \uD83D\uDD11",
+      coachBlunderAlert: "\u26A0\uFE0F Patzer-Warnung:",
+      coachTacticDetect: "\uD83C\uDFAF Taktik-Erkennung:",
+      coachLastMove: "Letzter Zug:",
+      coachPerfect: "\uD83C\uDFC6 Ausgezeichneter Zug!",
+      coachGood: "\u2705 Guter Zug ({0})",
+      coachOk: "\uD83D\uDD38 Nicht schlecht ({0})",
+      coachInaccuracy: "\u274C Ungenauigkeit ({0}) Besser: {1}",
+      coachBlunder: "\uD83D\uDC80 Patzer! ({0}) Verpasst: {1}",
+      coachWinning: "Gewinnend",
+      coachEqual: "Ausgeglichen",
+      coachLosing: "Verlierend",
+      coachGameStats: "\uD83D\uDCC8 Dieses Spiel: {0} Fehler, {1} Taktiken",
+      coachTacticFound: "\uD83C\uDFAF TAKTIK VERFÜGBAR!",
+      coachNoHints: "Keine Hinweise mehr",
+      coachHintShown: "\uD83D\uDCA1 Bester Zug gezeigt (5s)",
+      coachWaiting: "Warten auf Ihren Zug\u2026",
+      coachDepth: "Coach-Tiefe",
     },
   };
   let currentLang = "en";
@@ -443,6 +509,17 @@
   let totalGames = { wins: 0, losses: 0, draws: 0 };
   let consecutiveTimeouts = 0;
   let stealthMode = false;
+  let coachMode = false;
+  let coachPrevEval = null; // eval before player's move
+  let coachBestMove = null; // best move before player moved
+  let coachHintsUsed = 0;
+  let coachMaxHints = 5;
+  let coachErrors = 0;
+  let coachTactics = 0;
+  let coachBlunderAlert = true;
+  let coachTacticDetect = true;
+  let coachAutoAnalyzing = false;
+  let coachHintTimer = null;
   let isGuest = true; // Misafir modu (varsayılan: true — giriş yapılana kadar)
   let isPremium = false;
   let loggedInUser = null;
@@ -625,6 +702,30 @@
     .taktik-auto-label, .taktik-autoplay-label { font-size:11px; font-weight:bold; color:#aaa; margin-left:4px; }
     .taktik-autoplay-color { background:#333; color:#ddd; border:1px solid #555; border-radius:4px; padding:2px 4px; font-size:10px; margin-left:4px; }
     .taktik-highlight { border-radius:0; transition:opacity 0.2s; }
+    .taktik-mode-tabs { display:flex; border-bottom:1px solid #444; }
+    .taktik-mode-tab { flex:1; padding:6px 0; border:none; background:#2a2a2a; color:#888; font-size:12px; font-weight:bold; cursor:pointer; transition:all 0.2s; }
+    .taktik-mode-tab:first-child { border-radius:0; }
+    .taktik-mode-tab:last-child { border-radius:0; }
+    .taktik-mode-tab.active { background:#1e1e1e; color:#fff; border-bottom:2px solid #7c4dff; }
+    .taktik-mode-tab:hover:not(.active) { background:#333; }
+    .taktik-coach-body { padding:10px; display:flex; flex-direction:column; gap:8px; }
+    .taktik-eval-container { background:#1a1a1a; border-radius:8px; overflow:hidden; position:relative; height:28px; }
+    .taktik-eval-fill { height:100%; background:#888; width:50%; transition:width 0.5s ease, background 0.5s ease; border-radius:8px; }
+    .taktik-eval-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:11px; font-weight:bold; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.8); }
+    .taktik-move-feedback { display:none; padding:10px; border-radius:8px; font-size:13px; font-weight:bold; text-align:center; }
+    .taktik-feedback-perfect { background:rgba(76,175,80,0.2); color:#4CAF50; border:1px solid #4CAF50; }
+    .taktik-feedback-good { background:rgba(139,195,74,0.2); color:#8BC34A; border:1px solid #8BC34A; }
+    .taktik-feedback-ok { background:rgba(255,193,7,0.15); color:#FFC107; border:1px solid #FFC107; }
+    .taktik-feedback-bad { background:rgba(255,152,0,0.15); color:#FF9800; border:1px solid #FF9800; }
+    .taktik-feedback-blunder { background:rgba(244,67,54,0.2); color:#f44336; border:1px solid #f44336; animation:taktik-shake 0.5s; }
+    @keyframes taktik-shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+    @keyframes taktik-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .taktik-coach-miss { border-radius:0; transition:opacity 0.3s; pointer-events:none; z-index:46; position:absolute; width:12.5%; height:12.5%; }
+    .taktik-tactic-alert { display:none; background:rgba(124,77,255,0.2); border:1px solid #7c4dff; color:#b388ff; padding:8px; border-radius:8px; text-align:center; font-weight:bold; animation:taktik-pulse 1.5s infinite; }
+    .taktik-coach-stats { font-size:11px; color:#888; text-align:center; padding:4px; }
+    .taktik-hint-btn { padding:8px 0; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:bold; background:#FF9800; color:#fff; width:100%; transition:background 0.15s; }
+    .taktik-hint-btn:hover { background:#F57C00; }
+    .taktik-hint-btn:disabled { background:#555; color:#888; cursor:not-allowed; }
   `;
 
   // ─── Premium Popup ──────────────────────────────────────
@@ -1801,7 +1902,11 @@
           <button class="taktik-btn-mini taktik-toggle-btn" title="${t("minimizeTitle")}">—</button>
         </div>
       </div>
-      <div class="taktik-body">
+      <div class="taktik-mode-tabs">
+        <button class="taktik-mode-tab active" data-mode="full">${t("fullTab")}</button>
+        <button class="taktik-mode-tab" data-mode="coach">${t("coachTab")}</button>
+      </div>
+      <div class="taktik-body taktik-full-body">
         <div class="taktik-row taktik-auto-row">
           <label>${t("autoAnalysis")}</label>
           <label class="taktik-switch">
@@ -1883,6 +1988,38 @@
         <div class="taktik-status">${t("defaultStatus")}</div>
         <div class="taktik-moves"></div>
       </div>
+      <div class="taktik-coach-body" style="display:none">
+        <div style="font-size:11px;color:#888;text-align:center;margin-bottom:2px">${t("coachEvalBar")}</div>
+        <div class="taktik-eval-container">
+          <div class="taktik-eval-fill"></div>
+          <div class="taktik-eval-text">0.0 ${t("coachEqual")}</div>
+        </div>
+        <div class="taktik-move-feedback"></div>
+        <div class="taktik-tactic-alert">${t("coachTacticFound")}</div>
+        <button class="taktik-hint-btn">${t("coachHint")} <span class="taktik-hints-left">${t("coachHintsLeft", coachMaxHints, coachMaxHints)}</span></button>
+        <div class="taktik-row taktik-auto-row">
+          <label>${t("coachBlunderAlert")}</label>
+          <label class="taktik-switch">
+            <input type="checkbox" class="taktik-coach-blunder-toggle" checked>
+            <span class="taktik-slider"></span>
+          </label>
+        </div>
+        <div class="taktik-row taktik-auto-row">
+          <label>${t("coachTacticDetect")}</label>
+          <label class="taktik-switch">
+            <input type="checkbox" class="taktik-coach-tactic-toggle" checked>
+            <span class="taktik-slider"></span>
+          </label>
+        </div>
+        <div class="taktik-row">
+          <label>${t("coachDepth")}</label>
+          <input type="range" class="taktik-coach-depth" min="5" max="25" value="${settings.depth}">
+          <span class="taktik-coach-depth-val">${settings.depth}</span>
+        </div>
+        <button class="taktik-btn taktik-stealth-btn" style="background:#1a1a2e;color:#7c7cff;margin-top:4px;font-size:11px">${t("stealthBtn")}</button>
+        <div class="taktik-coach-stats">${t("coachGameStats", 0, 0)}</div>
+        <div class="taktik-coach-status" style="font-size:11px;color:#888;text-align:center;padding:4px">${t("coachWaiting")}</div>
+      </div>
     `;
 
     shadowRoot.appendChild(panelEl);
@@ -1894,15 +2031,17 @@
       updateStatus(t("cleared"), "info");
       panelEl.querySelector(".taktik-moves").innerHTML = "";
     };
-    panelEl.querySelector(".taktik-stealth-btn").onclick = () => {
-      stealthMode = true;
-      if (panelEl) panelEl.style.display = "none";
-      clearArrows();
-      if (svgOverlay) svgOverlay.style.display = "none";
-      document
-        .querySelectorAll(".taktik-highlight")
-        .forEach((el) => el.remove());
-    };
+    panelEl.querySelectorAll(".taktik-stealth-btn").forEach((btn) => {
+      btn.onclick = () => {
+        stealthMode = true;
+        if (panelEl) panelEl.style.display = "none";
+        clearArrows();
+        if (svgOverlay) svgOverlay.style.display = "none";
+        document
+          .querySelectorAll(".taktik-highlight")
+          .forEach((el) => el.remove());
+      };
+    });
     panelEl.querySelector(".taktik-reset-btn").onclick = () => {
       if (!isPremium) {
         if (!isGuest) showPremiumPopup();
@@ -1911,6 +2050,82 @@
       }
       resetEngine();
     };
+
+    // ─── Coach Mode Event Handlers ─────────────────────────
+    panelEl.querySelectorAll(".taktik-mode-tab").forEach((tab) => {
+      tab.onclick = () => {
+        panelEl
+          .querySelectorAll(".taktik-mode-tab")
+          .forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        const mode = tab.dataset.mode;
+        const fullBody = panelEl.querySelector(".taktik-full-body");
+        const coachBody = panelEl.querySelector(".taktik-coach-body");
+        if (mode === "coach") {
+          coachMode = true;
+          if (fullBody) fullBody.style.display = "none";
+          if (coachBody) coachBody.style.display = "flex";
+          clearArrows();
+          startCoachObserver();
+        } else {
+          coachMode = false;
+          if (fullBody) fullBody.style.display = "";
+          if (coachBody) coachBody.style.display = "none";
+          stopCoachObserver();
+          clearArrows();
+        }
+      };
+    });
+
+    panelEl.querySelector(".taktik-hint-btn").onclick = () => {
+      if (!isPremium && !isGuest) {
+        showPremiumPopup();
+        return;
+      }
+      if (coachHintsUsed >= coachMaxHints) {
+        updateCoachStatus(t("coachNoHints"));
+        return;
+      }
+      coachHintsUsed++;
+      const hintsLeft = panelEl.querySelector(".taktik-hints-left");
+      if (hintsLeft)
+        hintsLeft.textContent = t(
+          "coachHintsLeft",
+          coachMaxHints - coachHintsUsed,
+          coachMaxHints,
+        );
+      showCoachHint();
+    };
+
+    const coachBlunderToggle = panelEl.querySelector(
+      ".taktik-coach-blunder-toggle",
+    );
+    if (coachBlunderToggle)
+      coachBlunderToggle.onchange = () => {
+        coachBlunderAlert = coachBlunderToggle.checked;
+      };
+
+    const coachTacticToggle = panelEl.querySelector(
+      ".taktik-coach-tactic-toggle",
+    );
+    if (coachTacticToggle)
+      coachTacticToggle.onchange = () => {
+        coachTacticDetect = coachTacticToggle.checked;
+      };
+
+    const coachDepthSlider = panelEl.querySelector(".taktik-coach-depth");
+    const coachDepthVal = panelEl.querySelector(".taktik-coach-depth-val");
+    if (coachDepthSlider) {
+      coachDepthSlider.oninput = () => {
+        let val = parseInt(coachDepthSlider.value);
+        if (!isPremium && val > 8) {
+          val = 8;
+          coachDepthSlider.value = "8";
+        }
+        coachDepthVal.textContent = val;
+        settings.depth = val;
+      };
+    }
 
     const depthSlider = panelEl.querySelector(".taktik-depth");
     const depthVal = panelEl.querySelector(".taktik-depth-val");
@@ -2048,12 +2263,28 @@
 
     // Küçültme/büyütme
     const toggleBtn = panelEl.querySelector(".taktik-toggle-btn");
-    const body = panelEl.querySelector(".taktik-body");
+    const fullBody = panelEl.querySelector(".taktik-full-body");
+    const coachBody = panelEl.querySelector(".taktik-coach-body");
+    const modeTabs = panelEl.querySelector(".taktik-mode-tabs");
+    let isCollapsed = false;
     toggleBtn.onclick = () => {
-      body.classList.toggle("taktik-collapsed");
-      toggleBtn.textContent = body.classList.contains("taktik-collapsed")
-        ? "+"
-        : "—";
+      isCollapsed = !isCollapsed;
+      if (isCollapsed) {
+        if (fullBody) fullBody.style.display = "none";
+        if (coachBody) coachBody.style.display = "none";
+        if (modeTabs) modeTabs.style.display = "none";
+        toggleBtn.textContent = "+";
+      } else {
+        if (modeTabs) modeTabs.style.display = "flex";
+        if (coachMode) {
+          if (fullBody) fullBody.style.display = "none";
+          if (coachBody) coachBody.style.display = "flex";
+        } else {
+          if (fullBody) fullBody.style.display = "";
+          if (coachBody) coachBody.style.display = "none";
+        }
+        toggleBtn.textContent = "—";
+      }
     };
 
     // Çıkış butonu
@@ -2244,6 +2475,405 @@
         </div>`;
       })
       .join("");
+  }
+
+  // ─── Coach Mode Logic ─────────────────────────────────
+  let coachObserver = null;
+  let coachLastFen = "";
+  let coachLastAnalyzedFen = "";
+  let coachDebounceTimer = null;
+
+  function countMoves() {
+    // Lichess move list: kwdb elements or move elements
+    const moveTags = document.querySelectorAll(
+      "l4x kwdb, .moves kwdb, .tview2 kwdb, move",
+    );
+    return moveTags.length;
+  }
+
+  function startCoachObserver() {
+    if (coachObserver) return;
+    if (!boardEl) return;
+    coachLastFen = readBoardFEN() || "";
+    coachLastAnalyzedFen = "";
+    coachObserver = new MutationObserver(() => {
+      if (!coachMode) return;
+      // Skip while a piece is being dragged
+      if (boardEl.querySelector("piece.dragging")) return;
+      const fen = readBoardFEN();
+      if (fen && fen !== coachLastFen) {
+        coachLastFen = fen;
+        updateCoachStatus("⏳ ...");
+        // Debounce: wait for clocks/move-list to update
+        if (coachDebounceTimer) clearTimeout(coachDebounceTimer);
+        coachDebounceTimer = setTimeout(() => {
+          // Skip if still dragging
+          if (boardEl.querySelector("piece.dragging")) return;
+          // Re-read FEN to verify board settled
+          const settled = readBoardFEN();
+          if (settled && settled === coachLastFen) coachAnalyze();
+        }, 600);
+      }
+    });
+    coachObserver.observe(boardEl, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+    // Initial analysis with delay
+    setTimeout(() => coachAnalyze(), 500);
+  }
+
+  function stopCoachObserver() {
+    if (coachObserver) {
+      coachObserver.disconnect();
+      coachObserver = null;
+    }
+    if (coachDebounceTimer) {
+      clearTimeout(coachDebounceTimer);
+      coachDebounceTimer = null;
+    }
+  }
+
+  async function coachAnalyze() {
+    if (isAnalyzing || !coachMode) return;
+    if (!boardEl) return;
+    // Never analyze while a piece is being dragged
+    if (boardEl.querySelector("piece.dragging")) return;
+
+    const fenBoard = readBoardFEN();
+    if (!fenBoard) return;
+
+    // Skip if same position already analyzed (avoids drag/animation re-triggers)
+    if (fenBoard === coachLastAnalyzedFen) return;
+    coachLastAnalyzedFen = fenBoard;
+
+    isAnalyzing = true;
+
+    const playerColor = getPlayerColor();
+
+    // Use robust turn detection (clock + highlight + move count fallbacks)
+    const turn = detectRealTurn();
+    const isPlayerTurn = turn === playerColor;
+
+    const castling = detectCastlingRights();
+    const fen = `${fenBoard} ${turn} ${castling} - 0 1`;
+
+    updateCoachStatus("⏳ ...");
+
+    const depth = Math.min(settings.depth, isPremium ? 25 : 8);
+    const multipv = 3;
+
+    try {
+      let response = null;
+      if (
+        wsConnection &&
+        wsConnection.readyState === WebSocket.OPEN &&
+        !isGuest
+      ) {
+        response = await analyzeViaWS(fen, depth, multipv, 0);
+      }
+      if (!response) {
+        response = await new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage(
+            { type: "analyze", data: { fen, depth, multipv, max_time: 0 } },
+            (resp) => {
+              if (chrome.runtime.lastError)
+                reject(new Error(chrome.runtime.lastError.message));
+              else resolve(resp);
+            },
+          );
+        });
+      }
+
+      if (!response || !response.ok || response.moves.length === 0) {
+        isAnalyzing = false;
+        return;
+      }
+
+      const rawScore = parseScore(response.moves[0].score);
+      const bestMove = response.moves[0].move;
+      // Clamp mate scores to avoid wild eval bar swings
+      const clampedScore = Math.max(-15, Math.min(15, rawScore));
+      // Engine score is from side-to-move perspective → convert to white's, then player's
+      const whiteEval = turn === "w" ? clampedScore : -clampedScore;
+      const playerEval = playerColor === "w" ? whiteEval : -whiteEval;
+
+      updateEvalBar(playerEval);
+
+      if (isPlayerTurn) {
+        // Player's turn → opponent just moved → store eval for future comparison
+        // Keep previous feedback/highlights visible until player moves
+        coachPrevEval = playerEval;
+        coachBestMove = bestMove;
+        updateCoachStatus(t("coachWaiting"));
+
+        // Tactic detection: big gap between 1st and 2nd best move
+        if (coachTacticDetect && response.moves.length >= 2) {
+          const s1 = Math.max(
+            -15,
+            Math.min(15, parseScore(response.moves[0].score)),
+          );
+          const s2 = Math.max(
+            -15,
+            Math.min(15, parseScore(response.moves[1].score)),
+          );
+          const gap = Math.abs(s1 - s2);
+          if (gap > 1.5 && playerEval > 0) {
+            coachTactics++;
+            showTacticAlert(true);
+            updateCoachStats();
+          } else {
+            showTacticAlert(false);
+          }
+        } else {
+          showTacticAlert(false);
+        }
+      } else {
+        // Opponent's turn → player just moved → evaluate move quality
+        // Clear previous feedback/highlights now that player made a new move
+        clearCoachMiss();
+        clearCoachFeedback();
+        showTacticAlert(false);
+        if (coachPrevEval !== null) {
+          const evalChange = playerEval - coachPrevEval;
+          showMoveFeedback(evalChange, coachBestMove);
+          const changeStr =
+            (evalChange >= 0 ? "+" : "") + evalChange.toFixed(1);
+          updateCoachStatus(
+            `${t("coachLastMove")} ${changeStr} (${playerEval >= 0 ? "+" : ""}${playerEval.toFixed(1)})`,
+          );
+        } else {
+          updateCoachStatus(
+            `${t("coachLastMove")} (${playerEval >= 0 ? "+" : ""}${playerEval.toFixed(1)})`,
+          );
+        }
+        coachPrevEval = null;
+        coachBestMove = null;
+      }
+
+      isAnalyzing = false;
+    } catch (e) {
+      isAnalyzing = false;
+      updateCoachStatus("⚠️");
+    }
+  }
+
+  function updateEvalBar(playerEval) {
+    if (!panelEl) return;
+    const fill = panelEl.querySelector(".taktik-eval-fill");
+    const text = panelEl.querySelector(".taktik-eval-text");
+    if (!fill || !text) return;
+
+    // Clamp for display bar width (-10..+10)
+    const clamped = Math.max(-10, Math.min(10, playerEval));
+    const pct = Math.round(50 + clamped * 5);
+
+    fill.style.width = Math.max(2, Math.min(98, pct)) + "%";
+    const displayEval = Math.max(-99, Math.min(99, playerEval));
+    if (displayEval > 0.5) {
+      fill.style.background = "#4CAF50";
+      text.style.color = "#4CAF50";
+      text.textContent = `+${displayEval.toFixed(1)} ${t("coachWinning")}`;
+    } else if (displayEval < -0.5) {
+      fill.style.background = "#f44336";
+      text.style.color = "#f44336";
+      text.textContent = `${displayEval.toFixed(1)} ${t("coachLosing")}`;
+    } else {
+      fill.style.background = "#888";
+      text.style.color = "#888";
+      text.textContent = `${displayEval >= 0 ? "+" : ""}${displayEval.toFixed(1)} ${t("coachEqual")}`;
+    }
+  }
+
+  let coachMissTimer = null;
+  let coachFeedbackTimer = null;
+
+  function clearCoachMiss() {
+    if (boardEl)
+      boardEl
+        .querySelectorAll(".taktik-coach-miss")
+        .forEach((el) => el.remove());
+    if (coachMissTimer) {
+      clearTimeout(coachMissTimer);
+      coachMissTimer = null;
+    }
+  }
+
+  function clearCoachFeedback() {
+    if (!panelEl) return;
+    const fb = panelEl.querySelector(".taktik-move-feedback");
+    if (fb) fb.style.display = "none";
+    if (coachFeedbackTimer) {
+      clearTimeout(coachFeedbackTimer);
+      coachFeedbackTimer = null;
+    }
+  }
+
+  function showCoachMiss(uciMove) {
+    if (!uciMove || uciMove.length < 4 || !boardEl) return;
+    clearCoachMiss();
+    const flip = isFlipped();
+    const fromCol = uciMove.charCodeAt(0) - 96;
+    const fromRow = parseInt(uciMove[1]);
+    const toCol = uciMove.charCodeAt(2) - 96;
+    const toRow = parseInt(uciMove[3]);
+
+    const makeDiv = (col, row, color) => {
+      const pctX = flip ? (8 - col) * 12.5 : (col - 1) * 12.5;
+      const pctY = flip ? (row - 1) * 12.5 : (8 - row) * 12.5;
+      const div = document.createElement("div");
+      div.className = "taktik-coach-miss";
+      div.style.cssText = `
+        position:absolute;
+        left:${pctX}%;top:${pctY}%;
+        width:12.5%;height:12.5%;
+        background:${color};
+        pointer-events:none;
+        z-index:46;
+        border-radius:0;
+        transition:opacity 0.3s;
+      `;
+      boardEl.appendChild(div);
+    };
+    makeDiv(fromCol, fromRow, "rgba(255, 100, 100, 0.45)"); // light red — piece origin
+    makeDiv(toCol, toRow, "rgba(200, 30, 30, 0.55)"); // dark red — target square
+    // Safety fallback: auto-clear after 30s if player never moves
+    coachMissTimer = setTimeout(() => clearCoachMiss(), 30000);
+  }
+
+  function showMoveFeedback(evalChange, bestMove) {
+    if (!panelEl) return;
+    const fb = panelEl.querySelector(".taktik-move-feedback");
+    if (!fb) return;
+
+    fb.style.display = "block";
+    fb.className = "taktik-move-feedback";
+    const changeStr = (evalChange >= 0 ? "+" : "") + evalChange.toFixed(1);
+
+    if (evalChange >= 0.2) {
+      fb.classList.add("taktik-feedback-perfect");
+      fb.textContent = t("coachPerfect");
+    } else if (evalChange >= -0.3) {
+      fb.classList.add("taktik-feedback-good");
+      fb.textContent = t("coachGood", changeStr);
+    } else if (evalChange >= -1.0) {
+      fb.classList.add("taktik-feedback-ok");
+      fb.textContent = t("coachOk", changeStr);
+    } else if (evalChange >= -2.0) {
+      fb.classList.add("taktik-feedback-bad");
+      fb.textContent = t("coachInaccuracy", changeStr, bestMove);
+      coachErrors++;
+      updateCoachStats();
+      showCoachMiss(bestMove);
+    } else {
+      fb.classList.add("taktik-feedback-blunder");
+      fb.textContent = t("coachBlunder", changeStr, bestMove);
+      coachErrors++;
+      updateCoachStats();
+      showCoachMiss(bestMove);
+    }
+
+    // Safety fallback: auto-hide after 30s if player never moves
+    if (coachFeedbackTimer) clearTimeout(coachFeedbackTimer);
+    coachFeedbackTimer = setTimeout(() => {
+      if (fb) fb.style.display = "none";
+      coachFeedbackTimer = null;
+    }, 30000);
+  }
+
+  function showTacticAlert(show) {
+    if (!panelEl) return;
+    const alert = panelEl.querySelector(".taktik-tactic-alert");
+    if (alert) alert.style.display = show ? "block" : "none";
+  }
+
+  function updateCoachStats() {
+    if (!panelEl) return;
+    const stats = panelEl.querySelector(".taktik-coach-stats");
+    if (stats)
+      stats.textContent = t("coachGameStats", coachErrors, coachTactics);
+  }
+
+  function updateCoachStatus(msg) {
+    if (!panelEl) return;
+    const status = panelEl.querySelector(".taktik-coach-status");
+    if (status) status.textContent = msg;
+  }
+
+  async function showCoachHint() {
+    if (isAnalyzing) return;
+    if (!boardEl) return;
+
+    isAnalyzing = true;
+    updateCoachStatus(t("coachHintShown"));
+
+    const fenBoard = readBoardFEN();
+    if (!fenBoard) {
+      isAnalyzing = false;
+      return;
+    }
+
+    const turn = detectTurn();
+    const castling = detectCastlingRights();
+    const fen = `${fenBoard} ${turn} ${castling} - 0 1`;
+    const depth = Math.min(settings.depth, isPremium ? 25 : 8);
+
+    try {
+      let response = null;
+      if (
+        wsConnection &&
+        wsConnection.readyState === WebSocket.OPEN &&
+        !isGuest
+      ) {
+        response = await analyzeViaWS(fen, depth, 1, 0);
+      }
+      if (!response) {
+        response = await new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage(
+            { type: "analyze", data: { fen, depth, multipv: 1, max_time: 0 } },
+            (resp) => {
+              if (chrome.runtime.lastError)
+                reject(new Error(chrome.runtime.lastError.message));
+              else resolve(resp);
+            },
+          );
+        });
+      }
+
+      if (response && response.ok && response.moves.length > 0) {
+        renderMoves([response.moves[0]]);
+        if (coachHintTimer) clearTimeout(coachHintTimer);
+        coachHintTimer = setTimeout(() => {
+          clearArrows();
+          coachHintTimer = null;
+        }, 5000);
+      }
+      isAnalyzing = false;
+    } catch (e) {
+      isAnalyzing = false;
+    }
+  }
+
+  function resetCoachState() {
+    coachPrevEval = null;
+    coachBestMove = null;
+    coachHintsUsed = 0;
+    coachErrors = 0;
+    coachTactics = 0;
+    if (panelEl) {
+      const hintsLeft = panelEl.querySelector(".taktik-hints-left");
+      if (hintsLeft)
+        hintsLeft.textContent = t(
+          "coachHintsLeft",
+          coachMaxHints,
+          coachMaxHints,
+        );
+      updateCoachStats();
+      const fb = panelEl.querySelector(".taktik-move-feedback");
+      if (fb) fb.style.display = "none";
+      showTacticAlert(false);
+    }
   }
 
   // ─── Keyboard Shortcuts ───────────────────────────────

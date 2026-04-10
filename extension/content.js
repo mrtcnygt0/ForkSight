@@ -1559,7 +1559,9 @@
           fen,
           effectiveDepth,
           autoPlayEnabled
-            ? (antiBanEnabled ? Math.max(3, settings.multipv) : 1)
+            ? antiBanEnabled
+              ? Math.max(3, settings.multipv)
+              : 1
             : settings.multipv,
           maxTime,
         );
@@ -1573,7 +1575,9 @@
                 fen: fen,
                 depth: effectiveDepth,
                 multipv: autoPlayEnabled
-                  ? (antiBanEnabled ? Math.max(3, settings.multipv) : 1)
+                  ? antiBanEnabled
+                    ? Math.max(3, settings.multipv)
+                    : 1
                   : settings.multipv,
                 max_time: maxTime,
               },
@@ -2350,14 +2354,30 @@
       p3rd += 0.03;
     }
 
+    // ─── Kritik pozisyon tespiti: skor farkı kontrolü ───
+    // Taş değişimi, asılı taş kurtarma gibi zorunlu hamlelerde
+    // en iyi hamleden sapma yapılmamalı
+    let forceBest = false;
+    if (moves.length >= 2) {
+      const s1 = parseScore(moves[0].score);
+      const s2 = parseScore(moves[1].score);
+      const gap = Math.abs(s1 - s2);
+      if (gap > 2.0) {
+        // Büyük fark: taş kaybı riski — zorla en iyi hamle
+        forceBest = true;
+      } else if (gap > 1.0) {
+        // Orta fark: olasılıkları çok düşür
+        p2nd *= 0.15;
+        p3rd *= 0.05;
+      }
+    }
+
     // ─── Elo tavanı: hedef Elo'ya göre hata oranını ayarla ───
-    if (settings.eloCeiling > 0) {
+    if (settings.eloCeiling > 0 && !forceBest) {
       const elo = settings.eloCeiling;
-      // Elo arttıkça errorMult azalır: 800→3.0, 1200→2.0, 1600→1.3, 2000→0.7, 2400→0.3, 2800→0.05
       const errorMult = Math.max(0.05, 3.0 - (elo - 800) * (2.95 / 2000));
       p2nd *= errorMult;
       p3rd *= errorMult;
-      // Düşük Elo'da 4. ve 5. hamleleri de seç (büyük hatalar)
       if (
         elo <= 1200 &&
         moves.length >= 3 &&
@@ -2374,30 +2394,29 @@
       }
     }
 
-    if (moves.length >= 3) {
+    if (!forceBest && moves.length >= 3) {
       const s1 = parseScore(moves[0].score);
       const s2 = parseScore(moves[1].score);
       const s3 = parseScore(moves[2].score);
       const diff12 = Math.abs(s1 - s2);
       const diff13 = Math.abs(s1 - s3);
 
-      // Skor farkı küçükse rahatça suboptimal oyna
-      if (diff12 < 0.3)
-        p2nd += 0.25; // neredeyse eşit
-      else if (diff12 < 0.7) p2nd += 0.1; // küçük fark
+      if (diff12 < 0.3) p2nd += 0.25;
+      else if (diff12 < 0.7) p2nd += 0.1;
       if (diff13 < 0.5) p3rd += 0.08;
 
       if (roll < p3rd && diff13 < 1.5) chosenIdx = 2;
-      else if (roll < p2nd + p3rd) chosenIdx = 1;
-    } else if (moves.length === 2) {
+      else if (roll < p2nd + p3rd && diff12 < 2.0) chosenIdx = 1;
+    } else if (!forceBest && moves.length === 2) {
       const s1 = parseScore(moves[0].score);
       const s2 = parseScore(moves[1].score);
       if (Math.abs(s1 - s2) < 0.5) p2nd += 0.15;
-      if (roll < p2nd) chosenIdx = 1;
+      if (roll < p2nd && Math.abs(s1 - s2) < 2.0) chosenIdx = 1;
     }
 
     // ─── Periyodik insan hatası (her 8-15 hamlede) ───
     if (
+      !forceBest &&
       moveCounter > 0 &&
       moveCounter % (8 + Math.floor(Math.random() * 8)) === 0
     ) {

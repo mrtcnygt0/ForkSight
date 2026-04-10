@@ -1,6 +1,17 @@
 (function () {
   "use strict";
 
+  // ─── Stealth: Random ID üretimi (DOM fingerprint önleme) ───
+  const _rid = () => "_" + Math.random().toString(36).slice(2, 9);
+  const STEALTH_IDS = {
+    panel: _rid(),
+    overlay: _rid(),
+    host: _rid(),
+    loginModal: _rid(),
+    premiumPopup: _rid(),
+    aboutModal: _rid(),
+  };
+
   // ─── Eski instance temizliği (extension reload koruması) ───
   if (typeof window.__taktikCleanup === "function") {
     try {
@@ -9,12 +20,22 @@
       /* ignore */
     }
   }
-  // Eski paneli DOM'dan kaldır
-  const oldPanel = document.getElementById("taktik-panel");
-  if (oldPanel) oldPanel.remove();
+  // Eski Shadow DOM host'u kaldır
+  if (window.__taktikHostId) {
+    const oldHost = document.getElementById(window.__taktikHostId);
+    if (oldHost) oldHost.remove();
+  }
   // Eski SVG overlay'ı kaldır
-  const oldOverlay = document.getElementById("taktik-overlay");
-  if (oldOverlay) oldOverlay.remove();
+  if (window.__taktikOverlayId) {
+    const oldOverlay = document.getElementById(window.__taktikOverlayId);
+    if (oldOverlay) oldOverlay.remove();
+  }
+  window.__taktikHostId = STEALTH_IDS.host;
+  window.__taktikOverlayId = STEALTH_IDS.overlay;
+
+  // ─── Shadow DOM Host (panel Chess.com'un querySelector'ından gizlenir) ───
+  let shadowHost = null;
+  let shadowRoot = null;
 
   // ─── i18n ──────────────────────────────────────────────
   const LANGS = {
@@ -417,11 +438,60 @@
     turnOverride: "auto", // "auto" | "w" | "b"
   };
 
+  // ─── Shadow DOM İçin Panel Stilleri ──────────────────
+  const PANEL_STYLES = `
+    .taktik-panel {
+      position: fixed; top: 10px; right: 10px; width: 280px;
+      background: #1e1e1e; border: 1px solid #444; border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6); z-index: 99999;
+      font-family: "Segoe UI", Arial, sans-serif; font-size: 12px;
+      color: #ddd; overflow: hidden; user-select: none; pointer-events: auto;
+    }
+    .taktik-header { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#2d8a4e; color:#fff; font-weight:bold; font-size:13px; }
+    .taktik-title { pointer-events:none; }
+    .taktik-body { padding:10px 12px; display:flex; flex-direction:column; gap:7px; }
+    .taktik-body.taktik-collapsed { display:none; }
+    .taktik-btn { padding:8px 0; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:bold; transition:background 0.15s; width:100%; }
+    .taktik-analyze-btn { background:#2d8a4e; color:#fff; font-size:15px; padding:10px 0; }
+    .taktik-analyze-btn:hover { background:#35a85c; }
+    .taktik-analyze-btn:active { background:#257a42; }
+    .taktik-clear-btn { background:#444; color:#ccc; }
+    .taktik-clear-btn:hover { background:#555; }
+    .taktik-btn-mini { background:transparent; border:none; color:#fff; font-size:16px; cursor:pointer; padding:0 4px; line-height:1; }
+    .taktik-btn-mini:hover { opacity:0.7; }
+    .taktik-row { display:flex; align-items:center; gap:6px; }
+    .taktik-row label { font-size:11px; color:#aaa; white-space:nowrap; }
+    .taktik-row select, .taktik-row input[type="range"] { flex:1; }
+    .taktik-row select { background:#333; color:#ddd; border:1px solid #555; border-radius:4px; padding:2px 4px; font-size:11px; }
+    .taktik-depth { accent-color:#2d8a4e; }
+    .taktik-depth-val { font-weight:bold; color:#fff; min-width:20px; text-align:center; }
+    .taktik-fen { font-family:"Consolas",monospace; font-size:9px; color:#888; word-break:break-all; max-height:28px; overflow:hidden; cursor:text; user-select:text; }
+    .taktik-status { font-size:11px; padding:4px 6px; border-radius:4px; text-align:center; }
+    .taktik-status-info { background:#2a2a2a; color:#aaa; }
+    .taktik-status-working { background:#2a3a2a; color:#80d080; }
+    .taktik-status-success { background:#1e3a1e; color:#5ddf5d; }
+    .taktik-status-error { background:#3a1e1e; color:#ee6666; }
+    .taktik-moves { max-height:140px; overflow-y:auto; font-family:"Consolas",monospace; font-size:11px; line-height:1.5; }
+    .taktik-moves::-webkit-scrollbar { width:4px; }
+    .taktik-moves::-webkit-scrollbar-thumb { background:#555; border-radius:2px; }
+    .taktik-move-row { padding:2px 6px; }
+    .taktik-auto-row { align-items:center; }
+    .taktik-switch { position:relative; display:inline-block; width:36px; height:20px; flex-shrink:0; }
+    .taktik-switch input { opacity:0; width:0; height:0; }
+    .taktik-slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#555; border-radius:20px; transition:background 0.2s; }
+    .taktik-slider::before { content:""; position:absolute; height:14px; width:14px; left:3px; bottom:3px; background:#ddd; border-radius:50%; transition:transform 0.2s; }
+    .taktik-switch input:checked + .taktik-slider { background:#2d8a4e; }
+    .taktik-switch input:checked + .taktik-slider::before { transform:translateX(16px); }
+    .taktik-auto-label, .taktik-autoplay-label { font-size:11px; font-weight:bold; color:#aaa; margin-left:4px; }
+    .taktik-autoplay-color { background:#333; color:#ddd; border:1px solid #555; border-radius:4px; padding:2px 4px; font-size:10px; margin-left:4px; }
+    .taktik-highlight { border-radius:0; transition:opacity 0.2s; }
+  `;
+
   // ─── Premium Popup ──────────────────────────────────────
   function showPremiumPopup() {
-    if (document.getElementById("taktik-premium-popup")) return;
+    if (document.getElementById(STEALTH_IDS.premiumPopup)) return;
     const overlay = document.createElement("div");
-    overlay.id = "taktik-premium-popup";
+    overlay.id = STEALTH_IDS.premiumPopup;
     overlay.innerHTML = `
       <div style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999999;display:flex;align-items:center;justify-content:center">
         <div style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);border-radius:20px;padding:40px 36px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 40px rgba(233,196,106,0.15);border:1px solid rgba(233,196,106,0.3);position:relative;text-align:center">
@@ -530,11 +600,11 @@
   }
 
   function showLoginModalUI() {
-    const old = document.getElementById("taktik-login-modal");
+    const old = document.getElementById(STEALTH_IDS.loginModal);
     if (old) old.remove();
 
     const modal = document.createElement("div");
-    modal.id = "taktik-login-modal";
+    modal.id = STEALTH_IDS.loginModal;
     modal.innerHTML = `
       <div class="taktik-login-overlay"></div>
       <div class="taktik-login-box">
@@ -1136,7 +1206,7 @@
     if (svgOverlay && svgOverlay.parentElement) return svgOverlay;
 
     svgOverlay = svgEl("svg", {
-      id: "taktik-overlay",
+      id: STEALTH_IDS.overlay,
       viewBox: `0 0 ${VIEWBOX} ${VIEWBOX}`,
       preserveAspectRatio: "xMidYMid meet",
     });
@@ -1439,8 +1509,22 @@
   function createPanel() {
     if (panelEl) return;
 
+    // Shadow DOM host oluştur (Chess.com querySelector ile bulamaz)
+    shadowHost = document.createElement("div");
+    shadowHost.id = STEALTH_IDS.host;
+    shadowHost.style.cssText =
+      "position:fixed;top:0;left:0;width:0;height:0;z-index:99999;pointer-events:none;";
+    document.body.appendChild(shadowHost);
+    shadowRoot = shadowHost.attachShadow({ mode: "closed" });
+
+    // Style'ları Shadow DOM içine enjekte et
+    const styleEl = document.createElement("style");
+    styleEl.textContent = PANEL_STYLES;
+    shadowRoot.appendChild(styleEl);
+
     panelEl = document.createElement("div");
-    panelEl.id = "taktik-panel";
+    panelEl.id = STEALTH_IDS.panel;
+    panelEl.setAttribute("class", "taktik-panel");
     const userBadge = isGuest
       ? `<span style="margin-left:8px;font-size:11px;color:#ff9040;font-weight:600">${t("guest")}</span>`
       : isPremium
@@ -1538,7 +1622,7 @@
       </div>
     `;
 
-    document.body.appendChild(panelEl);
+    shadowRoot.appendChild(panelEl);
 
     // Event listeners
     panelEl.querySelector(".taktik-analyze-btn").onclick = analyzePosition;
@@ -1710,7 +1794,11 @@
       const savedAntiBan = antiBanEnabled;
       const savedAutoMatch = autoMatchEnabled;
       // Paneli yeniden oluştur
-      panelEl.remove();
+      if (shadowHost) {
+        shadowHost.remove();
+        shadowHost = null;
+        shadowRoot = null;
+      }
       panelEl = null;
       createPanel();
       // Durumu geri yükle
@@ -1756,7 +1844,7 @@
   // ─── Hakkında Modal ───────────────────────────────────
   function showAboutModal() {
     // Eski modal varsa kaldır
-    const old = document.getElementById("forksight-about-modal");
+    const old = document.getElementById(STEALTH_IDS.aboutModal);
     if (old) {
       old.remove();
       return;
@@ -1764,7 +1852,7 @@
 
     const logoUrl = chrome.runtime.getURL("icon.png");
     const overlay = document.createElement("div");
-    overlay.id = "forksight-about-modal";
+    overlay.id = STEALTH_IDS.aboutModal;
     overlay.style.cssText =
       "position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',Arial,sans-serif";
     overlay.innerHTML = `
@@ -1827,10 +1915,12 @@
     stopAutoMatch();
     stopGameResultWatch();
     clearArrows();
-    if (panelEl) {
-      panelEl.remove();
-      panelEl = null;
+    if (shadowHost) {
+      shadowHost.remove();
+      shadowHost = null;
+      shadowRoot = null;
     }
+    panelEl = null;
     showLoginModal();
   }
 
@@ -1952,98 +2042,144 @@
     return { mySeconds, oppSeconds, gameTimeControl };
   }
 
+  // Gaussian dağılımlı rastgele sayı (Box-Muller transform)
+  function gaussianRandom(mean, stddev) {
+    let u1, u2;
+    do {
+      u1 = Math.random();
+    } while (u1 === 0);
+    u2 = Math.random();
+    const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    return mean + z * stddev;
+  }
+
   function antiBanChooseMove(moves) {
     // ─── Throw Game kontrolü ───
     if (throwThisGame && moves.length >= 2) {
       const throwMove = getThrowMove(moves);
       if (throwMove) {
-        // Throw hamlesi için de doğal gecikme (hatta biraz daha uzun)
-        const throwDelay = 2000 + Math.random() * 4000;
-        console.log(
-          `[Taktik] 🎭 Throw hamle: ${throwMove} (hamle #${moveCounter})`,
-        );
-        return { move: throwMove, delay: Math.round(throwDelay) };
+        const throwDelay = gaussianRandom(3500, 1000);
+        return {
+          move: throwMove,
+          delay: Math.round(Math.max(1000, throwDelay)),
+        };
       }
     }
 
     const complexity = moves.length >= 3 ? evaluateComplexity(moves) : 0.3;
     const clock = getClockInfo();
-    const remaining = clock.mySeconds ?? 120; // saat okunamazsa 2dk varsay
+    const remaining = clock.mySeconds ?? 120;
     const tc = clock.gameTimeControl;
 
-    // ─── Zaman kontrolüne göre temel gecikme aralıkları ───
-    let minDelay, maxDelay;
+    // ─── Zaman kontrolüne göre temel gecikme (Gaussian merkezleri) ───
+    let meanDelay, stdDev;
     if (tc >= 600) {
-      // 10dk+ → yavaş oyna, 3-15s arası
-      minDelay = 3000;
-      maxDelay = 15000;
+      // 10dk+ Rapid
+      meanDelay = 5000 + complexity * 6000; // 5-11s merkez
+      stdDev = 2500;
     } else if (tc >= 300) {
-      // 5dk → orta, 2-10s arası
-      minDelay = 2000;
-      maxDelay = 10000;
+      // 5dk Blitz
+      meanDelay = 3000 + complexity * 5000; // 3-8s merkez
+      stdDev = 1800;
     } else if (tc >= 180) {
-      // 3dk → hızlı, 1-6s arası
-      minDelay = 1000;
-      maxDelay = 6000;
+      // 3dk Blitz
+      meanDelay = 1500 + complexity * 3500; // 1.5-5s merkez
+      stdDev = 1200;
     } else {
-      // Bullet (1dk/2dk) → çok hızlı, 0.5-3s
-      minDelay = 500;
-      maxDelay = 3000;
+      // Bullet
+      meanDelay = 600 + complexity * 1800; // 0.6-2.4s merkez
+      stdDev = 600;
     }
 
-    // ─── Kalan süreye göre ayarlama ───
-    // Süre azaldıkça daha hızlı oyna
+    // ─── Kalan süreye göre hızlandır ───
     let timePressFactor = 1.0;
-    if (remaining < 30) {
-      timePressFactor = 0.3; // <30s: çok hızlı
-    } else if (remaining < 60) {
-      timePressFactor = 0.5; // <1dk: hızlı
-    } else if (remaining < 120) {
-      timePressFactor = 0.7; // <2dk: biraz hızlı
+    if (remaining < 10) timePressFactor = 0.15;
+    else if (remaining < 20) timePressFactor = 0.25;
+    else if (remaining < 30) timePressFactor = 0.35;
+    else if (remaining < 60) timePressFactor = 0.5;
+    else if (remaining < 120) timePressFactor = 0.7;
+    meanDelay *= timePressFactor;
+    stdDev *= timePressFactor;
+
+    // ─── Düşünme spike'ları (her 6-12 hamlede uzun düşünme) ───
+    if (
+      moveCounter > 3 &&
+      moveCounter % (6 + Math.floor(Math.random() * 7)) === 0
+    ) {
+      meanDelay *= 2.2; // Uzun düşünme anı
+      stdDev *= 1.5;
     }
-    minDelay = Math.round(minDelay * timePressFactor);
-    maxDelay = Math.round(maxDelay * timePressFactor);
 
-    // ─── Gecikme hesaplama ───
-    const range = maxDelay - minDelay;
-    const baseDelay = minDelay + Math.random() * range * 0.5;
-    const complexityDelay = complexity * range * 0.4;
-    const humanJitter = (Math.random() - 0.5) * range * 0.15;
-    let delay = Math.round(baseDelay + complexityDelay + humanJitter);
-    delay = Math.max(minDelay, Math.min(delay, maxDelay));
+    // ─── Premove simülasyonu (bazen anında oyna) ───
+    if (complexity < 0.15 && Math.random() < 0.12) {
+      // Çok kolay hamle — premove gibi hızlı
+      meanDelay = 150 + Math.random() * 300;
+      stdDev = 80;
+    }
 
-    // Hamle seçimi — her zaman 1. değil
+    let delay = gaussianRandom(meanDelay, stdDev);
+    delay = Math.max(100, Math.round(delay));
+    // Üst sınır: kalan sürenin %40'ı
+    if (remaining < 999) delay = Math.min(delay, remaining * 400);
+
+    // ─── Hamle seçimi — oyun fazına göre accuracy ───
     let chosenIdx = 0;
     const roll = Math.random();
 
+    // Fazlara göre suboptimal hamle olasılıkları
+    let p2nd = 0.05,
+      p3rd = 0.01; // varsayılan: %5 2.hamle, %1 3.hamle
+
+    if (moveCounter <= 6) {
+      // Açılış: biraz daha çok hata (kitaptan sapma)
+      p2nd = 0.2;
+      p3rd = 0.05;
+    } else if (moveCounter <= 20) {
+      // Orta oyun: en çok hata burada
+      p2nd = 0.25;
+      p3rd = 0.08;
+    } else if (moveCounter <= 35) {
+      // Geç orta oyun
+      p2nd = 0.18;
+      p3rd = 0.05;
+    } else {
+      // Endgame: daha az hata (teknik oyun)
+      p2nd = 0.1;
+      p3rd = 0.02;
+    }
+
+    // Zaman baskısında daha çok hata
+    if (remaining < 30) {
+      p2nd += 0.15;
+      p3rd += 0.08;
+    } else if (remaining < 60) {
+      p2nd += 0.08;
+      p3rd += 0.03;
+    }
+
     if (moves.length >= 3) {
-      // Skor farkına bak: 1. ve 2. hamle arası fark küçükse rahatça 2.'yi seç
       const s1 = parseScore(moves[0].score);
       const s2 = parseScore(moves[1].score);
-      const s3 = moves[2] ? parseScore(moves[2].score) : s1 - 2;
+      const s3 = parseScore(moves[2].score);
       const diff12 = Math.abs(s1 - s2);
       const diff13 = Math.abs(s1 - s3);
 
-      if (diff12 < 0.3) {
-        // Neredeyse eşit — %40 ihtimal 2. hamle
-        if (roll < 0.4) chosenIdx = 1;
-      } else if (diff12 < 0.7) {
-        // Küçük fark — %20 ihtimal 2. hamle
-        if (roll < 0.2) chosenIdx = 1;
-      } else {
-        // Büyük fark — %5 insan hatası
-        if (roll < 0.05 && diff13 < 1.5) chosenIdx = 1;
-      }
+      // Skor farkı küçükse rahatça suboptimal oyna
+      if (diff12 < 0.3)
+        p2nd += 0.25; // neredeyse eşit
+      else if (diff12 < 0.7) p2nd += 0.1; // küçük fark
+      if (diff13 < 0.5) p3rd += 0.08;
 
-      // Nadiren 3. hamle (fark çok küçükse)
-      if (diff13 < 0.4 && Math.random() < 0.1) chosenIdx = 2;
+      if (roll < p3rd && diff13 < 1.5) chosenIdx = 2;
+      else if (roll < p2nd + p3rd) chosenIdx = 1;
     } else if (moves.length === 2) {
       const s1 = parseScore(moves[0].score);
       const s2 = parseScore(moves[1].score);
-      if (Math.abs(s1 - s2) < 0.5 && roll < 0.25) chosenIdx = 1;
+      if (Math.abs(s1 - s2) < 0.5) p2nd += 0.15;
+      if (roll < p2nd) chosenIdx = 1;
     }
 
-    // Her 8-15 hamlede bir "insan hatası" — 2. hamleyi oyna
+    // ─── Periyodik insan hatası (her 8-15 hamlede) ───
     if (
       moveCounter > 0 &&
       moveCounter % (8 + Math.floor(Math.random() * 8)) === 0
@@ -2053,12 +2189,15 @@
         const s2 = parseScore(moves[1].score);
         if (Math.abs(s1 - s2) < 1.0) {
           chosenIdx = 1;
-          delay += 1500; // Düşünmüş gibi
+          delay += gaussianRandom(2000, 500); // düşünmüş gibi
         }
       }
     }
 
-    return { move: moves[chosenIdx].move, delay };
+    return {
+      move: moves[chosenIdx].move,
+      delay: Math.max(100, Math.round(delay)),
+    };
   }
 
   // ─── Throw Game Mantığı (Kasitli Kaybı) ────────────
@@ -2689,6 +2828,41 @@
   }
 
   // ─── Auto Play (Otomatik Oynama) ──────────────────────
+
+  // Bezier eğrisi ile insan benzeri fare yolu üret
+  function humanMousePath(fromXY, toXY) {
+    const steps = 12 + Math.floor(Math.random() * 10); // 12-21 adım
+    const points = [];
+    // Rastgele kavisli kontrol noktası
+    const dist = Math.hypot(toXY.x - fromXY.x, toXY.y - fromXY.y);
+    const curvature = dist * (0.15 + Math.random() * 0.25); // mesafeye orantılı sapma
+    const angle = Math.atan2(toXY.y - fromXY.y, toXY.x - fromXY.x);
+    const perpAngle =
+      angle + (Math.random() < 0.5 ? Math.PI / 2 : -Math.PI / 2);
+    const cx = (fromXY.x + toXY.x) / 2 + Math.cos(perpAngle) * curvature;
+    const cy = (fromXY.y + toXY.y) / 2 + Math.sin(perpAngle) * curvature;
+
+    for (let i = 0; i <= steps; i++) {
+      // Sigmoid easing: yavaş başla → hızlan → yavaş bitir
+      let t = i / steps;
+      t = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      // Quadratic Bezier
+      const x =
+        (1 - t) * (1 - t) * fromXY.x + 2 * (1 - t) * t * cx + t * t * toXY.x;
+      const y =
+        (1 - t) * (1 - t) * fromXY.y + 2 * (1 - t) * t * cy + t * t * toXY.y;
+      // Micro-jitter (±1-2px insan titremesi)
+      const jx = (Math.random() - 0.5) * 3;
+      const jy = (Math.random() - 0.5) * 3;
+      // Adım gecikmeleri: ortalarda hızlı, uçlarda yavaş
+      const speed = 8 + Math.random() * 10; // 8-18ms aralık
+      points.push({ x: x + jx, y: y + jy, delay: Math.round(speed) });
+    }
+    // Son nokta kesin hedef (jitter yok)
+    points[points.length - 1] = { x: toXY.x, y: toXY.y, delay: 5 };
+    return points;
+  }
+
   function playMoveOnBoard(uci) {
     if (!boardEl || uci.length < 4) return;
 
@@ -2696,9 +2870,6 @@
     const fromRow = parseInt(uci[1]);
     const toCol = uci.charCodeAt(2) - 96;
     const toRow = parseInt(uci[3]);
-
-    const fromSq = `${fromCol}${fromRow}`;
-    const toSq = `${toCol}${toRow}`;
 
     const boardRect = boardEl.getBoundingClientRect();
     const sqSize = boardRect.width / 8;
@@ -2712,73 +2883,79 @@
         ? (row - 1) * sqSize + sqSize / 2
         : (8 - row) * sqSize + sqSize / 2;
       return {
-        clientX: boardRect.left + px,
-        clientY: boardRect.top + py,
+        x: boardRect.left + px,
+        y: boardRect.top + py,
       };
     }
 
     const from = sqToClientXY(fromCol, fromRow);
     const to = sqToClientXY(toCol, toRow);
+    const path = humanMousePath(from, to);
 
-    // Fare ile tıkla-sürükle-bırak simülasyonu
-    const evtOpts = { bubbles: true, cancelable: true, view: window };
+    const evtOpts = {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+      button: 0,
+    };
 
+    // 1) Mousedown kareye tıkla
     boardEl.dispatchEvent(
       new PointerEvent("pointerdown", {
         ...evtOpts,
-        clientX: from.clientX,
-        clientY: from.clientY,
-        button: 0,
+        clientX: from.x,
+        clientY: from.y,
       }),
     );
     boardEl.dispatchEvent(
       new MouseEvent("mousedown", {
         ...evtOpts,
-        clientX: from.clientX,
-        clientY: from.clientY,
-        button: 0,
+        clientX: from.x,
+        clientY: from.y,
       }),
     );
 
-    setTimeout(() => {
-      boardEl.dispatchEvent(
-        new PointerEvent("pointermove", {
-          ...evtOpts,
-          clientX: to.clientX,
-          clientY: to.clientY,
-          button: 0,
-        }),
-      );
-      boardEl.dispatchEvent(
-        new MouseEvent("mousemove", {
-          ...evtOpts,
-          clientX: to.clientX,
-          clientY: to.clientY,
-          button: 0,
-        }),
-      );
-
+    // 2) Bezier eğrisi boyunca adım adım sürükle
+    let totalDelay = 30 + Math.floor(Math.random() * 30); // ilk bekleme 30-60ms
+    for (let i = 1; i < path.length; i++) {
+      const pt = path[i];
+      totalDelay += pt.delay;
       setTimeout(() => {
         boardEl.dispatchEvent(
-          new PointerEvent("pointerup", {
+          new PointerEvent("pointermove", {
             ...evtOpts,
-            clientX: to.clientX,
-            clientY: to.clientY,
-            button: 0,
+            clientX: pt.x,
+            clientY: pt.y,
           }),
         );
         boardEl.dispatchEvent(
-          new MouseEvent("mouseup", {
+          new MouseEvent("mousemove", {
             ...evtOpts,
-            clientX: to.clientX,
-            clientY: to.clientY,
-            button: 0,
+            clientX: pt.x,
+            clientY: pt.y,
           }),
         );
+      }, totalDelay);
+    }
 
-        // Promosyon varsa (piyon son sıraya, 5. karakter)
-        if (uci.length === 5) {
-          setTimeout(() => {
+    // 3) Hedefte bırak
+    totalDelay += 15 + Math.floor(Math.random() * 20); // 15-35ms son bekleme
+    setTimeout(() => {
+      boardEl.dispatchEvent(
+        new PointerEvent("pointerup", {
+          ...evtOpts,
+          clientX: to.x,
+          clientY: to.y,
+        }),
+      );
+      boardEl.dispatchEvent(
+        new MouseEvent("mouseup", { ...evtOpts, clientX: to.x, clientY: to.y }),
+      );
+
+      // Promosyon varsa (piyon son sıraya, 5. karakter)
+      if (uci.length === 5) {
+        setTimeout(
+          () => {
             const promoMap = {
               q: "queen",
               r: "rook",
@@ -2790,12 +2967,13 @@
               `.promotion-piece.${promoClass}, [data-piece='${uci[4]}']`,
             );
             if (promoBtn) promoBtn.click();
-          }, 300);
-        }
+          },
+          200 + Math.floor(Math.random() * 200),
+        );
+      }
 
-        updateStatus(t("movePlayed", uci), "success");
-      }, 50);
-    }, 50);
+      updateStatus(t("movePlayed", uci), "success");
+    }, totalDelay);
   }
 
   // ─── Auto Watch (Otomatik Mod) ────────────────────────
@@ -2859,8 +3037,10 @@
     stopBoardWatch();
     stopGameEndWatch();
     clearTimeout(autoDebounceTimer);
-    if (panelEl) {
-      panelEl.remove();
+    if (shadowHost) {
+      shadowHost.remove();
+      shadowHost = null;
+      shadowRoot = null;
       panelEl = null;
     }
     if (svgOverlay) {
@@ -2873,7 +3053,9 @@
   function tryInit() {
     boardEl = document.querySelector("wc-chess-board");
     if (!boardEl) return false;
-    showLoginModal();
+    // Anti-fingerprint: rastgele gecikme ile başlat (1-3s)
+    const initDelay = 1000 + Math.floor(Math.random() * 2000);
+    setTimeout(() => showLoginModal(), initDelay);
     return true;
   }
 

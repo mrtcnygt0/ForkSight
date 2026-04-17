@@ -19,6 +19,76 @@ chrome.storage.local.get(
   },
 );
 
+// ─── Notification Polling ───────────────────────────
+const NOTIF_ALARM = "forksight_notif_poll";
+
+chrome.alarms.create(NOTIF_ALARM, { periodInMinutes: 3 });
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === NOTIF_ALARM) checkNotifications();
+});
+
+// Service worker başladığında hemen kontrol et (PC açıldığında vs.)
+chrome.runtime.onStartup.addListener(() => checkNotifications());
+chrome.runtime.onInstalled.addListener(() => checkNotifications());
+
+async function checkNotifications() {
+  try {
+    const stored = await chrome.storage.local.get([
+      "taktik_notif_last_ts",
+      "taktik_api_base",
+    ]);
+    const base = stored.taktik_api_base || DEFAULT_API;
+    const since = stored.taktik_notif_last_ts || 0;
+
+    const r = await fetch(`${base}/notifications?since=${since}`);
+    if (!r.ok) return;
+    const data = await r.json();
+    if (!data.ok || !data.notifications || data.notifications.length === 0)
+      return;
+
+    let maxTs = since;
+    for (const n of data.notifications) {
+      const opts = {
+        type: n.image_url ? "image" : "basic",
+        title: n.title,
+        message: n.body,
+        iconUrl: n.icon_url || "icon128.png",
+        priority: 2,
+        requireInteraction: true,
+      };
+      if (n.image_url) opts.imageUrl = n.image_url;
+
+      const notifId = "forksight_notif_" + n.id;
+      chrome.notifications.create(notifId, opts);
+
+      // Tıklama URL'ini sakla
+      if (n.click_url) {
+        await chrome.storage.local.set({ [`notif_url_${n.id}`]: n.click_url });
+      }
+
+      if (n.created_at > maxTs) maxTs = n.created_at;
+    }
+
+    await chrome.storage.local.set({ taktik_notif_last_ts: maxTs });
+  } catch (e) {
+    // Ağ hatası — sessizce geç
+  }
+}
+
+chrome.notifications.onClicked.addListener(async (notifId) => {
+  const match = notifId.match(/^forksight_notif_(\d+)$/);
+  if (!match) return;
+  const nid = match[1];
+  const stored = await chrome.storage.local.get([`notif_url_${nid}`]);
+  const url = stored[`notif_url_${nid}`];
+  if (url) {
+    chrome.tabs.create({ url });
+    chrome.storage.local.remove([`notif_url_${nid}`]);
+  }
+  chrome.notifications.clear(notifId);
+});
+
 function apiHeaders() {
   const h = { "Content-Type": "application/json" };
   if (authToken) h["Authorization"] = `Bearer ${authToken}`;

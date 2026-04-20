@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/Engine-Stockfish%2016+-EEEED2?style=for-the-badge&labelColor=769656" alt="Engine">
   <img src="https://img.shields.io/badge/Manifest-V3-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Manifest V3">
   <img src="https://img.shields.io/badge/License-Proprietary-E74C3C?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.3-86b817?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.5-86b817?style=for-the-badge" alt="Version">
 </p>
 
 <p align="center">

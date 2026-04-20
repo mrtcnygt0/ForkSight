@@ -1,6 +1,83 @@
 // Popup — sunucu durumu + ayarlar + versiyon kontrolü
 const DEFAULT_API = "https://forksight.mertcanyigit.com";
-const EXTENSION_VERSION = "1.0";
+const EXTENSION_VERSION = chrome.runtime.getManifest().version;
+
+// ─── i18n ───────────────────────────────────────────
+const LANGS = {
+  tr: {
+    serverRunning: "✅ Sunucu çalışıyor",
+    serverDown: "❌ Sunucu bağlantısı yok",
+    serverChecking: "Sunucu kontrol ediliyor…",
+    serverSettings: "⚙️ Sunucu Ayarları",
+    serverUrl: "Sunucu URL:",
+    save: "💾 Kaydet",
+    urlSaved: "✅ URL kaydedildi",
+    httpsOnly: "❌ Sadece HTTPS URL kullanılabilir",
+    serverStatus: "📊 Sunucu Durumu",
+    load: "Yük",
+    analyses: "Analiz",
+    users: "Kullanıcı",
+    shortcuts: "⌨️ Kısayollar",
+    analyze: "Analiz",
+    clear: "Temizle",
+    safeMode: "Gizle",
+    adminPanel: "🔧 Admin Paneli",
+    language: "🌐 Dil",
+  },
+  en: {
+    serverRunning: "✅ Server is running",
+    serverDown: "❌ Server connection failed",
+    serverChecking: "Checking server…",
+    serverSettings: "⚙️ Server Settings",
+    serverUrl: "Server URL:",
+    save: "💾 Save",
+    urlSaved: "✅ URL saved",
+    httpsOnly: "❌ Only HTTPS URLs allowed",
+    serverStatus: "📊 Server Status",
+    load: "Load",
+    analyses: "Analyses",
+    users: "Users",
+    shortcuts: "⌨️ Shortcuts",
+    analyze: "Analyze",
+    clear: "Clear",
+    safeMode: "Hide",
+    adminPanel: "🔧 Admin Panel",
+    language: "🌐 Language",
+  },
+};
+function detectLang() {
+  const bl = (navigator.language || "en").split("-")[0].toLowerCase();
+  return LANGS[bl] ? bl : "en";
+}
+let lang = detectLang();
+function t(key) {
+  return LANGS[lang][key] || key;
+}
+
+function applyLang() {
+  document.getElementById("settingsTitle").textContent = t("serverSettings");
+  document.getElementById("urlLabel").textContent = t("serverUrl");
+  document.getElementById("saveUrl").textContent = t("save");
+  document.getElementById("statsTitle").textContent = t("serverStatus");
+  document.getElementById("shortcutsTitle").textContent = t("shortcuts");
+  document.getElementById("scAnalyze").textContent = t("analyze");
+  document.getElementById("scClear").textContent = t("clear");
+  document.getElementById("scSafe").textContent = t("safeMode");
+  document.getElementById("adminLink").textContent = t("adminPanel");
+  document.getElementById("langTitle").textContent = t("language");
+  // Update stats if visible
+  const statsGrid = document.getElementById("statsGrid");
+  if (statsGrid.children.length) {
+    const vals = Array.from(statsGrid.querySelectorAll(".v")).map(
+      (e) => e.textContent,
+    );
+    statsGrid.innerHTML = `
+      <div class="stat"><div class="v">${vals[0]}</div><div class="l">${t("load")}</div></div>
+      <div class="stat"><div class="v">${vals[1]}</div><div class="l">${t("analyses")}</div></div>
+      <div class="stat"><div class="v">${vals[2]}</div><div class="l">${t("users")}</div></div>
+    `;
+  }
+}
 
 const statusEl = document.getElementById("status");
 const apiUrlInput = document.getElementById("apiUrl");
@@ -15,10 +92,13 @@ let apiBase = DEFAULT_API;
 
 // ─── Başlangıç ──────────────────────────────────────
 chrome.storage.local.get(
-  ["taktik_api_base", "taktik_token", "taktik_user"],
+  ["taktik_api_base", "taktik_token", "taktik_user", "taktik_lang"],
   (r) => {
     apiBase = r.taktik_api_base || DEFAULT_API;
+    lang = r.taktik_lang || detectLang();
     apiUrlInput.value = apiBase;
+    document.getElementById("langSelect").value = lang;
+    applyLang();
     if (r.taktik_user) {
       userInfoEl.style.display = "block";
       userInfoEl.textContent = `👤 ${r.taktik_user}`;
@@ -28,36 +108,44 @@ chrome.storage.local.get(
   },
 );
 
+// ─── Dil Değiştir ───────────────────────────────────
+document.getElementById("langSelect").addEventListener("change", (e) => {
+  lang = e.target.value;
+  chrome.storage.local.set({ taktik_lang: lang });
+  applyLang();
+  checkServer();
+});
+
 // ─── URL Kaydet ─────────────────────────────────────
 saveUrlBtn.onclick = () => {
   let url = apiUrlInput.value.trim().replace(/\/+$/, "");
   if (!url) url = DEFAULT_API;
   if (!url.startsWith("https://")) {
-    statusEl.textContent = "❌ Only HTTPS URLs allowed";
+    statusEl.textContent = t("httpsOnly");
     statusEl.className = "status error";
     return;
   }
   apiBase = url;
   chrome.storage.local.set({ taktik_api_base: url });
   chrome.runtime.sendMessage({ type: "update_api_base", url });
-  statusEl.textContent = "✅ URL kaydedildi";
+  statusEl.textContent = t("urlSaved");
   statusEl.className = "status ok";
   setTimeout(checkServer, 500);
 };
 
 // ─── Sunucu Kontrol ─────────────────────────────────
 function checkServer() {
-  statusEl.textContent = "Sunucu kontrol ediliyor…";
+  statusEl.textContent = t("serverChecking");
   statusEl.className = "status checking";
   fetch(`${apiBase}/stats`, { method: "GET" })
     .then((r) => r.json())
     .then((data) => {
-      statusEl.textContent = "✅ Sunucu çalışıyor";
+      statusEl.textContent = t("serverRunning");
       statusEl.className = "status ok";
       showStats(data);
     })
     .catch(() => {
-      statusEl.textContent = "❌ Sunucu bağlantısı yok";
+      statusEl.textContent = t("serverDown");
       statusEl.className = "status fail";
       statsSection.style.display = "none";
     });
@@ -67,12 +155,9 @@ function checkServer() {
 function showStats(d) {
   statsSection.style.display = "block";
   statsGrid.innerHTML = `
-    <div class="stat"><div class="v">${d.pool_size || 0}</div><div class="l">Workers</div></div>
-    <div class="stat"><div class="v">${d.queue_size || 0}/${d.max_queue || 0}</div><div class="l">Kuyruk</div></div>
-    <div class="stat"><div class="v">${d.load_percent || 0}%</div><div class="l">Yük</div></div>
-    <div class="stat"><div class="v">${d.total_completed || 0}</div><div class="l">Analiz</div></div>
-    <div class="stat"><div class="v">${d.cache_hits || 0}</div><div class="l">Cache Hit</div></div>
-    <div class="stat"><div class="v">${d.users || 0}</div><div class="l">Kullanıcı</div></div>
+    <div class="stat"><div class="v">${d.load_percent || 0}%</div><div class="l">${t("load")}</div></div>
+    <div class="stat"><div class="v">${d.total_completed || 0}</div><div class="l">${t("analyses")}</div></div>
+    <div class="stat"><div class="v">${d.users || 0}</div><div class="l">${t("users")}</div></div>
   `;
 }
 

@@ -458,7 +458,11 @@
       coachDepth: "Tiefe:",
     },
   };
-  let currentLang = "en";
+  function _detectLang() {
+    const bl = (navigator.language || "en").split("-")[0].toLowerCase();
+    return LANGS[bl] ? bl : "en";
+  }
+  let currentLang = _detectLang();
   function t(key, ...args) {
     const s = LANGS[currentLang]?.[key] || LANGS.en[key] || key;
     return args.length === 0

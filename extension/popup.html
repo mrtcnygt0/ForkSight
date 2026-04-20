@@ -129,7 +129,7 @@
       }
       .grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 6px;
       }
       .stat {
@@ -165,6 +165,22 @@
         text-align: center;
         margin-top: 8px;
       }
+      .lang-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        color: #999;
+      }
+      .lang-row select {
+        background: #2a2a2a;
+        color: #eee;
+        border: 1px solid #444;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 11px;
+        outline: none;
+      }
     </style>
   </head>
   <body>
@@ -173,8 +189,8 @@
     <div id="userInfo" class="user-info" style="display: none"></div>
 
     <div class="section">
-      <h3>⚙️ Sunucu Ayarları</h3>
-      <label>Sunucu URL:</label>
+      <h3 id="settingsTitle">⚙️ Sunucu Ayarları</h3>
+      <label id="urlLabel">Sunucu URL:</label>
       <input
         type="text"
         id="apiUrl"
@@ -186,15 +202,26 @@
     </div>
 
     <div class="section" id="statsSection" style="display: none">
-      <h3>📊 Sunucu Durumu</h3>
+      <h3 id="statsTitle">📊 Sunucu Durumu</h3>
       <div class="grid" id="statsGrid"></div>
     </div>
 
     <div class="section">
-      <h3>⌨️ Kısayollar</h3>
+      <h3 id="shortcutsTitle">⌨️ Kısayollar</h3>
       <div class="shortcuts">
-        <div><span>Analiz</span><kbd>F2</kbd></div>
-        <div><span>Temizle</span><kbd>F3</kbd></div>
+        <div><span id="scAnalyze">Analiz</span><kbd>F2</kbd></div>
+        <div><span id="scClear">Temizle</span><kbd>F3</kbd></div>
+        <div><span id="scSafe">Gizle</span><kbd>F4</kbd></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="lang-row">
+        <span id="langTitle">🌐 Dil</span>
+        <select id="langSelect">
+          <option value="tr">Türkçe</option>
+          <option value="en">English</option>
+        </select>
       </div>
     </div>
 

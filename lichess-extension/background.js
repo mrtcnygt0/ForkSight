@@ -7,6 +7,7 @@ let API_BASE = DEFAULT_API;
 let authToken = null;
 let refreshToken = null;
 let refreshTimer = null;
+let notificationViewerId = null;
 
 // Başlangıçta storage'dan yükle
 chrome.storage.local.get(
@@ -21,6 +22,7 @@ chrome.storage.local.get(
 
 // ─── Notification Polling ───────────────────────────
 const NOTIF_ALARM = "forksight_notif_poll";
+const NOTIF_SOURCE = "lichess";
 
 chrome.alarms.create(NOTIF_ALARM, { periodInMinutes: 3 });
 
@@ -31,6 +33,52 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 // Service worker başladığında hemen kontrol et (PC açıldığında vs.)
 chrome.runtime.onStartup.addListener(() => checkNotifications());
 chrome.runtime.onInstalled.addListener(() => checkNotifications());
+
+async function getNotificationViewerId() {
+  if (notificationViewerId) return notificationViewerId;
+  const stored = await chrome.storage.local.get(["taktik_notif_viewer_id"]);
+  if (stored.taktik_notif_viewer_id) {
+    notificationViewerId = stored.taktik_notif_viewer_id;
+    return notificationViewerId;
+  }
+  notificationViewerId =
+    globalThis.crypto?.randomUUID?.() ||
+    `viewer_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  await chrome.storage.local.set({
+    taktik_notif_viewer_id: notificationViewerId,
+  });
+  return notificationViewerId;
+}
+
+async function createBrowserNotification(notifId, options) {
+  return new Promise((resolve) => {
+    chrome.notifications.create(notifId, options, (createdId) => {
+      if (chrome.runtime.lastError) resolve("");
+      else resolve(createdId || "");
+    });
+  });
+}
+
+async function reportNotificationEvent(base, notificationId, eventType) {
+  try {
+    const viewerId = await getNotificationViewerId();
+    await fetch(`${base}/notification-event`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body: JSON.stringify({
+        notification_id: Number(notificationId),
+        event_type: eventType,
+        viewer_id: viewerId,
+        source: NOTIF_SOURCE,
+      }),
+    });
+  } catch (e) {
+    // İstatistik gönderimi başarısız olabilir; ana akışı bozma.
+  }
+}
 
 async function checkNotifications() {
   try {
@@ -60,12 +108,13 @@ async function checkNotifications() {
       if (n.image_url) opts.imageUrl = n.image_url;
 
       const notifId = "forksight_notif_" + n.id;
-      chrome.notifications.create(notifId, opts);
+      const createdId = await createBrowserNotification(notifId, opts);
+      if (!createdId) continue;
 
-      // Tıklama URL'ini sakla
-      if (n.click_url) {
-        await chrome.storage.local.set({ [`notif_url_${n.id}`]: n.click_url });
-      }
+      await chrome.storage.local.set({
+        [`notif_meta_${n.id}`]: { click_url: n.click_url || "" },
+      });
+      await reportNotificationEvent(base, n.id, "shown");
 
       if (n.created_at > maxTs) maxTs = n.created_at;
     }
@@ -80,12 +129,18 @@ chrome.notifications.onClicked.addListener(async (notifId) => {
   const match = notifId.match(/^forksight_notif_(\d+)$/);
   if (!match) return;
   const nid = match[1];
-  const stored = await chrome.storage.local.get([`notif_url_${nid}`]);
-  const url = stored[`notif_url_${nid}`];
+  const stored = await chrome.storage.local.get([
+    `notif_meta_${nid}`,
+    "taktik_api_base",
+  ]);
+  const meta = stored[`notif_meta_${nid}`] || {};
+  const base = stored.taktik_api_base || DEFAULT_API;
+  const url = meta.click_url;
+  await reportNotificationEvent(base, nid, "clicked");
   if (url) {
     chrome.tabs.create({ url });
-    chrome.storage.local.remove([`notif_url_${nid}`]);
   }
+  chrome.storage.local.remove([`notif_meta_${nid}`]);
   chrome.notifications.clear(notifId);
 });
 

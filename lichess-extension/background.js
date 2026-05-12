@@ -232,6 +232,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             username: data.username,
             is_premium: data.is_premium,
             is_admin: data.is_admin,
+            is_streamer: data.is_streamer,
           });
         } else {
           authToken = null;

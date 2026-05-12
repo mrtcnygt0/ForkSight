@@ -7,9 +7,13 @@ server_old.py
 server_v2.py
 manage_users.py
 admin_panel.html
+companion.html
 setup_domain.py
 start_server.bat
 requirements.txt
+_deploy.py
+upload_companion.py
+\# Code Citations.md
 
 # ─── Database & Secrets ───
 *.db

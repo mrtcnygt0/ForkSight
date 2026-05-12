@@ -1,11 +1,12 @@
 <p align="center">
-  <img src="forksight.png" alt="ForkSight Logo" width="180">
+  <img src="forksight.png" alt="ForkSight Logo" width="160">
 </p>
 
 <h1 align="center">ForkSight</h1>
 
 <p align="center">
-  <strong>Real-Time Chess Analysis Powered by Stockfish</strong>
+  <strong>The #1 Real-Time Stockfish Extension for Chess.com &amp; Lichess</strong><br>
+  <sub>Cloud-powered analysis · Coach Mode · Phone Companion · Auto-Play · 3 Languages</sub>
 </p>
 
 <p align="center">
@@ -13,35 +14,84 @@
   <img src="https://img.shields.io/badge/Engine-Stockfish%2016+-EEEED2?style=for-the-badge&labelColor=769656" alt="Engine">
   <img src="https://img.shields.io/badge/Manifest-V3-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Manifest V3">
   <img src="https://img.shields.io/badge/License-Proprietary-E74C3C?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.6-86b817?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-2.0-86b817?style=for-the-badge" alt="Version">
 </p>
 
 <p align="center">
+  <a href="#-why-forksight">Why ForkSight</a> •
+  <a href="#-whats-new-in-v20">What's New</a> •
   <a href="#-features">Features</a> •
   <a href="#-installation">Installation</a> •
-  <a href="#-free-vs-premium">Free vs Premium</a> •
+  <a href="#-pricing">Pricing</a> •
   <a href="#-screenshots">Screenshots</a> •
-  <a href="#-support-the-project">Donate</a> •
   <a href="#-contact">Contact</a>
 </p>
 
+<p align="center">
+  <img src="screenshots/mockup.png" alt="ForkSight v2.0 — Desktop + Phone Companion" width="520">
+</p>
+
+<p align="center"><em>Real-time Stockfish on your screen. A second display in your pocket. <strong>Built for the modern chess player.</strong></em></p>
+
 ---
 
-## 🎯 What is ForkSight?
+## 🏆 Why ForkSight?
 
-**ForkSight** is a powerful Chrome extension that brings **professional-grade Stockfish analysis** directly into your browser while you play on **Chess.com** and **Lichess.org**. It overlays real-time tactical insights on the board with color-coded arrows, and features a **Coach Mode** that gives you move-quality feedback, tactic alerts, and missed-move highlights — helping you study positions, understand best moves, and improve your chess skills.
+Most analysis tools make you wait until **after** the game. **ForkSight does it live.**
 
-> ⚠️ **Educational Use Only** — ForkSight was built as a learning and study tool. We strongly discourage using it in rated games. Fair play keeps chess beautiful. ♟️
+While you play on Chess.com or Lichess, ForkSight overlays a **professional-grade Stockfish 16+ engine** directly on the board — color-coded arrows, depth-25 evaluation, multi-line variations, instant tactic alerts and a coaching layer that actually teaches you how to think. And in v2.0, we did something **no other extension has ever done**: we put the entire analysis on your **phone**.
 
-### Why ForkSight?
+> **🥇 We're the most advanced real-time Stockfish extension on the planet — and we plan to keep it that way.**
 
-|                      | Traditional Analysis | ForkSight                         |
-| -------------------- | -------------------- | --------------------------------- |
-| 🕐 **Speed**         | Post-game only       | Real-time, during play            |
-| 🎨 **Visualization** | Text-based PGN       | Color-coded arrows on board       |
-| 📊 **Depth**         | Limited free tiers   | Up to depth 25 with Stockfish 16+ |
-| 🌐 **Platform**      | Single site          | Chess.com + Lichess.org           |
-| 🌍 **Language**      | English only         | English, Türkçe, Deutsch          |
+|                                | Other Extensions      | **ForkSight**                                              |
+| ------------------------------ | --------------------- | ---------------------------------------------------------- |
+| ⚡ **Speed**                    | Post-game analysis    | **Live, during the game**                                  |
+| 🎨 **On-board visualization**  | Text-only PGN         | **Color-coded arrows + square highlights**                 |
+| 🧠 **Engine depth**            | 5–10 (limited)        | **Up to depth 25** with cloud Stockfish 16+                |
+| 📊 **Multi-line analysis**     | 1 line                | **Up to 5 best lines simultaneously**                      |
+| 🌐 **Platforms**               | One site              | **Chess.com + Lichess.org**                                |
+| 📱 **Mobile companion**        | ❌ Not available       | **✅ Phone Companion (v2.0 exclusive)**                    |
+| 🎓 **Built-in coaching**       | Static evaluation     | **Real-time Coach Mode with tactic detection**             |
+| 🤖 **Auto-Play & Anti-Ban**    | ❌ Banned in days      | **Human-like timing, Elo ceiling, opening book**           |
+| 🌍 **Languages**               | English only          | **English · Türkçe · Deutsch**                             |
+| 🔒 **Stealth & privacy**       | Always-visible UI     | **F4 stealth, end-to-end JWT/HTTPS, zero local data**      |
+
+---
+
+## 🚀 What's New in v2.0
+
+<table>
+<tr>
+<td width="58%">
+
+### 📡 Phone Companion — Streamer Edition
+
+**The flagship v2.0 feature.** Mirror your entire ForkSight panel to a **second screen in your pocket**, in real time, over an encrypted WebSocket session.
+
+- 🔐 **PIN-secured pairing** — scan the QR code on your phone, enter the 4-digit code, you're in. No accounts, no Bluetooth, no setup.
+- 📱 **Pixel-perfect mobile UI** — board, eval bar, best moves, depth, MultiPV, mode selector — everything mirrored.
+- 🎚️ **Remote control** — change depth, MultiPV, auto-analysis and play mode **from your phone**.
+- 🌍 **Language sync** — your phone speaks the same language as your panel (EN/TR/DE), automatically.
+- 🟢 **Live status** — pulsing connection indicator, instant "PC offline" overlay with auto-reconnect.
+- 🔒 **Truly private** — only your phone session ID can connect. Sessions expire when the extension closes.
+
+> Perfect for **streamers**, **OTB study**, **tournament prep**, or just keeping your second monitor clean.
+
+</td>
+<td width="42%" align="center">
+<img src="screenshots/streamer_mobile.png" alt="ForkSight Phone Companion" width="100%"><br>
+<sub><em>Companion running on a phone — board, eval, best moves, all live.</em></sub>
+</td>
+</tr>
+</table>
+
+### Plus across v2.0:
+
+- 🎯 **Auto-Play promotion fix** — promotion menus now resolve reliably on Chess.com & Lichess.
+- 🎨 **Redesigned UI** — cleaner buttons, status dots, smoother animations, polished modals.
+- 💎 **New Streamer membership tier** — unlocks Phone Companion ($5/mo or $33 lifetime).
+- 🌐 **Full i18n parity** — EN / TR / DE across the panel, popup and the new mobile companion.
+- ⚡ **Stability & performance** — faster boot, fewer reconnects, hardened WebSocket layer.
 
 ---
 
@@ -51,80 +101,76 @@
 <tr>
 <td width="50%">
 
-### 🔍 Smart Analysis
+### 🔍 **Smart Real-Time Analysis**
 
-- **Stockfish 16+** engine on cloud servers
-- Adjustable depth (5–25)
-- Multi-PV support (up to 5 best lines)
-- Color-coded arrows with move ranking
-- Source & destination square highlights
+- **Stockfish 16+** on dedicated cloud servers
+- Adjustable **depth (5–25)**
+- **Multi-PV** up to **5 best lines**
+- Color-coded arrows: best / great / good / inaccurate
+- Source &amp; destination square highlights
 
 </td>
 <td width="50%">
 
-### 🎮 Board Integration
+### 🎮 **Native Board Integration**
 
-- Seamless overlay on Chess.com & Lichess
-- Automatic board detection & orientation
-- Works with all time controls
-- Keyboard shortcuts (**F2** analyze, **F3** clear, **F4** stealth)
-- Draggable, minimizable floating panel
+- Seamless overlay on **Chess.com &amp; Lichess**
+- Automatic board detection &amp; orientation
+- Works with **all time controls**
+- Keyboard shortcuts: **F2** analyze · **F3** clear · **F4** stealth
+- **Draggable, minimizable** floating panel
 
 </td>
 </tr>
 <tr>
 <td>
 
-### 🌐 Multi-Language
+### 🎓 **Coach Mode**
 
-- 🇬🇧 English
-- 🇹🇷 Türkçe
-- 🇩🇪 Deutsch
-- Switch language on-the-fly from the panel
+- Live **eval bar** (your perspective)
+- **Move quality** feedback after every move
+- **Missed move** highlights on the board
+- **Tactic detection** without spoiling the answer
+- **Hint system** — 5 hints per game
 
 </td>
 <td>
 
-### 🔒 Secure Architecture
+### 📡 **Phone Companion** *(v2.0)*
 
-- Encrypted HTTPS communication
-- JWT-based authentication
-- WebSocket real-time connection
-- No data stored on your device
-- Secure cloud-hosted engine
+- Mirror panel to your phone via QR + PIN
+- **Remote control** depth, MultiPV, mode
+- **Auto language sync** (EN/TR/DE)
+- Encrypted **WebSocket** session
+- Auto-reconnect on dropouts
+
+</td>
+</tr>
+<tr>
+<td>
+
+### 🤖 **Auto-Play &amp; Anti-Ban**
+
+- Plays the **best move** automatically
+- **Human-like timing** patterns
+- **Opening book** (15-position weighted)
+- **Elo ceiling** — simulate 800–2800
+- **Auto-Match** queue (10m → unlimited)
+
+</td>
+<td>
+
+### 🌐 **Multi-Language &amp; Privacy**
+
+- 🇬🇧 English · 🇹🇷 Türkçe · 🇩🇪 Deutsch
+- Switch language **on the fly**
+- Full **HTTPS + JWT** authentication
+- **No data stored** on your device
+- **F4 stealth mode** — instant hide
 
 </td>
 </tr>
 </table>
-
-### 🎓 Coach Mode
-
-A built-in coaching system that evaluates your play in real-time **without giving you the moves**. Learn from your mistakes as you play:
-
-| Feature                       | Description                                                                    |
-| ----------------------------- | ------------------------------------------------------------------------------ |
-| 📊 **Eval Bar**               | Live position evaluation from your perspective                                 |
-| ✅ **Move Quality**           | Instant feedback after every move (Perfect / Good / OK / Inaccuracy / Blunder) |
-| 🔴 **Missed Move Highlights** | Red squares on the board showing the best move you missed                      |
-| 🎯 **Tactic Detection**       | Alerts you when a tactic exists — without revealing the move                   |
-| 💡 **Hint System**            | 5 hints per game when you're stuck                                             |
-| 📈 **Game Stats**             | Tracks your errors and tactics found per game                                  |
-| 🎚️ **Coach Depth**            | Adjustable analysis depth for coach evaluations                                |
-
-### Premium-Only Features
-
-| Feature                | Description                                                   |
-| ---------------------- | ------------------------------------------------------------- |
-| 🤖 **Auto Analysis**   | Automatically analyzes every position as the game progresses  |
-| 🎯 **Auto Play**       | Plays the best move automatically on your behalf              |
-| 🛡️ **Anti-Ban System** | Intelligent behavior patterns to maintain natural play style  |
-| � **Opening Book**     | First 6 moves from a 15-position book with weighted selection |
-| 🎯 **Elo Ceiling**     | Simulate any Elo level (800–2800) with realistic error rates  |
-| �🔄 **Auto Match**     | Automatically queues and starts new games (10m to unlimited)  |
-| ⚡ **High Depth**      | Analyze up to depth 25 (Free: max 8)                          |
-| 📊 **Multi-PV**        | See up to 5 best lines simultaneously (Free: 1 line)          |
-| 🔄 **Engine Reset**    | Reset the analysis engine on demand                           |
-| ⚡ **WebSocket**       | Real-time streaming analysis with live depth updates          |
 
 ---
 
@@ -132,179 +178,196 @@ A built-in coaching system that evaluates your play in real-time **without givin
 
 ### Step 1 — Download
 
-Download the latest release from the [**Releases**](../../releases) page:
+Grab the latest release from the [**Releases**](../../releases) page:
 
-- `ForkSight-Chess.com-v1.6.zip` — for **Chess.com**
-- `ForkSight-Lichess-v1.6.zip` — for **Lichess.org**
+- 📥 `ForkSight-Chess.com-v2.0.zip` — for **Chess.com**
+- 📥 `ForkSight-Lichess-v2.0.zip` — for **Lichess.org**
 
-### Step 2 — Install in Chrome
+### Step 2 — Install in Chrome / Edge / Brave
 
-1. Unzip the downloaded file
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable **Developer Mode** (toggle in the top-right corner)
-4. Click **"Load unpacked"**
+1. **Unzip** the downloaded file
+2. Open `chrome://extensions/`
+3. Enable **Developer Mode** (top-right toggle)
+4. Click **Load unpacked**
 5. Select the unzipped extension folder
-6. The ForkSight icon will appear in your toolbar ✅
+6. The ForkSight icon appears in your toolbar ✅
 
-### Step 3 — Start Using
+### Step 3 — Start Playing
 
-1. Go to [chess.com](https://www.chess.com) or [lichess.org](https://lichess.org)
-2. The ForkSight panel will appear on the page
-3. **Free users**: Log in as Guest to start analyzing
-4. **Premium users**: Log in with your credentials for full access
+1. Open [chess.com](https://www.chess.com) or [lichess.org](https://lichess.org)
+2. The ForkSight panel slides in automatically
+3. **Free users** — Log in as **Guest** and start analyzing
+4. **Premium / Streamer** — Log in for full unlocks &amp; the Phone Companion
 
 ---
 
-## 💎 Free vs Premium
+## 💎 Pricing
 
 <table>
 <thead>
 <tr>
 <th align="left">Feature</th>
-<th align="center">🆓 Free (Guest)</th>
+<th align="center">🆓 Free</th>
 <th align="center">💎 Premium</th>
+<th align="center">📡 Streamer</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Manual Analysis (F2)</td><td align="center">✅</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Color-Coded Arrows</td><td align="center">✅</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Chess.com + Lichess</td><td align="center">✅</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Multi-Language (EN/TR/DE)</td><td align="center">✅</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Coach Mode</td><td align="center">✅</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Stealth Mode (F4)</td><td align="center">✅</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Analysis Depth</td><td align="center">Max <strong>8</strong></td><td align="center">Max <strong>25</strong></td><td align="center">Max <strong>25</strong></td></tr>
+<tr><td>Multi-PV (Best Lines)</td><td align="center"><strong>1</strong></td><td align="center">Up to <strong>5</strong></td><td align="center">Up to <strong>5</strong></td></tr>
+<tr><td><strong>Auto Analysis</strong></td><td align="center">❌</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td><strong>Auto Play</strong></td><td align="center">❌</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Anti-Ban / Human Timing</td><td align="center">❌</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Opening Book</td><td align="center">❌</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Elo Ceiling (800–2800)</td><td align="center">❌</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Auto Match Queue</td><td align="center">❌</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>WebSocket Streaming</td><td align="center">❌</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>Engine Reset</td><td align="center">❌</td><td align="center">✅</td><td align="center">✅</td></tr>
+<tr><td>📡 <strong>Phone Companion</strong></td><td align="center">❌</td><td align="center">❌</td><td align="center">✅</td></tr>
+<tr><td>📡 <strong>Remote Mobile Control</strong></td><td align="center">❌</td><td align="center">❌</td><td align="center">✅</td></tr>
+<tr><td>Priority Support</td><td align="center">❌</td><td align="center">✅</td><td align="center">✅</td></tr>
+</tbody>
+</table>
+
+### 🪙 Plans
+
+<table>
+<thead>
+<tr>
+  <th align="left">Plan</th>
+  <th align="center">Monthly</th>
+  <th align="center">Lifetime</th>
+  <th align="left">What you get</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Manual Analysis (F2)</td>
-<td align="center">✅</td>
-<td align="center">✅</td>
+  <td>💎 <strong>Premium</strong></td>
+  <td align="center"><strong>$2.99/mo</strong></td>
+  <td align="center"><strong>$19.99</strong></td>
+  <td>Auto Analysis, Auto Play, Anti-Ban, Opening Book, Elo Ceiling, Auto-Match, depth 25, 5 lines, WebSocket</td>
 </tr>
 <tr>
-<td>Arrow Visualization</td>
-<td align="center">✅</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Chess.com Support</td>
-<td align="center">✅</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Lichess Support</td>
-<td align="center">✅</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Multi-Language</td>
-<td align="center">✅</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Coach Mode</td>
-<td align="center">✅</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Stealth Mode (F4)</td>
-<td align="center">✅</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Analysis Depth</td>
-<td align="center">Max <strong>8</strong></td>
-<td align="center">Max <strong>25</strong></td>
-</tr>
-<tr>
-<td>Best Lines (Multi-PV)</td>
-<td align="center"><strong>1</strong> line</td>
-<td align="center">Up to <strong>5</strong> lines</td>
-</tr>
-<tr>
-<td>Auto Analysis</td>
-<td align="center">❌</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Auto Play</td>
-<td align="center">❌</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Anti-Ban System</td>
-<td align="center">❌</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Opening Book</td>
-<td align="center">❌</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Elo Ceiling</td>
-<td align="center">❌</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Auto Match</td>
-<td align="center">❌</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Engine Reset</td>
-<td align="center">❌</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>WebSocket Streaming</td>
-<td align="center">❌</td>
-<td align="center">✅</td>
-</tr>
-<tr>
-<td>Priority Support</td>
-<td align="center">❌</td>
-<td align="center">✅</td>
+  <td>📡 <strong>Streamer</strong></td>
+  <td align="center"><strong>$5/mo</strong></td>
+  <td align="center"><strong>$33</strong></td>
+  <td>Everything in Premium <strong>+ Phone Companion</strong> (mirror panel to phone, remote control from mobile, encrypted PIN session)</td>
 </tr>
 </tbody>
 </table>
 
-> 🔑 **Want Premium?** Starting at just **$2.99/month** or **$19.99 lifetime** via [GitHub Sponsors](https://github.com/sponsors/mrtcnygt0). Your account will be upgraded within 24 hours!
+<p align="center">
+  <a href="https://github.com/sponsors/mrtcnygt0">
+    <img src="https://img.shields.io/badge/💎%20Get%20Premium%20—%20from%20$2.99%2Fmo-ffd700?style=for-the-badge&logo=github-sponsors&logoColor=black" alt="Get Premium">
+  </a>
+  &nbsp;
+  <a href="https://github.com/sponsors/mrtcnygt0">
+    <img src="https://img.shields.io/badge/📡%20Get%20Streamer%20—%20from%20$5%2Fmo-9b59b6?style=for-the-badge&logo=github-sponsors&logoColor=white" alt="Get Streamer">
+  </a>
+</p>
+
+> 🔑 After sponsoring, send your **ForkSight username** to [mertcanyigit54@outlook.com](mailto:mertcanyigit54@outlook.com). Your account is upgraded **within 24 hours**.
 
 ---
 
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="screenshots/gameplay.gif" alt="ForkSight Gameplay Demo" width="700"><br>
-  <strong>Live Gameplay Demo</strong> — Real-time Stockfish analysis in action
+  <img src="screenshots/gameplay.gif" alt="ForkSight Gameplay Demo" width="720"><br>
+  <strong>Live Gameplay</strong> — depth-25 Stockfish, real-time arrows, zero lag
 </p>
+
+### Desktop Panel
 
 <table>
 <tr>
 <td align="center" width="50%">
 <img src="screenshots/analysis-panel.png" alt="Analysis Panel" width="100%"><br>
 <strong>Analysis Panel</strong><br>
-<em>Real-time Stockfish analysis with color-coded arrows</em>
+<em>Real-time Stockfish overlay with color-coded arrows</em>
 </td>
 <td align="center" width="50%">
-<img src="screenshots/coach-panel.png" alt="Coach Mode Panel" width="100%"><br>
+<img src="screenshots/coach-panel.png" alt="Coach Mode Panel" width="55%"><br>
 <strong>Coach Mode</strong><br>
-<em>Eval bar, move feedback, tactic detection and game stats</em>
+<em>Eval bar, move quality, tactic detection &amp; game stats</em>
 </td>
 </tr>
 <tr>
 <td align="center">
 <img src="screenshots/coach-good-move.png" alt="Good Move Feedback" width="100%"><br>
 <strong>Move Quality Feedback</strong><br>
-<em>Instant feedback after every move with tactic alerts</em>
+<em>Instant verdicts after every single move</em>
 </td>
 <td align="center">
 <img src="screenshots/coach-blunder.png" alt="Blunder Detection" width="100%"><br>
-<strong>Blunder & Missed Move</strong><br>
-<em>Red highlights showing the best move you missed</em>
+<strong>Blunder &amp; Missed Move</strong><br>
+<em>Red highlights show the move you should have played</em>
 </td>
 </tr>
 <tr>
 <td align="center">
 <img src="screenshots/coach-tactic.png" alt="Tactic Detection" width="100%"><br>
 <strong>Tactic Detection</strong><br>
-<em>Alerts when a tactic exists without revealing the move</em>
+<em>"There's a tactic here" — without spoiling the move</em>
 </td>
 <td align="center">
-<img src="screenshots/login-screen.png" alt="Login Screen" width="100%"><br>
-<strong>Login Screen</strong><br>
-<em>Secure authentication with guest mode option</em>
+<img src="screenshots/login-screen.png" alt="Login Screen" width="50%"><br>
+<strong>Secure Login</strong><br>
+<em>JWT-based auth with one-click guest mode</em>
+</td>
+</tr>
+</table>
+
+### 📡 Phone Companion *(Streamer)*
+
+<table>
+<tr>
+<td align="center" width="35%">
+<img src="screenshots/streamer_mobile.png" alt="Phone Companion" width="100%"><br>
+<strong>Mobile Mirror</strong><br>
+<em>Full board, eval, best moves &amp; remote settings</em>
+</td>
+<td width="65%">
+
+**How it works:**
+
+1. Click the **📡 Streamer** button in the panel
+2. A **QR code + PIN** appears on your desktop
+3. Scan the QR with your phone — open the link
+4. Enter the **4-digit PIN** — connected ✅
+5. The companion mirrors **everything** in real time
+6. Change depth, MultiPV, mode — **from your phone**
+
+**Why it matters:**
+
+- Keep your main screen **clean** during streaming
+- Use your phone as a **second board** while playing OTB
+- Study a position from across the room
+- **Auto language sync** — your phone matches your panel locale instantly
+
+</td>
+</tr>
+</table>
+
+### Popup &amp; About
+
+<table>
+<tr>
+<td align="center" width="50%">
+<img src="screenshots/popup.png" alt="Extension Popup" width="50%"><br>
+<strong>Extension Popup</strong><br>
+<em>Status, account info &amp; quick actions</em>
+</td>
+<td align="center" width="50%">
+<img src="screenshots/about-dialog.png" alt="About Dialog" width="60%"><br>
+<strong>About Dialog</strong><br>
+<em>Version info, language switcher &amp; credits</em>
 </td>
 </tr>
 </table>
@@ -323,10 +386,10 @@ Download the latest release from the [**Releases**](../../releases) page:
 
 ## 🌍 Supported Platforms
 
-| Platform                                                                                                                                                                                                                                                                                                                                                                                                                                    | Status             | Extension            |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | -------------------- |
-| <img src="https://img.shields.io/badge/Chess.com-769656?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0wIDE4Yy00LjQyIDAtOC0zLjU4LTgtOHMzLjU4LTggOC04IDggMy41OCA4IDgtMy41OCA4LTggOHoiLz48L3N2Zz4=&logoColor=white" alt="Chess.com"> | ✅ Fully Supported | `extension/`         |
-| <img src="https://img.shields.io/badge/Lichess.org-FFC107?style=flat-square&logoColor=black" alt="Lichess">                                                                                                                                                                                                                                                                                                                                 | ✅ Fully Supported | `lichess-extension/` |
+| Platform                                                                                                                                                                                                                                                                                                                                                                                                                                    | Status              | Extension folder      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | --------------------- |
+| <img src="https://img.shields.io/badge/Chess.com-769656?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0wIDE4Yy00LjQyIDAtOC0zLjU4LTgtOHMzLjU4LTggOC04IDggMy41OCA4IDgtMy41OCA4LTggOHoiLz48L3N2Zz4=&logoColor=white" alt="Chess.com"> | ✅ Fully Supported  | `extension/`          |
+| <img src="https://img.shields.io/badge/Lichess.org-FFC107?style=flat-square&logoColor=black" alt="Lichess">                                                                                                                                                                                                                                                                                                                                 | ✅ Fully Supported  | `lichess-extension/`  |
 
 ---
 
@@ -336,9 +399,9 @@ Download the latest release from the [**Releases**](../../releases) page:
   <img src="forksight.png" alt="ForkSight" width="80">
 </p>
 
-ForkSight is maintained by a solo developer. Running cloud servers and the Stockfish engine 24/7 requires real resources. **Your donations keep ForkSight alive and help bring new features to life.**
+ForkSight is built and maintained by **a single developer**. Running cloud servers, the Stockfish engine and the WebSocket / companion infrastructure 24/7 takes real money. **Your sponsorships keep this project alive.**
 
-If ForkSight has helped you learn or enjoy chess more, please consider supporting the project:
+If ForkSight makes your chess better — even a little — please consider supporting the project:
 
 <p align="center">
   <a href="https://github.com/sponsors/mrtcnygt0">
@@ -346,40 +409,24 @@ If ForkSight has helped you learn or enjoy chess more, please consider supportin
   </a>
 </p>
 
-> Every contribution, no matter how small, makes a real difference. Thank you! 🙏
+**Where your money goes:**
 
-**What your donations fund:**
-
-- ☁️ Cloud server costs (24/7 Stockfish engine hosting)
-- 🔧 Ongoing development & new features
-- 🐛 Bug fixes and platform compatibility updates
-- 🌍 New language translations
-- 📱 Future mobile & Firefox support
+- ☁️ Cloud server costs (24/7 Stockfish + companion infrastructure)
+- 🔧 New features (Phone Companion was your request — keep them coming!)
+- 🐛 Bug fixes &amp; platform compatibility (Chess.com / Lichess change often)
+- 🌍 More language translations
+- 📱 Future Firefox &amp; native mobile clients
 
 ---
 
 ## 📬 Contact
 
-**Want to get Premium access?** Choose your plan and sponsor us on GitHub:
-
-| Plan            | Price                 |                                  |
-| --------------- | --------------------- | -------------------------------- |
-| 📅 **Monthly**  | **$2.99/mo** (₺99/ay) | Cancel anytime                   |
-| ♾️ **Lifetime** | **$19.99** (₺799)     | One-time payment, forever access |
-
-<p align="center">
-  <a href="https://github.com/sponsors/mrtcnygt0">
-    <img src="https://img.shields.io/badge/💎%20Get%20Premium%20—%20from%20$2.99%2Fmo-ffd700?style=for-the-badge&logo=github-sponsors&logoColor=black" alt="Get Premium">
-  </a>
-</p>
-
-After sponsoring, send your **ForkSight username** to activate Premium:
-
-| Channel        | Link                                                            |
-| -------------- | --------------------------------------------------------------- |
-| 📧 **Email**   | [mertcanyigit54@outlook.com](mailto:mertcanyigit54@outlook.com) |
-| 🌐 **Website** | [mertcanyigit.com](https://mertcanyigit.com)                    |
-| 🐙 **GitHub**  | [github.com/mrtcnygt0](https://github.com/mrtcnygt0)            |
+| Channel        | Link                                                                   |
+| -------------- | ---------------------------------------------------------------------- |
+| 📧 **Email**   | [mertcanyigit54@outlook.com](mailto:mertcanyigit54@outlook.com)        |
+| 🌐 **Website** | [mertcanyigit.com](https://mertcanyigit.com)                           |
+| 🐙 **GitHub**  | [github.com/mrtcnygt0](https://github.com/mrtcnygt0)                   |
+| 💎 **Sponsor** | [github.com/sponsors/mrtcnygt0](https://github.com/sponsors/mrtcnygt0) |
 
 ---
 

@@ -147,7 +147,7 @@
       wsProgress: "⏳ depth {0}…",
       aboutTitle: "About ForkSight",
       aboutText:
-        "ForkSight is an advanced chess analysis tool powered by the Stockfish engine. It provides real-time tactical analysis with visual arrows on the board.<br><br><b>⚠️ Disclaimer:</b> This tool was created for <b>educational purposes only</b>. It is designed to help players learn, study positions and improve their chess understanding. We strongly advise against using it for cheating in rated games. Fair play makes chess beautiful.<br><br><b>Version:</b> 2.1.1",
+        "ForkSight is an advanced chess analysis tool powered by the Stockfish engine. It provides real-time tactical analysis with visual arrows on the board.<br><br><b>⚠️ Disclaimer:</b> This tool was created for <b>educational purposes only</b>. It is designed to help players learn, study positions and improve their chess understanding. We strongly advise against using it for cheating in rated games. Fair play makes chess beautiful.<br><br><b>Version:</b> 2.1.2",
       aboutCreator: "Creator",
       aboutLinks: "Links",
       premiumTitle: "ForkSight Premium",
@@ -401,7 +401,7 @@
       wsProgress: "⏳ derinlik {0}…",
       aboutTitle: "ForkSight Hakkında",
       aboutText:
-        "ForkSight, Stockfish motoru tarafından desteklenen gelişmiş bir satranç analiz aracıdır. Tahta üzerinde görsel oklar ile gerçek zamanlı taktik analiz sunar.<br><br><b>⚠️ Uyarı:</b> Bu araç yalnızca <b>eğitim amaçlı</b> oluşturulmuştur. Oyuncuların öğrenmesine, pozisyonları çalışmasına ve satranç anlayışlarını geliştirmesine yardımcı olmak için tasarlanmıştır. Dereceli oyunlarda hile yapmak için kullanmamanızı şiddetle tavsiye ederiz. Adil oyun satrancı güzel kılar.<br><br><b>Sürüm:</b> 2.1.1",
+        "ForkSight, Stockfish motoru tarafından desteklenen gelişmiş bir satranç analiz aracıdır. Tahta üzerinde görsel oklar ile gerçek zamanlı taktik analiz sunar.<br><br><b>⚠️ Uyarı:</b> Bu araç yalnızca <b>eğitim amaçlı</b> oluşturulmuştur. Oyuncuların öğrenmesine, pozisyonları çalışmasına ve satranç anlayışlarını geliştirmesine yardımcı olmak için tasarlanmıştır. Dereceli oyunlarda hile yapmak için kullanmamanızı şiddetle tavsiye ederiz. Adil oyun satrancı güzel kılar.<br><br><b>Sürüm:</b> 2.1.2",
       aboutCreator: "Yaratıcı",
       aboutLinks: "Bağlantılar",
       premiumTitle: "ForkSight Premium",
@@ -656,7 +656,7 @@
       wsProgress: "⏳ Tiefe {0}…",
       aboutTitle: "Über ForkSight",
       aboutText:
-        "ForkSight ist ein fortschrittliches Schachanalyse-Tool, das von der Stockfish-Engine angetrieben wird. Es bietet Echtzeit-Taktikanalyse mit visuellen Pfeilen auf dem Brett.<br><br><b>⚠️ Hinweis:</b> Dieses Tool wurde ausschließlich für <b>Bildungszwecke</b> erstellt. Es soll Spielern helfen, zu lernen, Positionen zu studieren und ihr Schachverständnis zu verbessern. Wir raten dringend davon ab, es zum Schummeln in gewerteten Partien zu verwenden. Faires Spiel macht Schach schön.<br><br><b>Version:</b> 2.1.1",
+        "ForkSight ist ein fortschrittliches Schachanalyse-Tool, das von der Stockfish-Engine angetrieben wird. Es bietet Echtzeit-Taktikanalyse mit visuellen Pfeilen auf dem Brett.<br><br><b>⚠️ Hinweis:</b> Dieses Tool wurde ausschließlich für <b>Bildungszwecke</b> erstellt. Es soll Spielern helfen, zu lernen, Positionen zu studieren und ihr Schachverständnis zu verbessern. Wir raten dringend davon ab, es zum Schummeln in gewerteten Partien zu verwenden. Faires Spiel macht Schach schön.<br><br><b>Version:</b> 2.1.2",
       aboutCreator: "Ersteller",
       aboutLinks: "Links",
       premiumTitle: "ForkSight Premium",
@@ -5845,10 +5845,17 @@
     }
 
     // ─── Premove simülasyonu (bazen anında oyna) ───
-    if (!forcedReason && complexity < 0.15 && Math.random() < 0.12) {
-      // Çok kolay hamle — premove gibi hızlı
-      meanDelay = 150 + Math.random() * 300;
-      stdDev = 80;
+    // v2.1.2: eşik gevşetildi (evaluateComplexity min 0.2 döndürüyordu → hiç
+    // tetiklenmiyordu) ve ponder-hit + düşük karmaşıklık olduğunda zorla tetiklenir.
+    let premoveActive = false;
+    if (!forcedReason && complexity <= 0.25) {
+      const premoveChance = ponderHit ? 0.55 : 0.18;
+      if (Math.random() < premoveChance) {
+        // Çok kolay hamle — premove gibi hızlı
+        meanDelay = 120 + Math.random() * 280; // 120-400ms
+        stdDev = 70;
+        premoveActive = true;
+      }
     }
 
     // ─── v2.1: Gaussian yerine Lognormal örnekleme (insan dağılımı) ───
@@ -5859,7 +5866,11 @@
     let delay = lognormalRandom(meanDelay, sigmaLog);
 
     // ─── v2.1: Auto-correlation (önceki think-time ile %25 harmanla) ───
-    delay = 0.75 * delay + 0.25 * _ab_lastThinkTime;
+    // v2.1.2: forced ve premove durumlarında auto-correlation atlanır —
+    // aksi halde hızlı tepkiler ortalamayla geri çekilir.
+    if (!forcedReason && !premoveActive) {
+      delay = 0.75 * delay + 0.25 * _ab_lastThinkTime;
+    }
     _ab_lastThinkTime = delay;
 
     delay = Math.max(forcedReason ? 180 : 100, Math.round(delay));

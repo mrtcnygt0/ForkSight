@@ -147,7 +147,7 @@
       wsProgress: "⏳ depth {0}…",
       aboutTitle: "About ForkSight",
       aboutText:
-        "ForkSight is an advanced chess analysis tool powered by the Stockfish engine. It provides real-time tactical analysis with visual arrows on the board.<br><br><b>⚠️ Disclaimer:</b> This tool was created for <b>educational purposes only</b>. It is designed to help players learn, study positions and improve their chess understanding. We strongly advise against using it for cheating in rated games. Fair play makes chess beautiful.<br><br><b>Version:</b> 2.1",
+        "ForkSight is an advanced chess analysis tool powered by the Stockfish engine. It provides real-time tactical analysis with visual arrows on the board.<br><br><b>⚠️ Disclaimer:</b> This tool was created for <b>educational purposes only</b>. It is designed to help players learn, study positions and improve their chess understanding. We strongly advise against using it for cheating in rated games. Fair play makes chess beautiful.<br><br><b>Version:</b> 2.1.1",
       aboutCreator: "Creator",
       aboutLinks: "Links",
       premiumTitle: "ForkSight Premium",
@@ -401,7 +401,7 @@
       wsProgress: "⏳ derinlik {0}…",
       aboutTitle: "ForkSight Hakkında",
       aboutText:
-        "ForkSight, Stockfish motoru tarafından desteklenen gelişmiş bir satranç analiz aracıdır. Tahta üzerinde görsel oklar ile gerçek zamanlı taktik analiz sunar.<br><br><b>⚠️ Uyarı:</b> Bu araç yalnızca <b>eğitim amaçlı</b> oluşturulmuştur. Oyuncuların öğrenmesine, pozisyonları çalışmasına ve satranç anlayışlarını geliştirmesine yardımcı olmak için tasarlanmıştır. Dereceli oyunlarda hile yapmak için kullanmamanızı şiddetle tavsiye ederiz. Adil oyun satrancı güzel kılar.<br><br><b>Sürüm:</b> 2.1",
+        "ForkSight, Stockfish motoru tarafından desteklenen gelişmiş bir satranç analiz aracıdır. Tahta üzerinde görsel oklar ile gerçek zamanlı taktik analiz sunar.<br><br><b>⚠️ Uyarı:</b> Bu araç yalnızca <b>eğitim amaçlı</b> oluşturulmuştur. Oyuncuların öğrenmesine, pozisyonları çalışmasına ve satranç anlayışlarını geliştirmesine yardımcı olmak için tasarlanmıştır. Dereceli oyunlarda hile yapmak için kullanmamanızı şiddetle tavsiye ederiz. Adil oyun satrancı güzel kılar.<br><br><b>Sürüm:</b> 2.1.1",
       aboutCreator: "Yaratıcı",
       aboutLinks: "Bağlantılar",
       premiumTitle: "ForkSight Premium",
@@ -656,7 +656,7 @@
       wsProgress: "⏳ Tiefe {0}…",
       aboutTitle: "Über ForkSight",
       aboutText:
-        "ForkSight ist ein fortschrittliches Schachanalyse-Tool, das von der Stockfish-Engine angetrieben wird. Es bietet Echtzeit-Taktikanalyse mit visuellen Pfeilen auf dem Brett.<br><br><b>⚠️ Hinweis:</b> Dieses Tool wurde ausschließlich für <b>Bildungszwecke</b> erstellt. Es soll Spielern helfen, zu lernen, Positionen zu studieren und ihr Schachverständnis zu verbessern. Wir raten dringend davon ab, es zum Schummeln in gewerteten Partien zu verwenden. Faires Spiel macht Schach schön.<br><br><b>Version:</b> 2.1",
+        "ForkSight ist ein fortschrittliches Schachanalyse-Tool, das von der Stockfish-Engine angetrieben wird. Es bietet Echtzeit-Taktikanalyse mit visuellen Pfeilen auf dem Brett.<br><br><b>⚠️ Hinweis:</b> Dieses Tool wurde ausschließlich für <b>Bildungszwecke</b> erstellt. Es soll Spielern helfen, zu lernen, Positionen zu studieren und ihr Schachverständnis zu verbessern. Wir raten dringend davon ab, es zum Schummeln in gewerteten Partien zu verwenden. Faires Spiel macht Schach schön.<br><br><b>Version:</b> 2.1.1",
       aboutCreator: "Ersteller",
       aboutLinks: "Links",
       premiumTitle: "ForkSight Premium",
@@ -3096,8 +3096,28 @@
               );
               _trackPlayedRank(_rk >= 0 ? _rk : 0);
             }
+            const _fenBefore = fenNow;
             playMoveOnBoard(chosen.move);
             moveCounter++;
+            // v2.1.1: hamlenin tahtaya yansıdığını doğrula
+            // (chess.com ilk hamle 10s timeout / abort durumunu yakala)
+            setTimeout(() => {
+              try {
+                const fenAfter = readBoardFEN();
+                if (fenAfter === _fenBefore) {
+                  console.warn(
+                    "[Taktik] Move not registered (FEN unchanged) — match may have been aborted/cancelled",
+                  );
+                  // Hamleyi geri say (aslında oynamadık)
+                  if (moveCounter > 0) moveCounter--;
+                  // Yeniden analiz tetikle: ya pozisyon değişmiştir ya da
+                  // oyun bitmiştir; sonraki analiz doğru karar verir
+                  if (autoPlayEnabled && !isAnalyzing) {
+                    setTimeout(() => analyzePosition(), 800);
+                  }
+                }
+              } catch (_) {}
+            }, 2500);
           }, delayMs);
         }
       }
@@ -5843,6 +5863,11 @@
     _ab_lastThinkTime = delay;
 
     delay = Math.max(forcedReason ? 180 : 100, Math.round(delay));
+
+    // ─── v2.1.1: Erken oyunda katı tavan (chess.com 10s ilk-hamle abort koruması) ───
+    if (moveCounter === 0) delay = Math.min(delay, 4000);
+    else if (moveCounter <= 2) delay = Math.min(delay, 5500);
+    else if (moveCounter <= 4) delay = Math.min(delay, 7500);
 
     // ─── v2.1: Zaman bütçesi farkındalığı ───
     if (remaining < 999) {

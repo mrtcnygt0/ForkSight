@@ -43,57 +43,38 @@ While you play on Chess.com or Lichess, ForkSight overlays a **professional-grad
 
 > **🥇 We're the most advanced real-time Stockfish extension on the planet — and we plan to keep it that way.**
 
-|                               | Other Extensions   | **ForkSight**                                         |
-| ----------------------------- | ------------------ | ----------------------------------------------------- |
-| ⚡ **Speed**                  | Post-game analysis | **Live, during the game**                             |
-| 🎨 **On-board visualization** | Text-only PGN      | **Color-coded arrows + square highlights**            |
-| 🧠 **Engine depth**           | 5–10 (limited)     | **Up to depth 25** with cloud Stockfish 16+           |
-| 📊 **Multi-line analysis**    | 1 line             | **Up to 5 best lines simultaneously**                 |
-| 🌐 **Platforms**              | One site           | **Chess.com + Lichess.org**                           |
-| 📱 **Mobile companion**       | ❌ Not available   | **✅ Phone Companion (v2.0 exclusive)**               |
-| 🎓 **Built-in coaching**      | Static evaluation  | **Real-time Coach Mode with tactic detection**        |
-| 🤖 **Auto-Play &amp; Anti-Ban**   | ❌ Banned in days  | **Anti-Ban v2: lognormal + ponder + forced + phase-aware**      |
-| 🌍 **Languages**              | English only       | **English · Türkçe · Deutsch**                        |
-| 🔒 **Stealth & privacy**      | Always-visible UI  | **F4 stealth, end-to-end JWT/HTTPS, zero local data** |
+|                                 | Other Extensions   | **ForkSight**                                              |
+| ------------------------------- | ------------------ | ---------------------------------------------------------- |
+| ⚡ **Speed**                    | Post-game analysis | **Live, during the game**                                  |
+| 🎨 **On-board visualization**   | Text-only PGN      | **Color-coded arrows + square highlights**                 |
+| 🧠 **Engine depth**             | 5–10 (limited)     | **Up to depth 25** with cloud Stockfish 16+                |
+| 📊 **Multi-line analysis**      | 1 line             | **Up to 5 best lines simultaneously**                      |
+| 🌐 **Platforms**                | One site           | **Chess.com + Lichess.org**                                |
+| 📱 **Mobile companion**         | ❌ Not available   | **✅ Phone Companion (v2.0 exclusive)**                    |
+| 🎓 **Built-in coaching**        | Static evaluation  | **Real-time Coach Mode with tactic detection**             |
+| 🤖 **Auto-Play &amp; Anti-Ban** | ❌ Banned in days  | **Anti-Ban v2: lognormal + ponder + forced + phase-aware** |
+| 🌍 **Languages**                | English only       | **English · Türkçe · Deutsch**                             |
+| 🔒 **Stealth & privacy**        | Always-visible UI  | **F4 stealth, end-to-end JWT/HTTPS, zero local data**      |
 
 ---
 
 ## 🚀 What's New in v2.1
 
-<table>
-<tr>
-<td width="58%">
+### 🛡️ Anti-Ban v2 — Human-Level Move Timing
 
-### 🛡️ Anti-Ban v2 — Insan-Seviyesi Hamle Zamanlaması
+v2.1's headline upgrade is the **Anti-Ban engine**. The timing core has been completely rebuilt to mask **every statistical signal** that Chess.com's and Lichess's cheat-detection systems are designed to look for.
 
-v2.1'in odak noktası **Anti-Ban motoru**. Tamamen yeniden tasarlanan zamanlama çekirdeği, Chess.com ve Lichess'in cheat-detection sistemlerinin peşinde olduğu **tüm istatistiksel sinyalleri** gizlemek için geliştirildi.
+- ⏱️ **Lognormal think-time distribution** — replaces Gaussian's symmetric tail with the long-tailed shape that real humans actually produce.
+- 🧠 **Ponder-hit detection** — when the opponent plays the expected main line, the reply lands in **0.4–1s** (human reflex speed).
+- 💡 **Forced-move recognition** — only-legal moves and large material swings are answered in **0.2–0.7s**.
+- 🎯 **Critical-position detector** — mate threats or multiple equally good candidates trigger up to **2.6×** longer think.
+- 😲 **Surprise reaction** — an unexpected opponent move automatically adds **+0.8–2.0s** of thinking.
+- 🏗️ **Material-based game phase** — opening / middlegame / endgame is inferred from pieces on the board, not move number; endgames are played with technical speed.
+- 🔗 **Auto-correlated think-time** — natural rhythm between consecutive moves (no robotic uniformity).
+- 🕰️ **Time-budget awareness** — per-move ceiling derived from remaining clock and expected moves left.
+- 📝 **i18n parity** — EN / TR / DE "About" strings updated to v2.1.
 
-- ⏱️ **Lognormal düşünme süresi** — Gaussian'ın simetrik kuyruğu yerine gerçek insanlar gibi uzun-kuyruklu dağılım.
-- 🧠 **Ponder-hit tespiti** — rakip beklenen hattı oynadıysa cevap **0.4–1s** içinde gelir (insan refleksi).
-- 💡 **Forced-move algoritması** — tek yasal hamle / büyük materyal uçurumlarında 0.2–0.7s.
-- 🎯 **Kritik pozisyon dedektörü** — mat tehdidi ya da birden çok eşdeğer hamlede **2.6×** uzun düşünme.
-- 😲 **Surprise reaction** — rakip beklenmedik bir şey oynadığında otomatik **+0.8–2.0s** ek düşünme.
-- 🏗️ **Materyal-bazlı oyun fazı** — hamle sayısı yerine tahtadaki taşlardan açılış / orta oyun / son oyun ayırt edilir; endgame'de teknik hızlı oyun.
-- 🔗 **Auto-correlated think-time** — ardışık hamleler arası doğal süre korelasyonu (insan ritmi).
-- 🕰️ **Time-budget farkındalığı** — kalan süre + beklenen hamle sayısına göre bir hamleye ayırılan bütçe.
-
-> Sonuç: CAPS2 ve move-time variance dedektörlerinin ayıklamak için tasarlandığı "engine pattern" artık yok.
-
-</td>
-<td width="42%" align="center">
-<img src="screenshots/streamer_mobile.png" alt="ForkSight v2.1 Anti-Ban v2" width="100%"><br>
-<sub><em>Anti-Ban v2 — Lognormal + Ponder + Forced + Phase-aware timing.</em></sub>
-</td>
-</tr>
-</table>
-
-### Plus across v2.1:
-
-- 📊 **Admin panel üst kullanıcılar paneli** — toplam analiz / oyun / ortalama derinlik istatistikleri ile satıra tıklayarak detay.
-- 🎮 **Oyun ID sütunu** — admin günlüklerinde artık her oyun doğrudan Chess.com / Lichess linkine bağlanır.
-- 📢 **Bildirim canlı önizleme** — yeni bildirim oluştururken gerçek görüntü anlık görünür; görüntülenme / tıklanma istatistikleri ve CTR badge'leri.
-- 🔑 **Server v3.1.x** — v2.0 minimum sürüm zorlaması korundu; v2.1 ile geriye-uyumlu.
-- 📝 **3 dil i18n parite** — EN / TR / DE "About" metni v2.1'e güncellendi.
+> The engine pattern that CAPS2 and move-time variance detectors are tuned to spot is gone.
 
 ---
 

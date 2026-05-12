@@ -14,12 +14,12 @@
   <img src="https://img.shields.io/badge/Engine-Stockfish%2016+-EEEED2?style=for-the-badge&labelColor=769656" alt="Engine">
   <img src="https://img.shields.io/badge/Manifest-V3-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Manifest V3">
   <img src="https://img.shields.io/badge/License-Proprietary-E74C3C?style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/badge/Version-2.0-86b817?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-2.1-86b817?style=for-the-badge" alt="Version">
 </p>
 
 <p align="center">
   <a href="#-why-forksight">Why ForkSight</a> •
-  <a href="#-whats-new-in-v20">What's New</a> •
+  <a href="#-whats-new-in-v21">What's New</a> •
   <a href="#-features">Features</a> •
   <a href="#-installation">Installation</a> •
   <a href="#-pricing">Pricing</a> •
@@ -28,7 +28,7 @@
 </p>
 
 <p align="center">
-  <img src="screenshots/mockup.png" alt="ForkSight v2.0 — Desktop + Phone Companion" width="520">
+  <img src="screenshots/mockup.png" alt="ForkSight v2.1 — Desktop + Phone Companion" width="520">
 </p>
 
 <p align="center"><em>Real-time Stockfish on your screen. A second display in your pocket. <strong>Built for the modern chess player.</strong></em></p>
@@ -43,18 +43,57 @@ While you play on Chess.com or Lichess, ForkSight overlays a **professional-grad
 
 > **🥇 We're the most advanced real-time Stockfish extension on the planet — and we plan to keep it that way.**
 
-|                                | Other Extensions      | **ForkSight**                                              |
-| ------------------------------ | --------------------- | ---------------------------------------------------------- |
-| ⚡ **Speed**                    | Post-game analysis    | **Live, during the game**                                  |
-| 🎨 **On-board visualization**  | Text-only PGN         | **Color-coded arrows + square highlights**                 |
-| 🧠 **Engine depth**            | 5–10 (limited)        | **Up to depth 25** with cloud Stockfish 16+                |
-| 📊 **Multi-line analysis**     | 1 line                | **Up to 5 best lines simultaneously**                      |
-| 🌐 **Platforms**               | One site              | **Chess.com + Lichess.org**                                |
-| 📱 **Mobile companion**        | ❌ Not available       | **✅ Phone Companion (v2.0 exclusive)**                    |
-| 🎓 **Built-in coaching**       | Static evaluation     | **Real-time Coach Mode with tactic detection**             |
-| 🤖 **Auto-Play & Anti-Ban**    | ❌ Banned in days      | **Human-like timing, Elo ceiling, opening book**           |
-| 🌍 **Languages**               | English only          | **English · Türkçe · Deutsch**                             |
-| 🔒 **Stealth & privacy**       | Always-visible UI     | **F4 stealth, end-to-end JWT/HTTPS, zero local data**      |
+|                               | Other Extensions   | **ForkSight**                                         |
+| ----------------------------- | ------------------ | ----------------------------------------------------- |
+| ⚡ **Speed**                  | Post-game analysis | **Live, during the game**                             |
+| 🎨 **On-board visualization** | Text-only PGN      | **Color-coded arrows + square highlights**            |
+| 🧠 **Engine depth**           | 5–10 (limited)     | **Up to depth 25** with cloud Stockfish 16+           |
+| 📊 **Multi-line analysis**    | 1 line             | **Up to 5 best lines simultaneously**                 |
+| 🌐 **Platforms**              | One site           | **Chess.com + Lichess.org**                           |
+| 📱 **Mobile companion**       | ❌ Not available   | **✅ Phone Companion (v2.0 exclusive)**               |
+| 🎓 **Built-in coaching**      | Static evaluation  | **Real-time Coach Mode with tactic detection**        |
+| 🤖 **Auto-Play &amp; Anti-Ban**   | ❌ Banned in days  | **Anti-Ban v2: lognormal + ponder + forced + phase-aware**      |
+| 🌍 **Languages**              | English only       | **English · Türkçe · Deutsch**                        |
+| 🔒 **Stealth & privacy**      | Always-visible UI  | **F4 stealth, end-to-end JWT/HTTPS, zero local data** |
+
+---
+
+## 🚀 What's New in v2.1
+
+<table>
+<tr>
+<td width="58%">
+
+### 🛡️ Anti-Ban v2 — Insan-Seviyesi Hamle Zamanlaması
+
+v2.1'in odak noktası **Anti-Ban motoru**. Tamamen yeniden tasarlanan zamanlama çekirdeği, Chess.com ve Lichess'in cheat-detection sistemlerinin peşinde olduğu **tüm istatistiksel sinyalleri** gizlemek için geliştirildi.
+
+- ⏱️ **Lognormal düşünme süresi** — Gaussian'ın simetrik kuyruğu yerine gerçek insanlar gibi uzun-kuyruklu dağılım.
+- 🧠 **Ponder-hit tespiti** — rakip beklenen hattı oynadıysa cevap **0.4–1s** içinde gelir (insan refleksi).
+- 💡 **Forced-move algoritması** — tek yasal hamle / büyük materyal uçurumlarında 0.2–0.7s.
+- 🎯 **Kritik pozisyon dedektörü** — mat tehdidi ya da birden çok eşdeğer hamlede **2.6×** uzun düşünme.
+- 😲 **Surprise reaction** — rakip beklenmedik bir şey oynadığında otomatik **+0.8–2.0s** ek düşünme.
+- 🏗️ **Materyal-bazlı oyun fazı** — hamle sayısı yerine tahtadaki taşlardan açılış / orta oyun / son oyun ayırt edilir; endgame'de teknik hızlı oyun.
+- 🔗 **Auto-correlated think-time** — ardışık hamleler arası doğal süre korelasyonu (insan ritmi).
+- 🕰️ **Time-budget farkındalığı** — kalan süre + beklenen hamle sayısına göre bir hamleye ayırılan bütçe.
+
+> Sonuç: CAPS2 ve move-time variance dedektörlerinin ayıklamak için tasarlandığı "engine pattern" artık yok.
+
+</td>
+<td width="42%" align="center">
+<img src="screenshots/streamer_mobile.png" alt="ForkSight v2.1 Anti-Ban v2" width="100%"><br>
+<sub><em>Anti-Ban v2 — Lognormal + Ponder + Forced + Phase-aware timing.</em></sub>
+</td>
+</tr>
+</table>
+
+### Plus across v2.1:
+
+- 📊 **Admin panel üst kullanıcılar paneli** — toplam analiz / oyun / ortalama derinlik istatistikleri ile satıra tıklayarak detay.
+- 🎮 **Oyun ID sütunu** — admin günlüklerinde artık her oyun doğrudan Chess.com / Lichess linkine bağlanır.
+- 📢 **Bildirim canlı önizleme** — yeni bildirim oluştururken gerçek görüntü anlık görünür; görüntülenme / tıklanma istatistikleri ve CTR badge'leri.
+- 🔑 **Server v3.1.x** — v2.0 minimum sürüm zorlaması korundu; v2.1 ile geriye-uyumlu.
+- 📝 **3 dil i18n parite** — EN / TR / DE "About" metni v2.1'e güncellendi.
 
 ---
 
@@ -136,7 +175,7 @@ While you play on Chess.com or Lichess, ForkSight overlays a **professional-grad
 </td>
 <td>
 
-### 📡 **Phone Companion** *(v2.0)*
+### 📡 **Phone Companion** _(v2.0)_
 
 - Mirror panel to your phone via QR + PIN
 - **Remote control** depth, MultiPV, mode
@@ -149,10 +188,13 @@ While you play on Chess.com or Lichess, ForkSight overlays a **professional-grad
 <tr>
 <td>
 
-### 🤖 **Auto-Play &amp; Anti-Ban**
+### 🤖 **Auto-Play &amp; Anti-Ban v2**
 
 - Plays the **best move** automatically
-- **Human-like timing** patterns
+- **Lognormal** human think-time distribution
+- **Ponder-hit / forced / critical / surprise** detection
+- **Material-based** game-phase modulation
+- **Auto-correlated** think-time (no robotic rhythm)
 - **Opening book** (15-position weighted)
 - **Elo ceiling** — simulate 800–2800
 - **Auto-Match** queue (10m → unlimited)
@@ -180,8 +222,8 @@ While you play on Chess.com or Lichess, ForkSight overlays a **professional-grad
 
 Grab the latest release from the [**Releases**](../../releases) page:
 
-- 📥 `ForkSight-Chess.com-v2.0.zip` — for **Chess.com**
-- 📥 `ForkSight-Lichess-v2.0.zip` — for **Lichess.org**
+- 📥 `ForkSight-Chess.com-v2.1.zip` — for **Chess.com**
+- 📥 `ForkSight-Lichess-v2.1.zip` — for **Lichess.org**
 
 ### Step 2 — Install in Chrome / Edge / Brave
 
@@ -324,7 +366,7 @@ Grab the latest release from the [**Releases**](../../releases) page:
 </tr>
 </table>
 
-### 📡 Phone Companion *(Streamer)*
+### 📡 Phone Companion _(Streamer)_
 
 <table>
 <tr>
@@ -386,10 +428,10 @@ Grab the latest release from the [**Releases**](../../releases) page:
 
 ## 🌍 Supported Platforms
 
-| Platform                                                                                                                                                                                                                                                                                                                                                                                                                                    | Status              | Extension folder      |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | --------------------- |
-| <img src="https://img.shields.io/badge/Chess.com-769656?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0wIDE4Yy00LjQyIDAtOC0zLjU4LTgtOHMzLjU4LTggOC04IDggMy41OCA4IDgtMy41OCA4LTggOHoiLz48L3N2Zz4=&logoColor=white" alt="Chess.com"> | ✅ Fully Supported  | `extension/`          |
-| <img src="https://img.shields.io/badge/Lichess.org-FFC107?style=flat-square&logoColor=black" alt="Lichess">                                                                                                                                                                                                                                                                                                                                 | ✅ Fully Supported  | `lichess-extension/`  |
+| Platform                                                                                                                                                                                                                                                                                                                                                                                                                                    | Status             | Extension folder     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | -------------------- |
+| <img src="https://img.shields.io/badge/Chess.com-769656?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0wIDE4Yy00LjQyIDAtOC0zLjU4LTgtOHMzLjU4LTggOC04IDggMy41OCA4IDgtMy41OCA4LTggOHoiLz48L3N2Zz4=&logoColor=white" alt="Chess.com"> | ✅ Fully Supported | `extension/`         |
+| <img src="https://img.shields.io/badge/Lichess.org-FFC107?style=flat-square&logoColor=black" alt="Lichess">                                                                                                                                                                                                                                                                                                                                 | ✅ Fully Supported | `lichess-extension/` |
 
 ---
 

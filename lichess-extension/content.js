@@ -147,7 +147,7 @@
       wsProgress: "⏳ depth {0}…",
       aboutTitle: "About ForkSight",
       aboutText:
-        "ForkSight is an advanced chess analysis tool powered by the Stockfish engine. It provides real-time tactical analysis with visual arrows on the board.<br><br><b>⚠️ Disclaimer:</b> This tool was created for <b>educational purposes only</b>. It is designed to help players learn, study positions and improve their chess understanding. We strongly advise against using it for cheating in rated games. Fair play makes chess beautiful.<br><br><b>Version:</b> 2.0",
+        "ForkSight is an advanced chess analysis tool powered by the Stockfish engine. It provides real-time tactical analysis with visual arrows on the board.<br><br><b>⚠️ Disclaimer:</b> This tool was created for <b>educational purposes only</b>. It is designed to help players learn, study positions and improve their chess understanding. We strongly advise against using it for cheating in rated games. Fair play makes chess beautiful.<br><br><b>Version:</b> 2.1",
       aboutCreator: "Creator",
       aboutLinks: "Links",
       premiumTitle: "ForkSight Premium",
@@ -400,7 +400,7 @@
       wsProgress: "⏳ derinlik {0}…",
       aboutTitle: "ForkSight Hakkında",
       aboutText:
-        "ForkSight, Stockfish motoru tarafından desteklenen gelişmiş bir satranç analiz aracıdır. Tahta üzerinde görsel oklar ile gerçek zamanlı taktik analiz sunar.<br><br><b>⚠️ Uyarı:</b> Bu araç yalnızca <b>eğitim amaçlı</b> oluşturulmuştur. Oyuncuların öğrenmesine, pozisyonları çalışmasına ve satranç anlayışlarını geliştirmesine yardımcı olmak için tasarlanmıştır. Dereceli oyunlarda hile yapmak için kullanmamanızı şiddetle tavsiye ederiz. Adil oyun satrancı güzel kılar.<br><br><b>Sürüm:</b> 2.0",
+        "ForkSight, Stockfish motoru tarafından desteklenen gelişmiş bir satranç analiz aracıdır. Tahta üzerinde görsel oklar ile gerçek zamanlı taktik analiz sunar.<br><br><b>⚠️ Uyarı:</b> Bu araç yalnızca <b>eğitim amaçlı</b> oluşturulmuştur. Oyuncuların öğrenmesine, pozisyonları çalışmasına ve satranç anlayışlarını geliştirmesine yardımcı olmak için tasarlanmıştır. Dereceli oyunlarda hile yapmak için kullanmamanızı şiddetle tavsiye ederiz. Adil oyun satrancı güzel kılar.<br><br><b>Sürüm:</b> 2.1",
       aboutCreator: "Yaratıcı",
       aboutLinks: "Bağlantılar",
       premiumTitle: "ForkSight Premium",
@@ -654,7 +654,7 @@
       wsProgress: "⏳ Tiefe {0}…",
       aboutTitle: "Über ForkSight",
       aboutText:
-        "ForkSight ist ein fortschrittliches Schachanalyse-Tool, das von der Stockfish-Engine angetrieben wird. Es bietet Echtzeit-Taktikanalyse mit visuellen Pfeilen auf dem Brett.<br><br><b>⚠️ Hinweis:</b> Dieses Tool wurde ausschließlich für <b>Bildungszwecke</b> erstellt. Es soll Spielern helfen, zu lernen, Positionen zu studieren und ihr Schachverständnis zu verbessern. Wir raten dringend davon ab, es zum Schummeln in gewerteten Partien zu verwenden. Faires Spiel macht Schach schön.<br><br><b>Version:</b> 2.0",
+        "ForkSight ist ein fortschrittliches Schachanalyse-Tool, das von der Stockfish-Engine angetrieben wird. Es bietet Echtzeit-Taktikanalyse mit visuellen Pfeilen auf dem Brett.<br><br><b>⚠️ Hinweis:</b> Dieses Tool wurde ausschließlich für <b>Bildungszwecke</b> erstellt. Es soll Spielern helfen, zu lernen, Positionen zu studieren und ihr Schachverständnis zu verbessern. Wir raten dringend davon ab, es zum Schummeln in gewerteten Partien zu verwenden. Faires Spiel macht Schach schön.<br><br><b>Version:</b> 2.1",
       aboutCreator: "Ersteller",
       aboutLinks: "Links",
       premiumTitle: "ForkSight Premium",
@@ -877,6 +877,10 @@
   let recentMoveRanks = []; // 0=top, 1=2nd, 2=3rd ...
   const TOP1_GUARD_WINDOW = 20;
   const TOP1_GUARD_THRESHOLD = 0.78;
+  // v2.1: Anti-Ban v2 — gelişmiş insansı zamanlama state'i
+  let _ab_lastEval = null; // önceki analizde seçilen hamlenin eval'i
+  let _ab_lastThinkTime = 1500; // auto-correlation
+  let _ab_lastTopMove = null; // bilgi amaçlı
   let totalGames = { wins: 0, losses: 0, draws: 0 };
   let consecutiveTimeouts = 0;
   let stealthMode = false;
@@ -5582,6 +5586,70 @@
     return mean + z * stddev;
   }
 
+  // ─── v2.1 Anti-Ban yardımcıları ──────────────────────────────────
+  // Lognormal: insan think-time'ı asimetrik / uzun-kuyruklu dağılır
+  function lognormalRandom(meanMs, sigmaLog) {
+    const z = gaussianRandom(0, 1);
+    const m = Math.max(50, meanMs);
+    const mu = Math.log(m) - (sigmaLog * sigmaLog) / 2;
+    return Math.exp(mu + sigmaLog * z);
+  }
+
+  // Materyal sayarına göre oyun fazı (moveCounter'dan güvenilir)
+  function _materialPhase(fen) {
+    try {
+      const board = (fen || "").split(" ")[0] || "";
+      const Q = (board.match(/[Qq]/g) || []).length;
+      const R = (board.match(/[Rr]/g) || []).length;
+      const Bn = (board.match(/[BbNn]/g) || []).length;
+      const score = Q * 4 + R * 2 + Bn * 1;
+      if (score >= 18) return "opening";
+      if (score >= 10) return "middlegame";
+      if (score >= 5) return "lategame";
+      return "endgame";
+    } catch (_) {
+      return "middlegame";
+    }
+  }
+
+  // Zorla en iyi: tek yasal hamle ya da devasa skor uçurumu
+  function _isForcedMove(moves) {
+    if (!moves || moves.length === 0) return null;
+    if (moves.length === 1) return "only_legal";
+    const s1 = parseScore(moves[0].score);
+    const s2 = parseScore(moves[1].score);
+    if (Math.abs(s1 - s2) > 4.0) return "huge_gap";
+    return null;
+  }
+
+  // Ponder hit (soft proxy): rakip beklenen ana hattı oynadıysa eval ~ önceki
+  function _isPonderHit(moves) {
+    if (_ab_lastEval === null || !moves || moves.length === 0) return false;
+    const cur = parseScore(moves[0].score);
+    return Math.abs(cur - _ab_lastEval) < 0.35;
+  }
+
+  // Sürpriz hamle: rakip beklenmedik bir şey oynadı → eval büyük kayar
+  function _isOpponentSurprise(moves) {
+    if (_ab_lastEval === null || !moves || moves.length === 0) return false;
+    const cur = parseScore(moves[0].score);
+    return Math.abs(cur - _ab_lastEval) > 1.2;
+  }
+
+  // Kritik pozisyon: mat tehdidi, eval şoku ya da birden çok eşdeğer iyi hamle
+  function _isCriticalPosition(moves, complexity) {
+    if (!moves || moves.length === 0) return false;
+    const top = moves[0].score || "";
+    if (typeof top === "string" && top.startsWith("M")) return true;
+    if (_isOpponentSurprise(moves)) return true;
+    if (complexity >= 0.7 && moves.length >= 3) {
+      const s1 = parseScore(moves[0].score);
+      const s3 = parseScore(moves[2].score);
+      if (Math.abs(s1 - s3) < 0.3) return true;
+    }
+    return false;
+  }
+
   // 8C: Top-1-match guard helpers — çok fazla engine-best hamle = lichess
   // anti-cheat'inin en önemli sinyali. Son 20 hamleden %78'i top-1 ise bir
   // sonraki hamlede zorla 2nd-best oynanmalı (skor farkı küçükse).
@@ -5630,7 +5698,15 @@
     const remaining = clock.mySeconds ?? 120;
     const tc = clock.gameTimeControl;
 
-    // ─── Zaman kontrolüne göre temel gecikme (Gaussian merkezleri) ───
+    // ─── v2.1: Bağlam tespiti ───
+    const fenNow = (typeof readBoardFEN === "function") ? readBoardFEN() : "";
+    const phase = _materialPhase(fenNow);
+    const forcedReason = _isForcedMove(moves);
+    const ponderHit = !forcedReason && _isPonderHit(moves);
+    const surprise = !forcedReason && _isOpponentSurprise(moves);
+    const critical = !forcedReason && _isCriticalPosition(moves, complexity);
+
+    // ─── Zaman kontrolüne göre temel gecikme (Lognormal merkezleri) ───
     let meanDelay, stdDev;
     if (tc >= 600) {
       meanDelay = 5000 + complexity * 6000;
@@ -5646,6 +5722,16 @@
       stdDev = 600;
     }
 
+    // ─── v2.1: Materyal fazı modülasyonu ───
+    if (phase === "endgame") {
+      meanDelay *= 0.65;
+      stdDev *= 0.7;
+    } else if (phase === "lategame") {
+      meanDelay *= 0.85;
+    } else if (phase === "opening" && moveCounter > 6) {
+      meanDelay *= 0.9;
+    }
+
     // ─── Kalan süreye göre hızlandır ───
     let timePressFactor = 1.0;
     if (remaining < 10) timePressFactor = 0.15;
@@ -5656,8 +5742,24 @@
     meanDelay *= timePressFactor;
     stdDev *= timePressFactor;
 
+    // ─── v2.1: Bağlamsal süre düzenlemeleri ───
+    if (forcedReason) {
+      meanDelay = 250 + Math.random() * 350;
+      stdDev = 140;
+    } else if (ponderHit) {
+      meanDelay *= 0.45;
+      stdDev *= 0.6;
+    } else if (critical) {
+      meanDelay *= 2.6;
+      stdDev *= 1.6;
+    } else if (surprise) {
+      meanDelay += 800 + Math.random() * 1200;
+      stdDev *= 1.2;
+    }
+
     // ─── Düşünme spike'ları (her 6-12 hamlede uzun düşünme) ───
     if (
+      !forcedReason &&
       moveCounter > 3 &&
       moveCounter % (6 + Math.floor(Math.random() * 7)) === 0
     ) {
@@ -5666,14 +5768,28 @@
     }
 
     // ─── Premove simülasyonu (bazen anında oyna) ───
-    if (complexity < 0.15 && Math.random() < 0.12) {
+    if (!forcedReason && complexity < 0.15 && Math.random() < 0.12) {
       meanDelay = 150 + Math.random() * 300;
       stdDev = 80;
     }
 
-    let delay = gaussianRandom(meanDelay, stdDev);
-    delay = Math.max(100, Math.round(delay));
-    if (remaining < 999) delay = Math.min(delay, remaining * 400);
+    // ─── v2.1: Lognormal örnekleme (insan dağılımı) ───
+    const sigmaLog = Math.max(0.18, Math.min(0.6, stdDev / Math.max(150, meanDelay)));
+    let delay = lognormalRandom(meanDelay, sigmaLog);
+
+    // ─── v2.1: Auto-correlation ───
+    delay = 0.75 * delay + 0.25 * _ab_lastThinkTime;
+    _ab_lastThinkTime = delay;
+
+    delay = Math.max(forcedReason ? 180 : 100, Math.round(delay));
+
+    // ─── v2.1: Zaman bütçesi farkındalığı ───
+    if (remaining < 999) {
+      const expectedRemainingMoves = Math.max(20, 60 - moveCounter);
+      const avgBudget = (remaining * 1000) / expectedRemainingMoves;
+      delay = Math.min(delay, avgBudget * 2.5);
+      delay = Math.min(delay, remaining * 400);
+    }
 
     // ─── Hamle seçimi — oyun fazına göre accuracy ───
     let chosenIdx = 0;
@@ -5737,6 +5853,9 @@
           moves.length - 1,
           2 + Math.floor(Math.random() * (moves.length - 2)),
         );
+        // v2.1: cache for next-call ponder/surprise detection
+        _ab_lastEval = parseScore(moves[worstIdx].score);
+        _ab_lastTopMove = moves[0].move;
         return {
           move: moves[worstIdx].move,
           delay: Math.max(100, Math.round(delay)),
@@ -5780,6 +5899,9 @@
       }
     }
 
+    // v2.1: cache for next-call ponder/surprise detection
+    _ab_lastEval = parseScore(moves[chosenIdx].score);
+    _ab_lastTopMove = moves[0].move;
     return {
       move: moves[chosenIdx].move,
       delay: Math.max(100, Math.round(delay)),

@@ -1,6 +1,6 @@
 /* Background service worker — content script ↔ Stockfish sunucusu proxy */
 
-const DEFAULT_API = "https://forksight.mertcanyigit.com";
+const DEFAULT_API = "https://forksight.net";
 let API_BASE = DEFAULT_API;
 
 // JWT tokenlar (bellekte tut)

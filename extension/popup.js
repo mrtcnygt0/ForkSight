@@ -1,5 +1,5 @@
 // Popup — sunucu durumu + ayarlar + versiyon kontrolü
-const DEFAULT_API = "https://forksight.mertcanyigit.com";
+const DEFAULT_API = "https://forksight.net";
 const EXTENSION_VERSION = chrome.runtime.getManifest().version;
 
 // ─── i18n ───────────────────────────────────────────

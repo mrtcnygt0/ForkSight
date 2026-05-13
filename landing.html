@@ -3,12 +3,126 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>ForkSight — Real-time Chess Analysis</title>
+
+    <!-- ─── Primary SEO ─────────────────────────────────── -->
+    <title>
+      ForkSight — Stockfish Chess Analysis Extension for Chess.com & Lichess
+    </title>
     <meta
       name="description"
-      content="ForkSight, chess.com ve lichess.org için gerçek zamanlı Stockfish analizi sunan açık kaynaklı tarayıcı uzantısıdır."
+      content="ForkSight, Chess.com ve Lichess.org için Stockfish 17 NNUE motoruyla gerçek zamanlı satranç analizi sunan açık kaynak tarayıcı uzantısıdır. En iyi hamleleri renkli oklar ile tahta üzerinde gör."
     />
+    <meta
+      name="keywords"
+      content="forksight, satranç analiz, stockfish, chess analysis, chess.com extension, lichess extension, satranç motoru, chess engine, nnue, satranç koç, chess coach, chess ai, satranç eğitim, position analysis, opening trainer"
+    />
+    <meta name="author" content="mrtcnygt0" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="theme-color" content="#0a0f17" />
+
+    <link rel="canonical" href="https://forksight.net/" />
+    <link rel="alternate" hreflang="tr" href="https://forksight.net/" />
+    <link rel="alternate" hreflang="en" href="https://forksight.net/" />
+    <link rel="alternate" hreflang="x-default" href="https://forksight.net/" />
+
+    <!-- ─── Open Graph (Facebook, LinkedIn, Discord) ──── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ForkSight" />
+    <meta property="og:url" content="https://forksight.net/" />
+    <meta
+      property="og:title"
+      content="ForkSight — Stockfish Chess Analysis Extension"
+    />
+    <meta
+      property="og:description"
+      content="Real-time Stockfish 17 NNUE analysis for Chess.com and Lichess.org. Open-source browser extension. See best moves with colored arrows on the board."
+    />
+    <meta
+      property="og:image"
+      content="https://forksight.net/icons/maskot.png"
+    />
+    <meta property="og:image:width" content="768" />
+    <meta property="og:image:height" content="768" />
+    <meta property="og:locale" content="tr_TR" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- ─── Twitter Card ───────────────────────────────── -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ForkSight — Stockfish Chess Analysis" />
+    <meta
+      name="twitter:description"
+      content="Open-source browser extension bringing Stockfish 17 NNUE analysis to Chess.com and Lichess.org."
+    />
+    <meta
+      name="twitter:image"
+      content="https://forksight.net/icons/maskot.png"
+    />
+
     <link rel="icon" href="/icons/maskot.png" />
+    <link rel="apple-touch-icon" href="/icons/maskot.png" />
+
+    <!-- ─── Structured Data (JSON-LD) ──────────────────── -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://forksight.net/#software",
+            "name": "ForkSight",
+            "alternateName": "ForkSight Chess Analysis",
+            "url": "https://forksight.net/",
+            "description": "Open-source browser extension that brings real-time Stockfish 17 NNUE analysis to Chess.com and Lichess.org.",
+            "applicationCategory": "BrowserApplication",
+            "operatingSystem": "Windows, macOS, Linux, ChromeOS",
+            "browserRequirements": "Requires Chrome, Firefox, Edge or Opera",
+            "softwareVersion": "2.1.3",
+            "downloadUrl": "https://github.com/mrtcnygt0/ForkSight/releases/latest",
+            "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": {
+              "@type": "Person",
+              "name": "mrtcnygt0",
+              "url": "https://github.com/mrtcnygt0"
+            },
+            "image": "https://forksight.net/icons/maskot.png",
+            "screenshot": "https://forksight.net/icons/maskot.png",
+            "featureList": [
+              "Stockfish 17 NNUE engine",
+              "Real-time WebSocket analysis",
+              "Multi-PV variant support",
+              "Anti-Ban human-like play",
+              "Pre-move support",
+              "Compatible with Chess.com and Lichess.org"
+            ]
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://forksight.net/#org",
+            "name": "ForkSight",
+            "url": "https://forksight.net/",
+            "logo": "https://forksight.net/icons/maskot.png",
+            "sameAs": [
+              "https://github.com/mrtcnygt0/ForkSight",
+              "https://github.com/mrtcnygt0"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://forksight.net/#website",
+            "url": "https://forksight.net/",
+            "name": "ForkSight",
+            "publisher": { "@id": "https://forksight.net/#org" },
+            "inLanguage": ["tr-TR", "en-US"]
+          }
+        ]
+      }
+    </script>
     <style>
       * {
         box-sizing: border-box;
@@ -760,7 +874,10 @@
             ><span data-i18n="hero.kicker">Açık Kaynak · Stockfish 17</span>
           </div>
           <h1 data-i18n="hero.title">
-            Satrançta bir adım <span class="grad">önde</span> ol.
+            Satrançta bir adım <span class="grad">önde</span> ol —
+            <small style="display:block;font-size:.42em;font-weight:600;color:var(--muted);margin-top:14px;letter-spacing:0">
+              Chess.com &amp; Lichess için Stockfish 17 NNUE analiz uzantısı
+            </small>
           </h1>
           <p data-i18n="hero.desc">
             ForkSight, chess.com ve lichess.org için gerçek zamanlı Stockfish
@@ -835,8 +952,8 @@
           <div class="kicker" data-i18n="stats.kicker">CANLI METRİKLER</div>
           <h2 data-i18n="stats.title">Sunucu Performansı</h2>
           <p data-i18n="stats.desc">
-            Tüm rakamlar gerçek zamanlı olarak forksight.net
-            sunucusundan çekilir.
+            Tüm rakamlar gerçek zamanlı olarak forksight.net sunucusundan
+            çekilir.
           </p>
         </div>
         <div class="stats-grid">
@@ -1206,7 +1323,10 @@
           "nav.download": "İndir",
           "nav.cta": "İndir",
           "hero.kicker": "Açık Kaynak · Stockfish 17",
-          "hero.title": 'Satrançta bir adım <span class="grad">önde</span> ol.',
+          "hero.title": 'Satrançta bir adım <span class="grad">önde</span> ol —<small style="display:block;font-size:.42em;font-weight:600;color:var(--muted);margin-top:14px;letter-spacing:0">Chess.com &amp; Lichess için Stockfish 17 NNUE analiz uzantısı</small>',
+          "_meta_title": "ForkSight — Chess.com & Lichess için Stockfish Satranç Analiz Uzantısı",
+          "_meta_desc": "ForkSight, Chess.com ve Lichess.org için Stockfish 17 NNUE motoruyla gerçek zamanlı satranç analizi sunan açık kaynak tarayıcı uzantısıdır. En iyi hamleleri renkli oklar ile tahta üzerinde gör.",
+          "_html_lang": "tr",
           "hero.desc":
             "ForkSight, chess.com ve lichess.org için gerçek zamanlı Stockfish analizi sunan açık kaynaklı bir tarayıcı uzantısıdır. Her hamleyi anlamlandır, her oyunu kazan.",
           "hero.cta1": "Hemen İndir",
@@ -1267,8 +1387,11 @@
           "nav.download": "Download",
           "nav.cta": "Download",
           "hero.kicker": "Open Source · Stockfish 17",
+          "_meta_title": "ForkSight — Stockfish Chess Analysis Extension for Chess.com & Lichess",
+          "_meta_desc": "Open-source browser extension that brings real-time Stockfish 17 NNUE analysis to Chess.com and Lichess.org. See best moves with colored arrows on the board.",
+          "_html_lang": "en",
           "hero.title":
-            'Stay one move <span class="grad">ahead</span> in chess.',
+            'Stay one move <span class="grad">ahead</span> in chess —<small style="display:block;font-size:.42em;font-weight:600;color:var(--muted);margin-top:14px;letter-spacing:0">Stockfish 17 NNUE analysis extension for Chess.com &amp; Lichess</small>',
           "hero.desc":
             "ForkSight is an open-source browser extension that brings real-time Stockfish analysis to chess.com and lichess.org. Understand every move, win every game.",
           "hero.cta1": "Download Now",
@@ -1329,14 +1452,25 @@
       if (!I18N[LANG]) LANG = "tr";
 
       function applyI18n() {
-        document.documentElement.lang = LANG;
+        const dict = I18N[LANG];
+        document.documentElement.lang = dict._html_lang || LANG;
         document.querySelectorAll("[data-i18n]").forEach((el) => {
           const k = el.getAttribute("data-i18n");
-          if (I18N[LANG][k]) el.innerHTML = I18N[LANG][k];
+          if (dict[k]) el.innerHTML = dict[k];
         });
         document.querySelectorAll("#langToggle button").forEach((b) => {
           b.classList.toggle("active", b.dataset.lang === LANG);
         });
+        // SEO: update <title> + meta description + OG locale per language
+        if (dict._meta_title) document.title = dict._meta_title;
+        const md = document.querySelector('meta[name="description"]');
+        if (md && dict._meta_desc) md.setAttribute("content", dict._meta_desc);
+        const ogt = document.querySelector('meta[property="og:title"]');
+        if (ogt && dict._meta_title) ogt.setAttribute("content", dict._meta_title);
+        const ogd = document.querySelector('meta[property="og:description"]');
+        if (ogd && dict._meta_desc) ogd.setAttribute("content", dict._meta_desc);
+        const ogl = document.querySelector('meta[property="og:locale"]');
+        if (ogl) ogl.setAttribute("content", LANG === "tr" ? "tr_TR" : "en_US");
         if (window._lastStats) renderDonut(window._lastStats);
       }
       document.querySelectorAll("#langToggle button").forEach((b) => {

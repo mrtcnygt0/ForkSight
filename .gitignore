@@ -15,6 +15,21 @@ _deploy.py
 upload_companion.py
 \# Code Citations.md
 
+# ─── Helper / one-shot scripts with credentials (PRIVATE) ───
+_check.py
+_check_nginx.py
+_migrate_domain.py
+_rotate_creds.py
+_creds.py
+debug_stockfish.py
+debug_stockfish_2.py
+
+# ─── SSH keys ───
+.ssh/
+*.pem
+id_rsa*
+id_ed25519*
+
 # ─── Database & Secrets ───
 *.db
 *.sqlite

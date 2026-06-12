@@ -40,10 +40,6 @@ Note: ForkSight is not affiliated with, endorsed by, or sponsored by Chess.com.
 
 - Main usage demo: [videos/forksight_coach.mp4](videos/forksight_coach.mp4)
 
-## Quick Start Preview
-
-![ForkSight quick preview](videos/forksight.gif)
-
 ## Screenshots
 
 ### Extension Screens

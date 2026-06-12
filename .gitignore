@@ -65,6 +65,7 @@ Thumbs.db
 *~
 
 # ─── Python ───
+*.py
 __pycache__/
 *.pyc
 *.pyo

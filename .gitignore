@@ -1,86 +1,34 @@
-# ─── Release zips ───
-*.zip
-
-# ─── Server & Backend (PRIVATE - Never commit) ───
-server.py
-server_old.py
-server_v2.py
-landing.html
-premium.html
-privacy.html
-tr_strings.txt
-lichess-extension/
-manage_users.py
-admin_panel.html
-companion.html
-setup_domain.py
-start_server.bat
-requirements.txt
-_deploy.py
-upload_companion.py
-\# Code Citations.md
-
-# ─── Helper / one-shot scripts with credentials (PRIVATE) ───
-_check.py
-_check_nginx.py
-_migrate_domain.py
-_rotate_creds.py
-_creds.py
-debug_stockfish.py
-debug_stockfish_2.py
-
-# ─── SSH keys ───
-.ssh/
-*.pem
-id_rsa*
-id_ed25519*
-
-# ─── Database & Secrets ───
-*.db
-*.sqlite
-*.sqlite3
-server jwt secret.txt
-users.json.migrated
-
-# ─── Server Config & Deployment ───
-nginx-stockfish.conf
-stockfish-server.service
-setup_https.sh
-setup_vds.sh
-*.service
-
-# ─── Stockfish Engine Binary ───
-stockfish/
-
-# ─── Backups ───
-backups/
-
-# ─── Archives ───
-*.zip
-*.tar.gz
-*.rar
-
-# ─── OS / IDE ───
+# OS / editor
 .DS_Store
 Thumbs.db
-.vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# ─── Python ───
-*.py
+# Python
 __pycache__/
 *.pyc
 *.pyo
-.env
-venv/
 .venv/
+venv/
 
-# ─── Node (if any) ───
-node_modules/
-package-lock.json
+# Environment and secrets
+.env
+.env.*
 
-# ─── Logs ───
+# Logs
 *.log
+
+# Local databases and caches
+*.db
+*.sqlite
+*.sqlite3
+
+# Build / archives
+*.zip
+*.tar.gz
+*.rar
+
+# Node
+node_modules/

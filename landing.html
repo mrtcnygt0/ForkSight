@@ -5,16 +5,14 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
 
     <!-- ─── Primary SEO ─────────────────────────────────── -->
-    <title>
-      ForkSight — Stockfish Chess Analysis Extension for Chess.com & Lichess
-    </title>
+    <title>ForkSight — Chess.com Puzzle Training, Coach Review & Stats</title>
     <meta
       name="description"
-      content="ForkSight, Chess.com ve Lichess.org için Stockfish 17 NNUE motoruyla gerçek zamanlı satranç analizi sunan açık kaynak tarayıcı uzantısıdır. En iyi hamleleri renkli oklar ile tahta üzerinde gör."
+      content="ForkSight, Chess.com oyuncuları için biten oyunlarından kişisel taktik bulmacaları üreten, oyun sonrası koç incelemesi ve profil istatistikleri sunan bir antrenman aracıdır. Aktif oyunlarınıza müdahale etmez."
     />
     <meta
       name="keywords"
-      content="forksight, satranç analiz, stockfish, chess analysis, chess.com extension, lichess extension, satranç motoru, chess engine, nnue, satranç koç, chess coach, chess ai, satranç eğitim, position analysis, opening trainer"
+      content="forksight, satranç antrenman, satranç bulmaca, taktik antrenmanı, oyun sonrası analiz, satranç koç, chess training, chess puzzles, tactics trainer, post-game review, chess.com extension, chess improvement"
     />
     <meta name="author" content="mrtcnygt0" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -32,11 +30,11 @@
     <meta property="og:url" content="https://forksight.net/" />
     <meta
       property="og:title"
-      content="ForkSight — Stockfish Chess Analysis Extension"
+      content="ForkSight — Chess.com Training & Coach Review"
     />
     <meta
       property="og:description"
-      content="Real-time Stockfish 17 NNUE analysis for Chess.com and Lichess.org. Open-source browser extension. See best moves with colored arrows on the board."
+      content="Personalized tactics puzzles from your own games, post-game coach review, and profile stats for Chess.com. Learn after the game — never during it."
     />
     <meta
       property="og:image"
@@ -49,10 +47,13 @@
 
     <!-- ─── Twitter Card ───────────────────────────────── -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="ForkSight — Stockfish Chess Analysis" />
+    <meta
+      name="twitter:title"
+      content="ForkSight — Chess.com Training & Coach"
+    />
     <meta
       name="twitter:description"
-      content="Open-source browser extension bringing Stockfish 17 NNUE analysis to Chess.com and Lichess.org."
+      content="Personalized tactics puzzles, post-game coach review and profile stats for Chess.com. Not affiliated with Chess.com."
     />
     <meta
       name="twitter:image"
@@ -71,13 +72,13 @@
             "@type": "SoftwareApplication",
             "@id": "https://forksight.net/#software",
             "name": "ForkSight",
-            "alternateName": "ForkSight Chess Analysis",
+            "alternateName": "ForkSight Chess Training",
             "url": "https://forksight.net/",
-            "description": "Open-source browser extension that brings real-time Stockfish 17 NNUE analysis to Chess.com and Lichess.org.",
-            "applicationCategory": "BrowserApplication",
+            "description": "Training companion for Chess.com players: personalized tactics puzzles generated from your own games, post-game coach review and profile stats. Not affiliated with Chess.com.",
+            "applicationCategory": "EducationalApplication",
             "operatingSystem": "Windows, macOS, Linux, ChromeOS",
-            "browserRequirements": "Requires Chrome, Firefox, Edge or Opera",
-            "softwareVersion": "2.1.3",
+            "browserRequirements": "Requires Chrome, Edge, Opera or Brave",
+            "softwareVersion": "2.9.0",
             "downloadUrl": "https://github.com/mrtcnygt0/ForkSight/releases/latest",
             "license": "https://www.gnu.org/licenses/gpl-3.0.html",
             "offers": {
@@ -93,12 +94,11 @@
             "image": "https://forksight.net/icons/maskot.png",
             "screenshot": "https://forksight.net/icons/maskot.png",
             "featureList": [
-              "Stockfish 17 NNUE engine",
-              "Real-time WebSocket analysis",
-              "Multi-PV variant support",
-              "Anti-Ban human-like play",
-              "Pre-move support",
-              "Compatible with Chess.com and Lichess.org"
+              "Personalized tactics puzzles from your own finished games",
+              "Post-game coach review with move explanations",
+              "Profile statistics, achievements and leaderboard",
+              "Optional natural voice coach narration",
+              "Works with Chess.com"
             ]
           },
           {
@@ -827,6 +827,507 @@
           background-position: 100% 0;
         }
       }
+
+      /* ─── Videos section ─── */
+      #videos {
+        padding: 90px 0 40px;
+      }
+      .videos-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 28px;
+        margin-top: 44px;
+      }
+      .video-card {
+        position: relative;
+        background: linear-gradient(
+          160deg,
+          var(--panel) 0%,
+          var(--panel2) 100%
+        );
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+        cursor: pointer;
+        transition:
+          transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+          border-color 0.4s,
+          box-shadow 0.4s;
+        outline: none;
+      }
+      .video-card:hover,
+      .video-card:focus-visible {
+        transform: translateY(-6px);
+        border-color: rgba(120, 160, 255, 0.45);
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(120, 160, 255, 0.15);
+      }
+      .video-card--coach:hover,
+      .video-card--coach:focus-visible {
+        border-color: rgba(255, 160, 110, 0.45);
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(255, 160, 110, 0.18);
+      }
+      .video-card__media {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        background:
+          radial-gradient(
+            circle at 30% 20%,
+            rgba(106, 161, 255, 0.18) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            circle at 80% 90%,
+            rgba(185, 144, 255, 0.18) 0%,
+            transparent 50%
+          ),
+          linear-gradient(135deg, #131c2c 0%, #0a0f17 100%);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .video-card--coach .video-card__media {
+        background:
+          radial-gradient(
+            circle at 30% 20%,
+            rgba(255, 160, 110, 0.18) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            circle at 80% 90%,
+            rgba(255, 200, 120, 0.18) 0%,
+            transparent 50%
+          ),
+          linear-gradient(135deg, #2a1a14 0%, #0a0f17 100%);
+      }
+      .video-card__glow {
+        position: absolute;
+        inset: -50%;
+        background: conic-gradient(
+          from 0deg,
+          transparent 0deg,
+          rgba(120, 160, 255, 0.22) 60deg,
+          transparent 120deg,
+          transparent 240deg,
+          rgba(185, 144, 255, 0.18) 300deg,
+          transparent 360deg
+        );
+        animation: vcSpin 10s linear infinite;
+        opacity: 0.85;
+        pointer-events: none;
+      }
+      .video-card--coach .video-card__glow {
+        background: conic-gradient(
+          from 90deg,
+          transparent 0deg,
+          rgba(255, 160, 110, 0.22) 60deg,
+          transparent 120deg,
+          transparent 240deg,
+          rgba(255, 210, 130, 0.2) 300deg,
+          transparent 360deg
+        );
+      }
+      @keyframes vcSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .video-card__chip {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        z-index: 2;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        color: #fff;
+        text-transform: uppercase;
+      }
+      .video-card--coach .video-card__chip {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 130, 80, 0.35),
+          rgba(255, 190, 90, 0.35)
+        );
+        border-color: rgba(255, 190, 110, 0.4);
+      }
+      .video-card__play {
+        position: relative;
+        z-index: 2;
+        width: 92px;
+        height: 92px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        transition:
+          transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+          background 0.3s,
+          box-shadow 0.3s;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      }
+      .video-card__play svg {
+        margin-left: 4px; /* visually center the play triangle */
+      }
+      .video-card:hover .video-card__play,
+      .video-card:focus-visible .video-card__play {
+        transform: scale(1.1);
+        background: rgba(255, 255, 255, 0.16);
+      }
+      .video-card__pulse {
+        position: absolute;
+        z-index: 1;
+        width: 92px;
+        height: 92px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        animation: vcPulse 2.2s ease-out infinite;
+        pointer-events: none;
+      }
+      @keyframes vcPulse {
+        0% {
+          transform: scale(1);
+          opacity: 0.7;
+        }
+        100% {
+          transform: scale(1.6);
+          opacity: 0;
+        }
+      }
+      .video-card__body {
+        padding: 22px 24px 26px;
+      }
+      .video-card__body h3 {
+        margin: 0 0 10px;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .video-card__body p {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 14.5px;
+        line-height: 1.55;
+      }
+      .video-card__cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: #fff;
+        font-weight: 600;
+        font-size: 13.5px;
+        transition:
+          background 0.2s,
+          border-color 0.2s,
+          transform 0.25s;
+      }
+      .video-card:hover .video-card__cta,
+      .video-card:focus-visible .video-card__cta {
+        background: rgba(255, 255, 255, 0.13);
+        border-color: rgba(255, 255, 255, 0.32);
+        transform: translateX(3px);
+      }
+
+      /* ─── Video player modal ─── */
+      .vp-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .vp-modal.open {
+        display: flex;
+      }
+      .vp-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.86);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        animation: vpFade 0.25s ease;
+      }
+      @keyframes vpFade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .vp-dialog {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 1100px;
+        background: #0a0f17;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+        animation: vpRise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      @keyframes vpRise {
+        from {
+          transform: translateY(20px) scale(0.97);
+          opacity: 0;
+        }
+        to {
+          transform: none;
+          opacity: 1;
+        }
+      }
+      .vp-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 4;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.55);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+        display: grid;
+        place-items: center;
+      }
+      .vp-close:hover {
+        background: rgba(255, 255, 255, 0.18);
+        transform: rotate(90deg);
+      }
+      .vp-stage {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        background: #000;
+      }
+      .vp-stage video {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .vp-overlay-play {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        color: #fff;
+        background: linear-gradient(
+          180deg,
+          transparent 50%,
+          rgba(0, 0, 0, 0.35)
+        );
+        transition: opacity 0.25s;
+      }
+      .vp-overlay-play.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .vp-overlay-play svg {
+        width: 92px;
+        height: 92px;
+        padding: 22px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        transition:
+          transform 0.2s,
+          background 0.2s;
+      }
+      .vp-overlay-play:hover svg {
+        transform: scale(1.1);
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .vp-title {
+        position: absolute;
+        top: 14px;
+        left: 18px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 14px;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        max-width: calc(100% - 80px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .vp-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: linear-gradient(180deg, #0a0f17, #060911);
+        border-top: 1px solid var(--border);
+      }
+      .vp-btn {
+        background: transparent;
+        border: 0;
+        color: #fff;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        transition: background 0.15s;
+        min-width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .vp-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .vp-time {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        font-size: 12.5px;
+        min-width: 42px;
+        text-align: center;
+      }
+      .vp-bar {
+        position: relative;
+        flex: 1;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+        cursor: pointer;
+        overflow: visible;
+      }
+      .vp-bar:hover {
+        height: 8px;
+      }
+      .vp-buf,
+      .vp-progress {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 0;
+        border-radius: 999px;
+        pointer-events: none;
+      }
+      .vp-buf {
+        background: rgba(255, 255, 255, 0.18);
+        transition: width 0.25s;
+      }
+      .vp-progress {
+        background: linear-gradient(90deg, #6aa1ff, #b990ff);
+      }
+      .vp-vol {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .vp-volrange {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 80px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 999px;
+        outline: none;
+      }
+      .vp-volrange::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: #fff;
+        cursor: pointer;
+      }
+      .vp-volrange::-moz-range-thumb {
+        width: 13px;
+        height: 13px;
+        border: 0;
+        border-radius: 50%;
+        background: #fff;
+        cursor: pointer;
+      }
+      .vp-rate {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        padding: 5px 8px;
+        font-size: 12.5px;
+        cursor: pointer;
+        height: 36px;
+      }
+      .vp-rate option {
+        background: #0a0f17;
+        color: #fff;
+      }
+
+      @media (max-width: 760px) {
+        .videos-grid {
+          grid-template-columns: 1fr;
+          gap: 18px;
+        }
+        #videos {
+          padding: 60px 0 30px;
+        }
+      }
+      @media (max-width: 560px) {
+        .vp-modal {
+          padding: 0;
+        }
+        .vp-dialog {
+          border-radius: 0;
+          height: 100%;
+          max-height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+        .vp-stage {
+          flex: 1 1 auto;
+          aspect-ratio: auto;
+          min-height: 0;
+        }
+        .vp-controls {
+          flex-wrap: wrap;
+          gap: 8px;
+          padding: 10px;
+        }
+        .vp-bar {
+          order: -1;
+          flex-basis: 100%;
+        }
+        .vp-vol,
+        .vp-rate {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -839,8 +1340,10 @@
         </div>
         <nav class="nav-links">
           <a href="#features" data-i18n="nav.features">Özellikler</a>
+          <a href="#video" data-i18n="nav.video">Video</a>
+          <a href="#premium" data-i18n="nav.premium">Premium</a>
           <a href="#stats" data-i18n="nav.stats">İstatistikler</a>
-          <a href="#download" data-i18n="nav.download">İndir</a>
+          <a href="/privacy" data-i18n="nav.privacy">Gizlilik</a>
           <a
             href="https://github.com/mrtcnygt0/ForkSight"
             target="_blank"
@@ -853,13 +1356,8 @@
             <button data-lang="tr" class="active">TR</button>
             <button data-lang="en">EN</button>
           </div>
-          <a
-            class="btn btn-primary"
-            href="https://github.com/mrtcnygt0/ForkSight/releases/latest"
-            target="_blank"
-            rel="noopener"
-            data-i18n="nav.cta"
-            >İndir</a
+          <a class="btn btn-primary" href="#premium" data-i18n="nav.cta"
+            >Premium</a
           >
         </div>
       </div>
@@ -871,26 +1369,31 @@
         <div>
           <div class="tagline">
             <span class="dot"></span
-            ><span data-i18n="hero.kicker">Açık Kaynak · Stockfish 17</span>
+            ><span data-i18n="hero.kicker">Chess.com için antrenman aracı</span>
           </div>
           <h1 data-i18n="hero.title">
-            Satrançta bir adım <span class="grad">önde</span> ol —
-            <small style="display:block;font-size:.42em;font-weight:600;color:var(--muted);margin-top:14px;letter-spacing:0">
-              Chess.com &amp; Lichess için Stockfish 17 NNUE analiz uzantısı
+            Satrançta <span class="grad">gelişmenin</span> akıllı yolu
+            <small
+              style="
+                display: block;
+                font-size: 0.42em;
+                font-weight: 600;
+                color: var(--muted);
+                margin-top: 14px;
+                letter-spacing: 0;
+              "
+            >
+              Chess.com için bulmaca antrenmanı, koç incelemesi ve profil
+              istatistikleri
             </small>
           </h1>
           <p data-i18n="hero.desc">
-            ForkSight, chess.com ve lichess.org için gerçek zamanlı Stockfish
-            analizi sunan açık kaynaklı bir tarayıcı uzantısıdır. Her hamleyi
-            anlamlandır, her oyunu kazan.
+            ForkSight, biten oyunlarından sana özel taktik bulmacaları üretir,
+            oyun sonrası koç incelemesi sunar ve gelişimini takip eder. Oyun
+            sırasında değil — oyundan sonra öğren.
           </p>
           <div class="hero-cta">
-            <a
-              class="btn btn-primary"
-              href="https://github.com/mrtcnygt0/ForkSight/releases/latest"
-              target="_blank"
-              rel="noopener"
-            >
+            <a class="btn btn-primary" href="#download">
               <svg
                 width="16"
                 height="16"
@@ -901,7 +1404,7 @@
               >
                 <path d="M12 5v14M5 12l7 7 7-7" />
               </svg>
-              <span data-i18n="hero.cta1">Hemen İndir</span>
+              <span data-i18n="hero.cta1">Hemen Başla</span>
             </a>
             <a
               class="btn btn-ghost"
@@ -929,18 +1432,89 @@
             </div>
             <div class="hero-stat">
               <div class="num" id="heroAnalyses">—</div>
-              <div class="lbl" data-i18n="hero.s2">Toplam Analiz</div>
+              <div class="lbl" data-i18n="hero.s2">İnceleme</div>
             </div>
             <div class="hero-stat">
               <div class="num" id="heroGames">—</div>
-              <div class="lbl" data-i18n="hero.s3">Oynanan Oyun</div>
+              <div class="lbl" data-i18n="hero.s3">İçe Aktarılan Oyun</div>
             </div>
           </div>
         </div>
         <div class="hero-visual">
           <div class="glow"></div>
-          <img class="mascot" src="/icons/maskot.png" alt="ForkSight Mascot" />
+          <img
+            class="mascot"
+            src="/icons/fox-happy.png"
+            alt="ForkSight Coach"
+          />
           <img class="rocket" src="/icons/roket.png" alt="ForkSight Rocket" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Video -->
+    <section id="video">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="kicker" data-i18n="videos.kicker">DEMO</div>
+          <h2 data-i18n="videos.title">ForkSight'i çalışırken gör</h2>
+          <p data-i18n="videos.desc">
+            Koç incelemesi ve bulmaca akışının kısa bir demosu.
+          </p>
+        </div>
+        <div
+          class="videos-grid"
+          style="
+            grid-template-columns: 1fr;
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
+          "
+        >
+          <article
+            class="video-card video-card--coach"
+            data-src="/videos/forksight_coach.mp4"
+            data-title-key="videos.coach.title"
+            tabindex="0"
+            role="button"
+            aria-label="Play coach demo video"
+          >
+            <div class="video-card__media">
+              <div class="video-card__glow"></div>
+              <div class="video-card__chip" data-i18n="videos.coach.badge">
+                KOÇ DEMOSU
+              </div>
+              <div class="video-card__play" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="36"
+                  height="36"
+                  fill="currentColor"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+              <div class="video-card__pulse"></div>
+            </div>
+            <div class="video-card__body">
+              <h3 data-i18n="videos.coach.title">Koç Demosu</h3>
+              <p data-i18n="videos.coach.desc">
+                Biten oyunların nasıl incelendiğini, bulmacaların nasıl
+                çözüldüğünü ve sesli koçun nasıl çalıştığını göster.
+              </p>
+              <span class="video-card__cta" data-i18n="videos.cta">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="14"
+                  height="14"
+                  fill="currentColor"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                İzlemek için tıkla
+              </span>
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -1069,8 +1643,8 @@
           <div class="kicker" data-i18n="features.kicker">ÖZELLİKLER</div>
           <h2 data-i18n="features.title">Neden ForkSight?</h2>
           <p data-i18n="features.desc">
-            Profesyonel düzeyde analiz, açık kaynak güveni ve insansı oynama
-            özellikleri.
+            Kendi oyunlarından öğren: kişisel bulmacalar, oyun sonrası koç
+            incelemesi ve gelişim takibi.
           </p>
         </div>
         <div class="features">
@@ -1087,10 +1661,71 @@
                 <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" />
               </svg>
             </div>
-            <h3 data-i18n="f1.t">Stockfish 17 NNUE</h3>
+            <h3 data-i18n="f1.t">Kişisel Taktik Bulmacaları</h3>
             <p data-i18n="f1.d">
-              Dünyanın en güçlü açık kaynak motoru. Derinlik 22+ analiz, çoklu
-              varyant desteği ve milisaniye seviyesinde değerlendirme.
+              Biten oyunlarındaki hatalardan otomatik üretilen, sana özel
+              bulmacalarla zayıf yönlerini çalış.
+            </p>
+          </div>
+          <div class="feat">
+            <div class="icon">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                />
+              </svg>
+            </div>
+            <h3 data-i18n="f2.t">Oyun Sonrası Koç İncelemesi</h3>
+            <p data-i18n="f2.d">
+              Biten oyunlarını hamle hamle inceleyen, kritik anları açıklayan
+              bir koç — oyun bittikten sonra.
+            </p>
+          </div>
+          <div class="feat">
+            <div class="icon">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 3v18h18" />
+                <path d="M7 14l4-4 4 4 6-6" />
+              </svg>
+            </div>
+            <h3 data-i18n="f3.t">Profil & Gelişim</h3>
+            <p data-i18n="f3.d">
+              Performans grafikleri, başarımlar, liderlik tablosu ve zaman
+              içindeki gelişim takibi.
+            </p>
+          </div>
+          <div class="feat">
+            <div class="icon">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 9v6h4l5 5V4L7 9H3z" />
+                <path d="M16 8a5 5 0 0 1 0 8" />
+              </svg>
+            </div>
+            <h3 data-i18n="f4.t">Sesli Koç</h3>
+            <p data-i18n="f4.d">
+              İsteğe bağlı doğal sesli anlatımla bulmaca ve inceleme
+              açıklamalarını dinle.
             </p>
           </div>
           <div class="feat">
@@ -1104,32 +1739,15 @@
                 stroke-width="2"
               >
                 <circle cx="12" cy="12" r="10" />
-                <path d="M12 8v8M8 12h8" />
+                <path
+                  d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"
+                />
               </svg>
             </div>
-            <h3 data-i18n="f2.t">Anti-Ban v2.1</h3>
-            <p data-i18n="f2.d">
-              Lognormal dağılımlı düşünce süreleri, ponder-hit, kritik pozisyon
-              ve sürpriz hamle modelleri ile insan benzeri oynama.
-            </p>
-          </div>
-          <div class="feat">
-            <div class="icon">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-              </svg>
-            </div>
-            <h3 data-i18n="f3.t">Gerçek Zamanlı</h3>
-            <p data-i18n="f3.d">
-              WebSocket bağlantısı ile her hamle anında analiz edilir. Premove
-              desteği ve önbellekli FEN değerlendirmesi.
+            <h3 data-i18n="f5.t">Chess.com için</h3>
+            <p data-i18n="f5.d">
+              Chess.com profilinle sorunsuz çalışır. Chrome ve Chromium tabanlı
+              tarayıcılarla uyumludur.
             </p>
           </div>
           <div class="feat">
@@ -1146,50 +1764,53 @@
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
             </div>
-            <h3 data-i18n="f4.t">JWT + Refresh</h3>
-            <p data-i18n="f4.d">
-              Modern oturum güvenliği, IP-bazlı rate limit ve isteğe bağlı
-              premium üyelik sistemi.
-            </p>
-          </div>
-          <div class="feat">
-            <div class="icon">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M12 2v20M2 12h20" />
-              </svg>
-            </div>
-            <h3 data-i18n="f5.t">Çoklu Platform</h3>
-            <p data-i18n="f5.d">
-              Chess.com ve Lichess.org için ayrı paketler. Chrome, Firefox, Edge
-              ve Opera ile uyumludur.
-            </p>
-          </div>
-          <div class="feat">
-            <div class="icon">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M16 18l6-6-6-6M8 6l-6 6 6 6" />
-              </svg>
-            </div>
-            <h3 data-i18n="f6.t">Açık Kaynak</h3>
+            <h3 data-i18n="f6.t">Gizlilik Önce</h3>
             <p data-i18n="f6.d">
-              GPL-3.0 lisansı altında tam şeffaflık. Kodu incele, katkıda bulun,
-              kendi sunucunu kur.
+              Aktif oyunlarına asla müdahale etmez. HTTPS + JWT, veri satışı
+              yok. Chess.com ile bağlantılı değildir.
             </p>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Premium -->
+    <section id="premium">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="kicker" data-i18n="premium.kicker">PREMIUM</div>
+          <h2 data-i18n="premium.title">Daha fazlasının kilidini aç</h2>
+          <p data-i18n="premium.desc">
+            Free ile başla; Gold ve Diamond ile sınırsız bulmaca, daha derin
+            analiz ve öncelikli koç incelemesi.
+          </p>
+        </div>
+        <div class="features" style="grid-template-columns: repeat(3, 1fr)">
+          <div class="feat">
+            <h3 data-i18n="premium.free.t">Free</h3>
+            <p data-i18n="premium.free.d">
+              Günlük bulmaca, temel oyun sonrası inceleme ve profil
+              istatistikleri — ücretsiz.
+            </p>
+          </div>
+          <div class="feat">
+            <h3 data-i18n="premium.gold.t">★ Gold</h3>
+            <p data-i18n="premium.gold.d">
+              Daha yüksek günlük limitler, daha derin analiz ve sesli koç
+              erişimi.
+            </p>
+          </div>
+          <div class="feat">
+            <h3 data-i18n="premium.diamond.t">💎 Diamond</h3>
+            <p data-i18n="premium.diamond.d">
+              Sınırsız bulmaca, en derin analiz ve öncelikli koç incelemesi.
+            </p>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 32px">
+          <a class="btn btn-primary" href="/premium" data-i18n="premium.cta"
+            >Premium'u Gör</a
+          >
         </div>
       </div>
     </section>
@@ -1294,155 +1915,284 @@
           <a href="https://github.com/mrtcnygt0" target="_blank" rel="noopener"
             >mrtcnygt0</a
           >
+          <br />
+          <span style="font-size: 12px; color: var(--dim)" data-i18n="foot.disc"
+            >ForkSight bağımsız bir projedir ve Chess.com ile bağlantılı
+            değildir.</span
+          >
         </div>
         <div class="foot-links">
+          <a href="/premium" data-i18n="foot.premium">Premium</a>
+          <a href="/privacy" data-i18n="foot.privacy">Gizlilik</a>
           <a
             href="https://github.com/mrtcnygt0/ForkSight"
             target="_blank"
             rel="noopener"
             >GitHub</a
           >
-          <a
-            href="https://github.com/mrtcnygt0/ForkSight/blob/main/LICENSE"
-            target="_blank"
-            rel="noopener"
-            >License</a
-          >
           <a href="/api">API</a>
-          <a href="/version">/version</a>
         </div>
       </div>
     </footer>
+
+    <!-- Video player modal -->
+    <div
+      class="vp-modal"
+      id="vpModal"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="vp-backdrop" data-vp-close></div>
+      <div class="vp-dialog">
+        <button class="vp-close" data-vp-close aria-label="Close">×</button>
+        <div class="vp-stage">
+          <video id="vpVideo" playsinline preload="metadata"></video>
+          <div class="vp-title" id="vpTitle"></div>
+          <div class="vp-overlay-play" id="vpOverlayPlay" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+        <div class="vp-controls">
+          <button class="vp-btn" id="vpPlay" aria-label="Play / Pause"></button>
+          <span class="vp-time" id="vpCur">0:00</span>
+          <div class="vp-bar" id="vpBar">
+            <div class="vp-buf" id="vpBuf"></div>
+            <div class="vp-progress" id="vpProgress"></div>
+          </div>
+          <span class="vp-time" id="vpDur">0:00</span>
+          <div class="vp-vol">
+            <button
+              class="vp-btn"
+              id="vpMute"
+              aria-label="Mute / Unmute"
+            ></button>
+            <input
+              type="range"
+              class="vp-volrange"
+              id="vpVol"
+              min="0"
+              max="1"
+              step="0.05"
+              value="1"
+              aria-label="Volume"
+            />
+          </div>
+          <select class="vp-rate" id="vpRate" aria-label="Playback speed">
+            <option value="0.5">0.5×</option>
+            <option value="0.75">0.75×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.25">1.25×</option>
+            <option value="1.5">1.5×</option>
+            <option value="2">2×</option>
+          </select>
+          <button
+            class="vp-btn"
+            id="vpPip"
+            aria-label="Picture in picture"
+            title="PiP"
+          ></button>
+          <button
+            class="vp-btn"
+            id="vpFs"
+            aria-label="Fullscreen"
+            title="Fullscreen"
+          ></button>
+        </div>
+      </div>
+    </div>
 
     <script>
       // ─── i18n ─────────────────────────────────────────────
       const I18N = {
         tr: {
           "nav.features": "Özellikler",
+          "nav.video": "Video",
+          "nav.premium": "Premium",
           "nav.stats": "İstatistikler",
-          "nav.download": "İndir",
-          "nav.cta": "İndir",
-          "hero.kicker": "Açık Kaynak · Stockfish 17",
-          "hero.title": 'Satrançta bir adım <span class="grad">önde</span> ol —<small style="display:block;font-size:.42em;font-weight:600;color:var(--muted);margin-top:14px;letter-spacing:0">Chess.com &amp; Lichess için Stockfish 17 NNUE analiz uzantısı</small>',
-          "_meta_title": "ForkSight — Chess.com & Lichess için Stockfish Satranç Analiz Uzantısı",
-          "_meta_desc": "ForkSight, Chess.com ve Lichess.org için Stockfish 17 NNUE motoruyla gerçek zamanlı satranç analizi sunan açık kaynak tarayıcı uzantısıdır. En iyi hamleleri renkli oklar ile tahta üzerinde gör.",
-          "_html_lang": "tr",
+          "nav.privacy": "Gizlilik",
+          "nav.cta": "Premium",
+          "hero.kicker": "Chess.com için antrenman aracı",
+          "hero.title":
+            'Satrançta <span class="grad">gelişmenin</span> akıllı yolu<small style="display:block;font-size:.42em;font-weight:600;color:var(--muted);margin-top:14px;letter-spacing:0">Chess.com için bulmaca antrenmanı, koç incelemesi ve profil istatistikleri</small>',
+          _meta_title:
+            "ForkSight — Chess.com Bulmaca Antrenmanı, Koç İncelemesi ve İstatistikler",
+          _meta_desc:
+            "ForkSight, Chess.com oyuncuları için biten oyunlarından kişisel taktik bulmacaları üreten, oyun sonrası koç incelemesi ve profil istatistikleri sunan bir antrenman aracıdır. Aktif oyunlarınıza müdahale etmez.",
+          _html_lang: "tr",
           "hero.desc":
-            "ForkSight, chess.com ve lichess.org için gerçek zamanlı Stockfish analizi sunan açık kaynaklı bir tarayıcı uzantısıdır. Her hamleyi anlamlandır, her oyunu kazan.",
-          "hero.cta1": "Hemen İndir",
+            "ForkSight, biten oyunlarından sana özel taktik bulmacaları üretir, oyun sonrası koç incelemesi sunar ve gelişimini takip eder. Oyun sırasında değil — oyundan sonra öğren.",
+          "hero.cta1": "Hemen Başla",
           "hero.cta2": "GitHub'da İncele",
           "hero.s1": "Aktif Kullanıcı",
-          "hero.s2": "Toplam Analiz",
-          "hero.s3": "Oynanan Oyun",
+          "hero.s2": "İnceleme",
+          "hero.s3": "İçe Aktarılan Oyun",
           "stats.kicker": "CANLI METRİKLER",
-          "stats.title": "Sunucu Performansı",
+          "stats.title": "Topluluk İstatistikleri",
           "stats.desc":
             "Tüm rakamlar gerçek zamanlı olarak forksight.net sunucusundan çekilir.",
+          "videos.kicker": "DEMO",
+          "videos.title": "ForkSight'i çalışırken gör",
+          "videos.desc": "Koç incelemesi ve bulmaca akışının kısa bir demosu.",
+          "videos.coach.badge": "KOÇ DEMOSU",
+          "videos.coach.title": "Koç Demosu",
+          "videos.coach.desc":
+            "Biten oyunların nasıl incelendiğini, bulmacaların nasıl çözüldüğünü ve sesli koçun nasıl çalıştığını göster.",
+          "videos.cta": "İzlemek için tıkla",
           "stat.users": "Kayıtlı Kullanıcı",
-          "stat.analyses": "Toplam Analiz",
-          "stat.today": "Bugünkü Analiz",
-          "stat.games": "Oynanan Oyun",
+          "stat.analyses": "Toplam İnceleme",
+          "stat.today": "Bugünkü İnceleme",
+          "stat.games": "İçe Aktarılan Oyun",
           "chart.daily": "Günlük Aktivite (30 gün)",
           "chart.live": "Canlı",
           "chart.results": "Oyun Sonuçları",
           "features.kicker": "ÖZELLİKLER",
           "features.title": "Neden ForkSight?",
           "features.desc":
-            "Profesyonel düzeyde analiz, açık kaynak güveni ve insansı oynama özellikleri.",
-          "f1.t": "Stockfish 17 NNUE",
+            "Kendi oyunlarından öğren: kişisel bulmacalar, oyun sonrası koç incelemesi ve gelişim takibi.",
+          "f1.t": "Kişisel Taktik Bulmacaları",
           "f1.d":
-            "Dünyanın en güçlü açık kaynak motoru. Derinlik 22+ analiz, çoklu varyant desteği ve milisaniye seviyesinde değerlendirme.",
-          "f2.t": "Anti-Ban v2.1",
+            "Biten oyunlarındaki hatalardan otomatik üretilen, sana özel bulmacalarla zayıf yönlerini çalış.",
+          "f2.t": "Oyun Sonrası Koç İncelemesi",
           "f2.d":
-            "Lognormal dağılımlı düşünce süreleri, ponder-hit, kritik pozisyon ve sürpriz hamle modelleri ile insan benzeri oynama.",
-          "f3.t": "Gerçek Zamanlı",
+            "Biten oyunlarını hamle hamle inceleyen, kritik anları açıklayan bir koç — oyun bittikten sonra.",
+          "f3.t": "Profil & Gelişim",
           "f3.d":
-            "WebSocket bağlantısı ile her hamle anında analiz edilir. Premove desteği ve önbellekli FEN değerlendirmesi.",
-          "f4.t": "JWT + Refresh",
+            "Performans grafikleri, başarımlar, liderlik tablosu ve zaman içindeki gelişim takibi.",
+          "f4.t": "Sesli Koç",
           "f4.d":
-            "Modern oturum güvenliği, IP-bazlı rate limit ve isteğe bağlı premium üyelik sistemi.",
-          "f5.t": "Çoklu Platform",
+            "İsteğe bağlı doğal sesli anlatımla bulmaca ve inceleme açıklamalarını dinle.",
+          "f5.t": "Chess.com için",
           "f5.d":
-            "Chess.com ve Lichess.org için ayrı paketler. Chrome, Firefox, Edge ve Opera ile uyumludur.",
-          "f6.t": "Açık Kaynak",
+            "Chess.com profilinle sorunsuz çalışır. Chrome ve Chromium tabanlı tarayıcılarla uyumludur.",
+          "f6.t": "Gizlilik Önce",
           "f6.d":
-            "GPL-3.0 lisansı altında tam şeffaflık. Kodu incele, katkıda bulun, kendi sunucunu kur.",
-          "dl.kicker": "İNDİR",
+            "Aktif oyunlarına asla müdahale etmez. HTTPS + JWT, veri satışı yok. Chess.com ile bağlantılı değildir.",
+          "premium.kicker": "PREMIUM",
+          "premium.title": "Daha fazlasının kilidini aç",
+          "premium.desc":
+            "Free ile başla; Gold ve Diamond ile sınırsız bulmaca, daha derin analiz ve öncelikli koç incelemesi.",
+          "premium.free.t": "Free",
+          "premium.free.d":
+            "Günlük bulmaca, temel oyun sonrası inceleme ve profil istatistikleri — ücretsiz.",
+          "premium.gold.t": "★ Gold",
+          "premium.gold.d":
+            "Daha yüksek günlük limitler, daha derin analiz ve sesli koç erişimi.",
+          "premium.diamond.t": "💎 Diamond",
+          "premium.diamond.d":
+            "Sınırsız bulmaca, en derin analiz ve öncelikli koç incelemesi.",
+          "premium.cta": "Premium'u Gör",
+          "dl.kicker": "KUR",
           "dl.title": "Tarayıcına Ekle",
-          "dl.desc":
-            "Tüm sürümler GitHub Releases üzerinden imzalı olarak dağıtılır.",
-          "dl.chrome": "GitHub'dan .zip indir",
-          "dl.firefox": "GitHub'dan .xpi indir",
+          "dl.desc": "Chrome ve Chromium tabanlı tarayıcılarla uyumludur.",
+          "dl.chrome": "Chrome Web Store / GitHub",
+          "dl.firefox": "GitHub'dan .zip indir",
           "dl.edge": "Chromium tabanlı uyumlu",
           "dl.opera": "Chromium tabanlı uyumlu",
           "ver.title": "Mevcut Sürüm",
           "ver.sub": "Sunucudan canlı olarak çekilir · GPL-3.0",
           "ver.cta": "Tüm Sürümler",
           "foot.by": "Geliştirici:",
+          "foot.disc":
+            "ForkSight bağımsız bir projedir ve Chess.com ile bağlantılı değildir.",
+          "foot.premium": "Premium",
+          "foot.privacy": "Gizlilik",
           _legend: ["Galibiyet", "Beraberlik", "Mağlubiyet"],
         },
         en: {
           "nav.features": "Features",
+          "nav.video": "Video",
+          "nav.premium": "Premium",
           "nav.stats": "Stats",
-          "nav.download": "Download",
-          "nav.cta": "Download",
-          "hero.kicker": "Open Source · Stockfish 17",
-          "_meta_title": "ForkSight — Stockfish Chess Analysis Extension for Chess.com & Lichess",
-          "_meta_desc": "Open-source browser extension that brings real-time Stockfish 17 NNUE analysis to Chess.com and Lichess.org. See best moves with colored arrows on the board.",
-          "_html_lang": "en",
+          "nav.privacy": "Privacy",
+          "nav.cta": "Premium",
+          "hero.kicker": "Training tool for Chess.com",
+          _meta_title:
+            "ForkSight — Chess.com Puzzle Training, Coach Review & Stats",
+          _meta_desc:
+            "ForkSight is a training tool for Chess.com players: personalized tactics puzzles from your own games, post-game coach review and profile stats. It does not interfere with games you are actively playing.",
+          _html_lang: "en",
           "hero.title":
-            'Stay one move <span class="grad">ahead</span> in chess —<small style="display:block;font-size:.42em;font-weight:600;color:var(--muted);margin-top:14px;letter-spacing:0">Stockfish 17 NNUE analysis extension for Chess.com &amp; Lichess</small>',
+            'The smartest way to <span class="grad">improve</span> at chess<small style="display:block;font-size:.42em;font-weight:600;color:var(--muted);margin-top:14px;letter-spacing:0">Puzzle training, coach review and profile stats for Chess.com</small>',
           "hero.desc":
-            "ForkSight is an open-source browser extension that brings real-time Stockfish analysis to chess.com and lichess.org. Understand every move, win every game.",
-          "hero.cta1": "Download Now",
+            "ForkSight turns your finished games into personalized tactics puzzles, gives you a post-game coach review, and tracks your progress. Learn after the game — never during it.",
+          "hero.cta1": "Get Started",
           "hero.cta2": "View on GitHub",
           "hero.s1": "Active Users",
-          "hero.s2": "Total Analyses",
-          "hero.s3": "Games Played",
+          "hero.s2": "Reviews Run",
+          "hero.s3": "Games Imported",
           "stats.kicker": "LIVE METRICS",
-          "stats.title": "Server Performance",
+          "stats.title": "Community Stats",
           "stats.desc":
             "All numbers are fetched live from the forksight.net server.",
+          "videos.kicker": "DEMO",
+          "videos.title": "See ForkSight in action",
+          "videos.desc": "A short demo of the coach review and puzzle flow.",
+          "videos.coach.badge": "COACH DEMO",
+          "videos.coach.title": "Coach Demo",
+          "videos.coach.desc":
+            "Shows how finished games are reviewed, how puzzles are solved, and how the voice coach works.",
+          "videos.cta": "Click to watch",
           "stat.users": "Registered Users",
-          "stat.analyses": "Total Analyses",
-          "stat.today": "Analyses Today",
-          "stat.games": "Games Played",
+          "stat.analyses": "Total Reviews",
+          "stat.today": "Reviews Today",
+          "stat.games": "Games Imported",
           "chart.daily": "Daily Activity (30 days)",
           "chart.live": "Live",
           "chart.results": "Game Results",
           "features.kicker": "FEATURES",
           "features.title": "Why ForkSight?",
           "features.desc":
-            "Pro-grade analysis, open-source trust, and human-like play.",
-          "f1.t": "Stockfish 17 NNUE",
+            "Learn from your own games: personalized puzzles, post-game coach review and progress tracking.",
+          "f1.t": "Personalized Puzzles",
           "f1.d":
-            "The world's strongest open-source engine. Depth 22+ analysis, multi-variation support, millisecond-level evaluation.",
-          "f2.t": "Anti-Ban v2.1",
+            "Train your weaknesses with tactics puzzles auto-generated from the mistakes in your own finished games.",
+          "f2.t": "Post-Game Coach Review",
           "f2.d":
-            "Lognormal think times, ponder-hit, critical-position and surprise-move models for human-like play.",
-          "f3.t": "Real-time",
+            "A coach that reviews your finished games move by move and explains the critical moments — after the game is over.",
+          "f3.t": "Profile & Progress",
           "f3.d":
-            "WebSocket connection analyzes every move instantly. Pre-move support and cached FEN evaluation.",
-          "f4.t": "JWT + Refresh",
+            "Performance charts, achievements, leaderboard and progress tracking over time.",
+          "f4.t": "Voice Coach",
           "f4.d":
-            "Modern session security, IP-based rate limiting, optional premium membership.",
-          "f5.t": "Multi-platform",
+            "Optional natural voice narration reads puzzle and review explanations aloud.",
+          "f5.t": "Built for Chess.com",
           "f5.d":
-            "Separate builds for Chess.com and Lichess.org. Compatible with Chrome, Firefox, Edge and Opera.",
-          "f6.t": "Open Source",
+            "Works seamlessly with your Chess.com profile. Compatible with Chrome and Chromium browsers.",
+          "f6.t": "Privacy First",
           "f6.d":
-            "Full transparency under GPL-3.0. Read the code, contribute, host your own server.",
-          "dl.kicker": "DOWNLOAD",
+            "Never interferes with games you're playing. HTTPS + JWT, no data selling. Not affiliated with Chess.com.",
+          "premium.kicker": "PREMIUM",
+          "premium.title": "Unlock more",
+          "premium.desc":
+            "Start free; go Gold or Diamond for unlimited puzzles, deeper analysis and priority coach review.",
+          "premium.free.t": "Free",
+          "premium.free.d":
+            "Daily puzzles, basic post-game review and profile stats — free.",
+          "premium.gold.t": "★ Gold",
+          "premium.gold.d":
+            "Higher daily limits, deeper analysis and voice coach access.",
+          "premium.diamond.t": "💎 Diamond",
+          "premium.diamond.d":
+            "Unlimited puzzles, the deepest analysis and priority coach review.",
+          "premium.cta": "See Premium",
+          "dl.kicker": "INSTALL",
           "dl.title": "Add to Your Browser",
-          "dl.desc": "All releases are distributed signed via GitHub Releases.",
-          "dl.chrome": "Get .zip from GitHub",
-          "dl.firefox": "Get .xpi from GitHub",
+          "dl.desc": "Compatible with Chrome and Chromium browsers.",
+          "dl.chrome": "Chrome Web Store / GitHub",
+          "dl.firefox": "Get .zip from GitHub",
           "dl.edge": "Chromium-based compatible",
           "dl.opera": "Chromium-based compatible",
           "ver.title": "Current Version",
           "ver.sub": "Fetched live from the server · GPL-3.0",
           "ver.cta": "All Releases",
           "foot.by": "Developer:",
+          "foot.disc":
+            "ForkSight is an independent project and is not affiliated with Chess.com.",
+          "foot.premium": "Premium",
+          "foot.privacy": "Privacy",
           _legend: ["Wins", "Draws", "Losses"],
         },
       };
@@ -1466,9 +2216,11 @@
         const md = document.querySelector('meta[name="description"]');
         if (md && dict._meta_desc) md.setAttribute("content", dict._meta_desc);
         const ogt = document.querySelector('meta[property="og:title"]');
-        if (ogt && dict._meta_title) ogt.setAttribute("content", dict._meta_title);
+        if (ogt && dict._meta_title)
+          ogt.setAttribute("content", dict._meta_title);
         const ogd = document.querySelector('meta[property="og:description"]');
-        if (ogd && dict._meta_desc) ogd.setAttribute("content", dict._meta_desc);
+        if (ogd && dict._meta_desc)
+          ogd.setAttribute("content", dict._meta_desc);
         const ogl = document.querySelector('meta[property="og:locale"]');
         if (ogl) ogl.setAttribute("content", LANG === "tr" ? "tr_TR" : "en_US");
         if (window._lastStats) renderDonut(window._lastStats);
@@ -1645,6 +2397,208 @@
       loadVersion();
       loadStats();
       setInterval(loadStats, 60000);
+
+      /* ─── Video player modal ─── */
+      (function () {
+        const modal = document.getElementById("vpModal");
+        if (!modal) return;
+        const video = document.getElementById("vpVideo");
+        const overlay = document.getElementById("vpOverlayPlay");
+        const titleEl = document.getElementById("vpTitle");
+        const btnPlay = document.getElementById("vpPlay");
+        const btnMute = document.getElementById("vpMute");
+        const btnFs = document.getElementById("vpFs");
+        const btnPip = document.getElementById("vpPip");
+        const rate = document.getElementById("vpRate");
+        const vol = document.getElementById("vpVol");
+        const bar = document.getElementById("vpBar");
+        const prog = document.getElementById("vpProgress");
+        const buf = document.getElementById("vpBuf");
+        const curT = document.getElementById("vpCur");
+        const durT = document.getElementById("vpDur");
+
+        const fmt = (s) => {
+          if (!isFinite(s) || s < 0) return "0:00";
+          const m = Math.floor(s / 60);
+          const x = Math.floor(s % 60);
+          return m + ":" + String(x).padStart(2, "0");
+        };
+        const ICON_PLAY =
+          '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+        const ICON_PAUSE =
+          '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+        const ICON_VOL =
+          '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg>';
+        const ICON_MUTE =
+          '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4v2.18l2.45 2.45c.03-.2.05-.41.05-.63zM3 9v6h4l5 5V4L7 9H3zm16.73 11.73l1.27-1.27L4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l3.46 3.46z"/></svg>';
+        const ICON_FS =
+          '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>';
+        const ICON_PIP =
+          '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 11h-8v6h8v-6zm2-7H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 14H3V6h18v12z"/></svg>';
+
+        let lastFocus = null;
+
+        function open(src, title) {
+          lastFocus = document.activeElement;
+          video.src = src;
+          titleEl.textContent = title || "";
+          modal.classList.add("open");
+          modal.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
+          overlay.classList.remove("hide");
+          // try autoplay (with sound — falls back to muted if blocked)
+          video.muted = false;
+          video.volume = parseFloat(vol.value);
+          btnMute.innerHTML = ICON_VOL;
+          video
+            .play()
+            .then(() => overlay.classList.add("hide"))
+            .catch(() => {
+              // try muted autoplay
+              video.muted = true;
+              btnMute.innerHTML = ICON_MUTE;
+              video.play().catch(() => {});
+            });
+        }
+        function close() {
+          modal.classList.remove("open");
+          modal.setAttribute("aria-hidden", "true");
+          video.pause();
+          video.removeAttribute("src");
+          video.load();
+          document.body.style.overflow = "";
+          if (lastFocus && lastFocus.focus) lastFocus.focus();
+        }
+        function togglePlay() {
+          if (video.paused) {
+            video.play();
+            overlay.classList.add("hide");
+          } else {
+            video.pause();
+            overlay.classList.remove("hide");
+          }
+        }
+        function toggleMute() {
+          video.muted = !video.muted;
+          btnMute.innerHTML = video.muted ? ICON_MUTE : ICON_VOL;
+        }
+        function toggleFs() {
+          const root = modal.querySelector(".vp-dialog");
+          if (!document.fullscreenElement) {
+            (root.requestFullscreen || root.webkitRequestFullscreen)?.call(
+              root,
+            );
+          } else {
+            (document.exitFullscreen || document.webkitExitFullscreen)?.call(
+              document,
+            );
+          }
+        }
+        async function togglePip() {
+          try {
+            if (document.pictureInPictureElement) {
+              await document.exitPictureInPicture();
+            } else if (video.requestPictureInPicture) {
+              await video.requestPictureInPicture();
+            }
+          } catch (e) {}
+        }
+
+        document
+          .querySelectorAll("[data-vp-close]")
+          .forEach((el) => el.addEventListener("click", close));
+        document.addEventListener("keydown", (e) => {
+          if (!modal.classList.contains("open")) return;
+          if (e.key === "Escape") close();
+          else if (e.key === " " || e.key.toLowerCase() === "k") {
+            if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT")
+              return;
+            e.preventDefault();
+            togglePlay();
+          } else if (e.key.toLowerCase() === "f") toggleFs();
+          else if (e.key.toLowerCase() === "m") toggleMute();
+          else if (e.key === "ArrowRight")
+            video.currentTime = Math.min(
+              video.duration || 0,
+              video.currentTime + 5,
+            );
+          else if (e.key === "ArrowLeft")
+            video.currentTime = Math.max(0, video.currentTime - 5);
+        });
+
+        btnPlay.addEventListener("click", togglePlay);
+        overlay.addEventListener("click", togglePlay);
+        video.addEventListener("click", togglePlay);
+        btnMute.addEventListener("click", toggleMute);
+        btnFs.addEventListener("click", toggleFs);
+        btnPip.addEventListener("click", togglePip);
+        rate.addEventListener(
+          "change",
+          () => (video.playbackRate = parseFloat(rate.value)),
+        );
+        vol.addEventListener("input", () => {
+          video.volume = parseFloat(vol.value);
+          video.muted = video.volume === 0;
+          btnMute.innerHTML = video.muted ? ICON_MUTE : ICON_VOL;
+        });
+
+        video.addEventListener("play", () => {
+          btnPlay.innerHTML = ICON_PAUSE;
+          overlay.classList.add("hide");
+        });
+        video.addEventListener("pause", () => {
+          btnPlay.innerHTML = ICON_PLAY;
+        });
+        video.addEventListener("loadedmetadata", () => {
+          durT.textContent = fmt(video.duration);
+          video.playbackRate = parseFloat(rate.value);
+        });
+        video.addEventListener("timeupdate", () => {
+          curT.textContent = fmt(video.currentTime);
+          const pct =
+            video.duration > 0 ? (video.currentTime / video.duration) * 100 : 0;
+          prog.style.width = pct + "%";
+        });
+        video.addEventListener("progress", () => {
+          if (video.buffered.length && video.duration > 0) {
+            const end = video.buffered.end(video.buffered.length - 1);
+            buf.style.width = (end / video.duration) * 100 + "%";
+          }
+        });
+        video.addEventListener("ended", () => {
+          overlay.classList.remove("hide");
+          btnPlay.innerHTML = ICON_PLAY;
+        });
+
+        function seekFromEvent(e) {
+          const r = bar.getBoundingClientRect();
+          const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+          const t = Math.max(0, Math.min(1, x / r.width));
+          if (isFinite(video.duration)) video.currentTime = t * video.duration;
+        }
+        bar.addEventListener("click", seekFromEvent);
+
+        // initial icons
+        btnPlay.innerHTML = ICON_PLAY;
+        btnMute.innerHTML = ICON_VOL;
+        btnFs.innerHTML = ICON_FS;
+        btnPip.innerHTML = ICON_PIP;
+
+        document.querySelectorAll(".video-card").forEach((card) => {
+          const trigger = () => {
+            const src = card.dataset.src;
+            const h = card.querySelector("h3");
+            open(src, h ? h.textContent : "");
+          };
+          card.addEventListener("click", trigger);
+          card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              trigger();
+            }
+          });
+        });
+      })();
     </script>
   </body>
 </html>

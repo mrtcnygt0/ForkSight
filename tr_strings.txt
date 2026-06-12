@@ -1,0 +1,1177 @@
+﻿profile-panel.js:16: "use strict";
+profile-panel.js:25: const HOST_ID = "forksight-profile-panel-host";
+profile-panel.js:31: { id: "profile", trLabel: "Profil", icon: "👤" },
+profile-panel.js:32: { id: "games", trLabel: "Oyunlar", icon: "♟" },
+profile-panel.js:33: { id: "weakness", trLabel: "Analiz", icon: "🎯" },
+profile-panel.js:34: { id: "settings", trLabel: "Ayarlar", icon: "⚙" },
+profile-panel.js:41: let activeTab = "profile";
+profile-panel.js:51: filter: { result: "", time_class: "" },
+profile-panel.js:90: day: "2-digit",
+profile-panel.js:92: year: "numeric",
+profile-panel.js:101: if (!streak || streak < 1) return T("Bugün de iyi şanslar!");
+profile-panel.js:102: if (streak === 1) return T("Güzel bir başlangıç! 🚀");
+profile-panel.js:106: ? "{n} days here — keep going!"
+profile-panel.js:110: ? "{n}-day streak — impressive!"
+profile-panel.js:127: typeof R._buildBoardSVG === "function" &&
+profile-panel.js:128: typeof R._fenToPosition === "function" &&
+profile-panel.js:141: g.result === "win" ? "win" : g.result === "loss" ? "loss" : "draw";
+profile-panel.js:143: g.result === "win"
+profile-panel.js:144: ? T("Kazandı")
+profile-panel.js:146: ? T("Kaybetti")
+profile-panel.js:147: : T("Beraberlik");
+profile-panel.js:149: g.user_color === "white"
+profile-panel.js:150: ? `${esc(g.black_username || "?")} (${g.black_rating || "?"})`
+profile-panel.js:151: : `${esc(g.white_username || "?")} (${g.white_rating || "?"})`;
+profile-panel.js:153: <button class="fs-game-card" data-game-id="${g.id}" type="button">
+profile-panel.js:154: <div class="fs-game-board">${svg || '<div class="fs-game-board-fallback"></div>'}</div>
+profile-panel.js:158: <div class="fs-game-eco">${esc(g.eco || "—")} · ${esc(g.time_class || "—")}</div>
+profile-panel.js:172: typeof window.ForkSightReview.openWithPgn === "function"
+profile-panel.js:179: console.warn("[ForkSight] openGame failed; resp =", resp);
+profile-panel.js:180: alert(T("Oyun yüklenemedi."));
+profile-panel.js:182: console.warn("[ForkSight] openGame error", e);
+profile-panel.js:183: alert(T("Sunucuya ulaşılamadı."));
+profile-panel.js:205: font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+profile-panel.js:561: return '<div class="fs-spinner"></div>';
+profile-panel.js:568: return `<div class="fs-empty">${T("Profil bilgisi alınamadı.")}</div>`;
+profile-panel.js:574: ? `style="background-image:url('${esc(u.chess_com_avatar)}')"`
+profile-panel.js:579: : T("Chess.com hesabı bağlı değil");
+profile-panel.js:590: <div class="fs-prof-id">
+profile-panel.js:597: <div class="fs-stat-lab">${T("EN YÜKSEK")}</div>
+profile-panel.js:601: <div class="fs-stat-lab">${T("GÜNLÜK SERİ")}</div>
+profile-panel.js:608: <div class="fs-section-title">
+profile-panel.js:610: <button class="fs-link-btn" data-act="more-games">${T("Daha fazla →")}</button>
+profile-panel.js:614: ? `<div class="fs-game-grid">${recent.map(gameThumbHTML).join("")}</div>`
+profile-panel.js:615: : `<div class="fs-empty">${T("Henüz oyun çekilmedi.")}<br>${
+profile-panel.js:617: ? "You can link your Chess.com account from Settings."
+profile-panel.js:618: : "Chess.com hesabını Ayarlar'dan bağlayabilirsin."
+profile-panel.js:628: `<button class="fs-chip ${f[key] === val ? "fs-on" : ""}" data-filter="${key}:${val}">${esc(lab)}</button>`;
+profile-panel.js:630: <div class="fs-chips">
+profile-panel.js:631: ${chip("", T("Tümü"), "result")}
+profile-panel.js:632: ${chip("win", T("Kazandı"), "result")}
+profile-panel.js:633: ${chip("loss", T("Kaybetti"), "result")}
+profile-panel.js:634: ${chip("draw", T("Beraberlik"), "result")}
+profile-panel.js:636: <div class="fs-chips">
+profile-panel.js:637: ${chip("", T("Hepsi"), "time_class")}
+profile-panel.js:638: ${chip("bullet", "Bullet", "time_class")}
+profile-panel.js:639: ${chip("blitz", "Blitz", "time_class")}
+profile-panel.js:640: ${chip("rapid", "Rapid", "time_class")}
+profile-panel.js:641: ${chip("daily", "Daily", "time_class")}
+profile-panel.js:647: ? "No matching games."
+profile-panel.js:648: : "Eşleşen oyun yok."
+profile-panel.js:651: html += `<div class="fs-game-grid">${g.items.map(gameThumbHTML).join("")}</div>`;
+profile-panel.js:653: html += `<div style="text-align:center;margin-top:12px"><button class="fs-btn fs-ghost" data-act="load-more">${T("Daha fazla yükle")}</button></div>`;
+profile-panel.js:661: // FIDE konvansiyonu). Bu sayede "C55" yerine "Açık Oyun · İtalyan"
+profile-panel.js:664: if (!eco || typeof eco !== "string") return T("Açılış");
+profile-panel.js:668: A: T("Yan açılış"), // 1.c4, 1.Nf3, düzensiz açılışlar
+profile-panel.js:669: B: T("Yarı-açık oyun"), // 1.e4 c5/c6/d6 vb.
+profile-panel.js:670: C: T("Açık oyun"), // 1.e4 e5
+profile-panel.js:671: D: T("Kapalı oyun"), // 1.d4 d5
+profile-panel.js:672: E: T("Hint savunması"), // 1.d4 Nf6
+profile-panel.js:673: }[c] || T("Açılış")
+profile-panel.js:684: "Genelde 1.c4 veya 1.Nf3 ile başlayan düzensiz/yan açılışlar. Merkez kontrolünü kanat taşları ile dengelemeyi gerektirir.",
+profile-panel.js:687: "Beyaz 1.e4 oynar, siyah merkezi simetrik karşılamaz (örn. Sicilyen, Caro-Kann). Yapı planını bilmek kritiktir.",
+profile-panel.js:690: "Klasik 1.e4 e5 açılışları (İtalyan, İspanyol, vs.). Hızlı gelişim ve şah güvenliği esastır.",
+profile-panel.js:693: "1.d4 d5 ile gelen kapalı oyunlar. Piyon yapısı uzun süre kalır, planlı oyun gerekir.",
+profile-panel.js:696: "1.d4 Nf6 ile başlayan Hint savunmaları (King's Indian, Nimzo vb.). Stratejik, manevralı oyun.",
+profile-panel.js:705: label: "Açılış",
+profile-panel.js:706: desc: "İlk ~15 hamle. Taşları geliştir, merkeze hâkim ol, şahı roka et.",
+profile-panel.js:707: tip: "Çok kaybediyorsan 1-2 açılışı ezberle ve aynısını her oyunda tekrarla.",
+profile-panel.js:711: desc: "15-40. hamleler. Plan kur, zayıf kareleri yakala, taktiklere dikkat et.",
+profile-panel.js:712: tip: "Hamleden önce 'rakip bana ne yapabilir?' sorusunu sor; bedava taş kayıplarını azaltır.",
+profile-panel.js:716: desc: "40+ hamle. Az taş kaldı; şahı aktif kullan, piyon terfisi öne çıkar.",
+profile-panel.js:717: tip: "Şah+vezir mat, K+R mat, K+P son oyun temellerini çalış — kazandığın oyun kaymasını engeller.",
+profile-panel.js:728: ${T("Henüz analiz için yeterli oyun yok.")}<br>
+profile-panel.js:729: <span style="font-size:11px;color:var(--fs-text-dim)">
+profile-panel.js:730: ${T("Chess.com hesabını bağladıktan sonra son oyunlarına bakacağız.")}
+profile-panel.js:752: <div class="fs-phase-sub">${ph.games || 0} ${T("oyun")} · ${ph.losses || 0} ${T("kayıp")}</div>
+profile-panel.js:758: for (const k of ["opening", "middlegame", "endgame"]) {
+profile-panel.js:775: `<button class="fs-weak-ref" data-game-id="${id}">
+profile-panel.js:776: <span class="fs-weak-ref-ico">♟</span>
+profile-panel.js:777: <span class="fs-weak-ref-txt">${T("Bu fazda kaybettiğin bir oyun")}</span>
+profile-panel.js:778: <span class="fs-weak-ref-arrow">${T("→ İncele")}</span>
+profile-panel.js:783: <div class="fs-phase-tip">
+profile-panel.js:784: <b>${esc(T(info.label))}</b> ${T("diğer fazlardan daha çok kaybediyorsun.")}
+profile-panel.js:786: <span style="color:var(--fs-text-dim)">💡 ${esc(T(info.tip))}</span>
+profile-panel.js:787: ${refs ? `<div style="margin-top:8px">${refs}</div>` : ""}
+profile-panel.js:799: const name = o.name || o.eco || T("Açılış");
+profile-panel.js:807: `<button class="fs-weak-ref" data-game-id="${id}">
+profile-panel.js:808: <span class="fs-weak-ref-ico">♟</span>
+profile-panel.js:809: <span class="fs-weak-ref-txt">${T("Bu açılışla kaybettiğin oyun")}</span>
+profile-panel.js:810: <span class="fs-weak-ref-arrow">${T("→ İncele")}</span>
+profile-panel.js:816: <span class="fs-weak-family">${esc(family)} · ${esc(o.eco || "?")}</span>
+profile-panel.js:819: <span class="fs-weak-rate">${pct}% ${T("kayıp")}</span>
+profile-panel.js:821: <div class="fs-weak-meta">${o.games} ${T("oyun oynadın")} · ${o.losses}${T("'inde kaybettin")}</div>
+profile-panel.js:822: <div class="fs-weak-bar"><span style="width:${pct}%"></span></div>
+profile-panel.js:823: ${explain ? `<div class="fs-weak-desc">${esc(explain)}</div>` : ""}
+profile-panel.js:827: : `<div class="fs-weak-meta" style="font-style:italic">
+profile-panel.js:828: ${T("Yakın zamanda bu açılışta kaybettiğin oyun bulunamadı.")}
+profile-panel.js:834: : `<div class="fs-empty" style="padding:14px 0">
+profile-panel.js:835: ${T("Henüz zayıf bir açılış tespit edemedik.")}<br>
+profile-panel.js:836: <span style="font-size:11px;color:var(--fs-text-dim)">
+profile-panel.js:837: ${T("(En az 3 oyun oynanan ve %50'den fazla kaybedilen açılışlar burada gözükür.)")}
+profile-panel.js:845: <div class="fs-chap-title">${T("Genel")}</div>
+profile-panel.js:849: <div class="fs-stat-rich-row">
+profile-panel.js:850: <div class="fs-stat-rich" style="color:var(--fs-good)">
+profile-panel.js:851: <div class="fs-stat-ring">🏆</div>
+profile-panel.js:853: <div class="fs-stat-lab">${T("Kazanç")}</div>
+profile-panel.js:855: <div class="fs-stat-rich" style="color:var(--fs-bad)">
+profile-panel.js:856: <div class="fs-stat-ring">✕</div>
+profile-panel.js:858: <div class="fs-stat-lab">${T("Kayıp")}</div>
+profile-panel.js:860: <div class="fs-stat-rich" style="color:var(--fs-warn)">
+profile-panel.js:861: <div class="fs-stat-ring">½</div>
+profile-panel.js:870: <div class="fs-chap-title">${T("Faz Analizi")}</div>
+profile-panel.js:871: <div class="fs-chap-sub">${T("Açılış · Orta · Son oyun")}</div>
+profile-panel.js:875: ${T("Bir satranç partisi üç fazdan oluşur. Hangi fazda ne kadar kaybettiğini gör — yüzde yüksekse o faza çalış.")}
+profile-panel.js:877: <div class="fs-phase-grid">
+profile-panel.js:878: ${phaseCard("opening")}
+profile-panel.js:879: ${phaseCard("middlegame")}
+profile-panel.js:887: <div class="fs-chap-title">${T("Zayıf Açılışlar")}</div>
+profile-panel.js:888: <div class="fs-chap-sub">${T("Yarıdan fazla kaybettiklerin")}</div>
+profile-panel.js:892: ${T("Aşağıdaki referans oyunlara tıkla — hangi hamlede yanlış yaptığını koç modülü sana hamle hamle gösterecek.")}
+profile-panel.js:907: <div class="fs-set-lab">${T("Dil")}</div>
+profile-panel.js:909: <button class="fs-btn ${lang === "en" ? "" : "fs-ghost"}" data-act="lang-en">${T("İngilizce")}</button>
+profile-panel.js:910: <button class="fs-btn ${lang === "tr" ? "" : "fs-ghost"}" data-act="lang-tr">${T("Türkçe")}</button>
+profile-panel.js:914: <div class="fs-set-lab">${T("Chess.com Kullanıcı Adı")}</div>
+profile-panel.js:916: <input type="text" class="fs-input" data-set="ccu" value="${esc(ccu)}" placeholder="${T("kullanıcı adı")}" />
+profile-panel.js:922: <div class="fs-set-lab">${T("Veriler")}</div>
+profile-panel.js:924: <button class="fs-btn fs-ghost" data-act="resync" style="width:100%">${T("↻ Oyunları Yeniden Senkronize Et")}</button>
+profile-panel.js:931: <button class="fs-btn fs-danger" data-act="logout" style="width:100%">${T("Çıkış Yap")}</button>
+profile-panel.js:941: if (activeTab === "profile") html = renderProfileTab();
+profile-panel.js:944: else if (activeTab === "settings") html = renderSettingsTab();
+profile-panel.js:947: t.classList.toggle("fs-active", t.dataset.tab === activeTab);
+profile-panel.js:958: const resp = await send("me_profile");
+profile-panel.js:971: if (activeTab === "profile" || activeTab === "settings") renderActive();
+profile-panel.js:1020: if (id === "profile") ensureProfile();
+profile-panel.js:1024: else if (id === "settings") ensureProfile(); // ccu için
+profile-panel.js:1038: const chipGame = e.target.closest("[data-game-id]");
+profile-panel.js:1047: if (a === "more-games") switchTab("games");
+profile-panel.js:1061: const f = e.target.closest("[data-filter]");
+profile-panel.js:1077: msg.textContent = T("Boş olamaz.");
+profile-panel.js:1081: msg.textContent = T("Kaydediliyor…");
+profile-panel.js:1084: const resp = await send("chess_com_link", { chess_com_username: v });
+profile-panel.js:1099: ? T("Chess.com kullanıcısı bulunamadı.")
+profile-panel.js:1100: : (resp && resp.detail) || T("Bağlanılamadı.");
+profile-panel.js:1104: msg.textContent = T("Sunucuya ulaşılamadı.");
+profile-panel.js:1115: msg.textContent = T("Senkronize ediliyor…");
+profile-panel.js:1121: "Senkronizasyon başlatıldı, birkaç saniye sürebilir.",
+profile-panel.js:1136: msg.textContent = T("Sunucuya ulaşılamadı.");
+profile-panel.js:1146: chrome.storage.local.remove(["taktik_token", "taktik_refresh_token"]);
+profile-panel.js:1168: <aside class="fs-sidebar">
+profile-panel.js:1170: <img class="fs-brand-ico" src="${chrome.runtime.getURL("avatars/neutral.png")}" alt="" />
+profile-panel.js:1176: `<button class="fs-tab" data-tab="${t.id}"><span class="fs-tab-ico">${t.icon}</span><span>${esc(T(t.trLabel))}</span></button>`,
+profile-panel.js:1179: <button class="fs-premium-pill" data-act="premium" title="${T("Premium")}">⭐ ${T("Premium")}</button>
+profile-panel.js:1181: <main class="fs-main">
+profile-panel.js:1183: <button class="fs-icon-btn fs-lang-btn" data-act="lang-toggle" aria-label="${T("Dil")}" title="${T("Dil")}">🌐 <span class="fs-lang-code">${langCode}</span></button>
+profile-panel.js:1184: <button class="fs-icon-btn" data-act="close" aria-label="${T("Kapat")}">×</button>
+profile-panel.js:1191: panelEl.querySelector(".fs-header").addEventListener("click", (e) => {
+profile-panel.js:1200: t.addEventListener("click", () => switchTab(t.dataset.tab));
+profile-panel.js:1204: t.classList.toggle("fs-active", t.dataset.tab === activeTab);
+profile-panel.js:1210: hostEl = document.createElement("div");
+profile-panel.js:1219: const overlay = document.createElement("div");
+profile-panel.js:1221: overlay.addEventListener("click", close);
+profile-panel.js:1224: panelEl = document.createElement("div");
+profile-panel.js:1237: panelEl.style.setProperty("--fs-origin-x", ox + "%");
+profile-panel.js:1238: panelEl.style.setProperty("--fs-origin-y", oy + "%");
+profile-panel.js:1245: activeTab = "profile";
+coach-review.js:26: * The TCN ("two-character notation") used by chess.com is documented in
+coach-review.js:33: "use strict";
+coach-review.js:46: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?{~}(^)[_]@#";
+coach-review.js:57: * Each entry: { from: "e2", to: "e4", promotion: null | "q"|"n"|"r"|"b",
+coach-review.js:66: if (typeof moveList !== "string" || moveList.length < 2) return [];
+coach-review.js:77: "[ForkSightReview] TCN char dışı pair atlandı:",
+coach-review.js:122: "[ForkSightReview] TCN decode: toplam",
+coach-review.js:124: "pair atlandı (alfabe dışı karakter).",
+coach-review.js:185: // "behind" the target square from its own perspective.
+coach-review.js:258: if ((isWhite && turn !== "w") || (!isWhite && turn !== "b")) continue;
+coach-review.js:305: t === "b" ? _BISHOP_RAYS : t === "r" ? _ROOK_RAYS : _QUEEN_RAYS;
+coach-review.js:468: if (!text) throw new Error("PGN boş.");
+coach-review.js:521: 'Hamle ayrıştırılamadı: "' + san + '" (hamle #' + (i + 1) + ").",
+coach-review.js:545: * Returns { type: "live"|"computer"|"coach"|"daily", id: "1234567" }
+coach-review.js:549: if (typeof input !== "string") return null;
+coach-review.js:553: return { type: "live", id: trimmed };
+coach-review.js:561: if (m2) return { type: "live", id: m2[1] };
+coach-review.js:568: "https://www.chess.com/callback/live/game/" + encodeURIComponent(id);
+coach-review.js:570: credentials: "include",
+coach-review.js:571: headers: { Accept: "application/json" },
+coach-review.js:574: throw new Error("Sunucu hata kodu döndü: HTTP " + res.status);
+coach-review.js:577: if (!data || !data.game) throw new Error("Geçersiz yanıt formatı.");
+coach-review.js:583: "https://www.chess.com/callback/daily/game/" + encodeURIComponent(id);
+coach-review.js:585: credentials: "include",
+coach-review.js:586: headers: { Accept: "application/json" },
+coach-review.js:590: "Daily oyun alınamadı (HTTP " +
+coach-review.js:592: "). Oyun id doğru mu, hâlâ erişilebilir mi?",
+coach-review.js:596: if (!data || !data.game) throw new Error("Geçersiz yanıt formatı.");
+coach-review.js:602: * URL type. Only "live" and "daily" are wired right now; anything else
+coach-review.js:606: if (!parsed || !parsed.type) throw new Error("Bilinmeyen bağlantı türü.");
+coach-review.js:607: if (parsed.type === "live") return fetchLiveGame(parsed.id);
+coach-review.js:608: if (parsed.type === "daily") return fetchDailyGame(parsed.id);
+coach-review.js:610: "Şu an yalnızca live ve daily oyunlar destekleniyor (tip: " +
+coach-review.js:646: if (typeof s !== "string" || !s.length) return [];
+coach-review.js:662: // <1min → "0:SS.t" (tenths). Negative or null → "—".
+coach-review.js:754: html += '<img class="forksight-rb-cap-pc" src="' + url + '" alt=""/>';
+coach-review.js:760: html += '<span class="forksight-rb-cap-adv">+' + advantage + "</span>";
+coach-review.js:779: (w.promotion ? "=" + w.promotion.toUpperCase() : "")
+coach-review.js:785: (b.promotion ? "=" + b.promotion.toUpperCase() : "")
+coach-review.js:917: "[ForkSightReview] Boş kareden hamle:",
+coach-review.js:919: "— pozisyon güncellenmeden geçildi.",
+coach-review.js:1092: if (!raw) throw new Error("FEN boş.");
+coach-review.js:1095: if (rows.length !== 8) throw new Error("FEN'de 8 sıra olmalı.");
+coach-review.js:1105: if (file > 7) throw new Error("FEN sırası taşıyor: " + rows[r]);
+coach-review.js:1109: throw new Error("FEN'de geçersiz karakter: " + ch);
+coach-review.js:1112: if (file !== 8) throw new Error("FEN sırasında 8 kare yok: " + rows[r]);
+coach-review.js:1220: return chrome.runtime.getURL("pieces/" + color + letter + ".png");
+coach-review.js:1230: brilliant: "brilliant",
+coach-review.js:1235: inaccuracy: "dubious",
+coach-review.js:1236: mistake: "inaccuracy_dark",
+coach-review.js:1238: mateThreat: "critical",
+coach-review.js:1246: return chrome.runtime.getURL("analysis_icons/" + name + ".png");
+coach-review.js:1267: '<svg class="forksight-rb" viewBox="0 0 ' +
+coach-review.js:1271: '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Satranç tahtası">';
+coach-review.js:1289: '" width="' +
+coach-review.js:1291: '" height="' +
+coach-review.js:1293: '" fill="' +
+coach-review.js:1301: // PNG image — slightly inset so the piece visually "sits"
+coach-review.js:1311: '" width="' +
+coach-review.js:1313: '" height="' +
+coach-review.js:1315: '" preserveAspectRatio="xMidYMid meet"/>';
+coach-review.js:1326: '" font-size="' +
+coach-review.js:1328: '" text-anchor="middle" font-family="\'Segoe UI Symbol\',\'Noto Sans Symbols 2\',sans-serif"' +
+coach-review.js:1334: '" stroke-width="1"' +
+coach-review.js:1350: '" font-size="11" text-anchor="end" font-family="sans-serif" fill="' +
+coach-review.js:1364: '" font-size="11" text-anchor="start" font-family="sans-serif" fill="' +
+coach-review.js:1396: '" width="' +
+coach-review.js:1398: '" height="' +
+coach-review.js:1400: '" preserveAspectRatio="xMidYMid meet" style="pointer-events:none"/>';
+coach-review.js:1410: const ARROW_CATEGORIES = new Set(["inaccuracy", "mistake", "blunder"]);
+coach-review.js:1474: (i === 0 ? "M" : "L") + p.x.toFixed(1) + "," + p.y.toFixed(1),
+coach-review.js:1483: '<filter id="forksight-arrow-shadow" x="-20%" y="-20%" width="140%" height="140%">' +
+coach-review.js:1484: '<feGaussianBlur in="SourceAlpha" stdDeviation="1.5"/>' +
+coach-review.js:1486: '<feComponentTransfer><feFuncA type="linear" slope="0.55"/></feComponentTransfer>' +
+coach-review.js:1487: '<feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>' +
+coach-review.js:1488: "</filter>" +
+coach-review.js:1490: '<g class="forksight-rb-arrow" filter="url(#forksight-arrow-shadow)" style="pointer-events:none">' +
+coach-review.js:1495: '" stroke-width="' +
+coach-review.js:1497: '" fill="none" stroke-linecap="butt" stroke-linejoin="round"/>' +
+coach-review.js:1510: '" fill="' +
+coach-review.js:1532: const url = `${chrome.runtime.getURL("analysis_icons/" + icon)}`;
+coach-review.js:1534: '<image class="forksight-rb-endbadge" href="' +
+coach-review.js:1540: '" width="' +
+coach-review.js:1542: '" height="' +
+coach-review.js:1544: '" preserveAspectRatio="xMidYMid meet" style="pointer-events:none"/>',
+coach-review.js:1563: pushBadge(winKingSq, "winning.png");
+coach-review.js:1565: endgame.lossType === "time" ? "time_dark.png" : "flag_dark.png";
+coach-review.js:1585: // Referencing anything else (e.g. "confident", "confused") produces a
+coach-review.js:1589: emotion: "mistake",
+coach-review.js:1592: "Bu ciddi bir hata — pozisyonun belirgin biçimde bozuldu.",
+coach-review.js:1593: "Büyük bir gaf yaptın; değerlendirme keskin düştü.",
+coach-review.js:1594: "Burada affedilmez bir kayıp verdin; çok daha güçlü bir seçenek vardı.",
+coach-review.js:1597: "Rakibin büyük bir hata yaptı — pozisyonu ciddi şekilde bozdu.",
+coach-review.js:1598: "Rakibinden bir gaf geldi; değerlendirme senin lehine keskin döndü.",
+coach-review.js:1599: "Bu rakibin için affedilmez bir kayıptı; sen avantajı eline aldın.",
+coach-review.js:1602: "Ciddi bir hata — pozisyon belirgin biçimde bozuldu.",
+coach-review.js:1603: "Büyük bir gaf; değerlendirme keskin düştü.",
+coach-review.js:1604: "Affedilmez bir kayıp; çok daha güçlü bir seçenek vardı.",
+coach-review.js:1609: emotion: "worried",
+coach-review.js:1612: "Hata yaptın; pozisyonun kötüleşti.",
+coach-review.js:1613: "Daha iyisi mümkündü — bu hamle değerlendirmeni düşürdü.",
+coach-review.js:1614: "İdeal değil; daha sağlam bir seçenek vardı.",
+coach-review.js:1617: "Rakibin hata yaptı; pozisyonu kötüleşti.",
+coach-review.js:1618: "Rakibinden zayıf bir hamle geldi — değerlendirme senin lehine döndü.",
+coach-review.js:1619: "Rakibin için ideal değildi; daha sağlam bir seçeneği vardı.",
+coach-review.js:1622: "Hata; pozisyon kötüleşti.",
+coach-review.js:1623: "Daha iyisi mümkündü — bu hamle değerlendirmeyi düşürdü.",
+coach-review.js:1624: "İdeal değil; daha sağlam bir seçenek vardı.",
+coach-review.js:1632: "Küçük bir yanlışlık — büyük zarar yok ama daha keskini vardı.",
+coach-review.js:1633: "Hafifçe konum kaybı; pozisyon hâlâ oynanabilir.",
+coach-review.js:1634: "İdeal değil ama dengeleri bozmadın.",
+coach-review.js:1637: "Rakibinden ufak bir yanlışlık — büyük zarar yok ama lehine küçük bir fırsat doğdu.",
+coach-review.js:1638: "Rakibin hafif bir konum kaybetti; pozisyon hâlâ dengeli sayılır.",
+coach-review.js:1639: "Rakibinin hamlesi ideal değildi ama dengeleri bozmadı.",
+coach-review.js:1642: "Küçük bir yanlışlık — büyük zarar yok.",
+coach-review.js:1643: "Hafif konum kaybı; pozisyon hâlâ oynanabilir.",
+coach-review.js:1644: "İdeal değil ama dengeyi bozmadı.",
+coach-review.js:1652: "Sağlam, makul bir hamle.",
+coach-review.js:1653: "Pozisyonu koruyan iyi bir tercih.",
+coach-review.js:1654: "Dengeyi sürdüren bir hamle.",
+coach-review.js:1657: "Rakibinden sağlam bir hamle.",
+coach-review.js:1658: "Rakibin pozisyonunu koruyan makul bir tercih.",
+coach-review.js:1659: "Rakibin dengeyi sürdürüyor.",
+coach-review.js:1662: "Sağlam, makul bir hamle.",
+coach-review.js:1663: "Pozisyonu koruyan bir tercih.",
+coach-review.js:1664: "Dengeyi sürdüren bir hamle.",
+coach-review.js:1672: "En iyi hamle — motorla aynı seçimi yaptın.",
+coach-review.js:1673: "Tam isabet; bundan daha iyisi yoktu.",
+coach-review.js:1674: "Doğru tercih, pozisyonu en iyi şekilde sürdürdün.",
+coach-review.js:1677: "Rakibin en iyi hamleyi buldu — motorla aynı seçim.",
+coach-review.js:1678: "Rakibinden tam isabet; bundan daha iyisi yoktu.",
+coach-review.js:1679: "Rakibin doğru tercihi yaptı, pozisyonunu en iyi şekilde sürdürdü.",
+coach-review.js:1682: "En iyi hamle — motorla aynı seçim.",
+coach-review.js:1683: "Tam isabet; bundan daha iyisi yoktu.",
+coach-review.js:1684: "Doğru tercih, pozisyonu en iyi şekilde sürdürüyor.",
+coach-review.js:1689: emotion: "winning",
+coach-review.js:1692: "Güzel hamle — değerlendirme lehine döndü.",
+coach-review.js:1693: "İyi seçim; küçük bir avantaj kazandın.",
+coach-review.js:1694: "Etkili bir hamle; pozisyonun biraz daha rahatladı.",
+coach-review.js:1697: "Rakibinden güzel bir hamle — değerlendirme onun lehine döndü.",
+coach-review.js:1698: "Rakibin iyi seçim yaptı; küçük bir avantaj kazandı.",
+coach-review.js:1699: "Etkili bir hamle; rakibinin pozisyonu biraz daha rahatladı.",
+coach-review.js:1702: "Güzel hamle — değerlendirme lehine döndü.",
+coach-review.js:1703: "İyi seçim; küçük bir avantaj kazanıldı.",
+coach-review.js:1704: "Etkili bir hamle; pozisyon biraz daha rahatladı.",
+coach-review.js:1709: emotion: "winning",
+coach-review.js:1712: "Çok iyi bir hamle — pozisyon belirgin biçimde lehine döndü.",
+coach-review.js:1713: "Harika seçim, rakibine ciddi sorun çıkardın.",
+coach-review.js:1714: "Güçlü bir tercih; avantajın gözle görülür şekilde büyüdü.",
+coach-review.js:1717: "Rakibinden çok iyi bir hamle — pozisyon onun lehine döndü.",
+coach-review.js:1718: "Rakibin harika bir seçim yaptı; sana ciddi sorun çıkardı.",
+coach-review.js:1719: "Rakibinden güçlü bir tercih; avantajı gözle görülür şekilde büyüdü.",
+coach-review.js:1722: "Çok iyi bir hamle — pozisyon belirgin biçimde döndü.",
+coach-review.js:1723: "Harika seçim; rakibe ciddi sorun çıkardı.",
+coach-review.js:1724: "Güçlü bir tercih; avantaj gözle görülür şekilde büyüdü.",
+coach-review.js:1732: "Mükemmel! Değerlendirme net biçimde lehine döndü.",
+coach-review.js:1733: "Çok güçlü bir hamle yaptın — pozisyon büyük ölçüde kazanıyor.",
+coach-review.js:1734: "Harika tercih; rakibine ciddi sorun bıraktın.",
+coach-review.js:1737: "Rakibin mükemmel oynadı — değerlendirme onun lehine net biçimde döndü.",
+coach-review.js:1738: "Rakibinden çok güçlü bir hamle; pozisyon onun için büyük ölçüde kazanıyor.",
+coach-review.js:1739: "Rakibinin harika bir tercihi; sana ciddi bir sorun bıraktı.",
+coach-review.js:1742: "Mükemmel! Değerlendirme net biçimde döndü.",
+coach-review.js:1743: "Çok güçlü bir hamle — pozisyon büyük ölçüde kazançlı.",
+coach-review.js:1744: "Harika tercih; rakibe ciddi bir sorun bıraktı.",
+coach-review.js:1749: emotion: "opportunity",
+coach-review.js:1752: "Şah-mat tehdidi belirdi — fırsatı kollamalısın.",
+coach-review.js:1753: "Burada mat ufukta; dikkatli oyna.",
+coach-review.js:1756: "Rakibin mat tehdidi kuruyor — dikkatli olmalısın!",
+coach-review.js:1757: "Rakibin mat hattını arıyor; uyanık ol.",
+coach-review.js:1759: neutral: ["Şah-mat tehdidi belirdi.", "Burada mat ufukta — dikkat!"],
+coach-review.js:1766: "Açılış teorisi — bilinen hatlardan birini oynadın.",
+coach-review.js:1767: "Bilindik bir açılış hamlesi.",
+coach-review.js:1770: "Rakibin açılış teorisinden oynadı — bilinen bir hat.",
+coach-review.js:1771: "Bilindik bir açılış hamlesi rakibinden.",
+coach-review.js:1774: "Açılış teorisi — bilinen hatlardan biri.",
+coach-review.js:1775: "Bilindik bir açılış hamlesi.",
+coach-review.js:1785: emotion: "mistake",
+coach-review.js:1788: "That was a serious mistake — your position took a clear hit.",
+coach-review.js:1789: "You blundered; the evaluation dropped sharply.",
+coach-review.js:1790: "Unforgiveable loss here; a much stronger option was available.",
+coach-review.js:1793: "Your opponent blundered — their position is clearly worse now.",
+coach-review.js:1794: "A blunder from your opponent; the evaluation swung sharply in your favor.",
+coach-review.js:1795: "An unforgiveable loss for your opponent — the advantage is yours.",
+coach-review.js:1798: "A serious mistake — the position deteriorated clearly.",
+coach-review.js:1799: "A blunder; the evaluation dropped sharply.",
+coach-review.js:1800: "An unforgiveable loss; a much stronger option was available.",
+coach-review.js:1805: emotion: "worried",
+coach-review.js:1808: "You made a mistake; your position got worse.",
+coach-review.js:1809: "Better was possible — this move lowered your evaluation.",
+coach-review.js:1810: "Not ideal; a more solid option was on the table.",
+coach-review.js:1813: "Your opponent made a mistake; their position got worse.",
+coach-review.js:1814: "A weak move from your opponent — the evaluation swung your way.",
+coach-review.js:1815: "Not ideal for your opponent; they had a more solid option.",
+coach-review.js:1818: "A mistake; the position deteriorated.",
+coach-review.js:1819: "Better was possible — this move lowered the evaluation.",
+coach-review.js:1820: "Not ideal; a more solid option was available.",
+coach-review.js:1828: "A small inaccuracy — no big damage, but something sharper was there.",
+coach-review.js:1829: "A slight loss of ground; the position is still playable.",
+coach-review.js:1830: "Not ideal but you didn't disturb the balance.",
+coach-review.js:1833: "A small inaccuracy from your opponent — no big damage, but a tiny chance opened up for you.",
+coach-review.js:1834: "Your opponent lost a bit of ground; the position is still roughly balanced.",
+coach-review.js:1835: "Your opponent's move wasn't ideal but didn't disturb the balance.",
+coach-review.js:1838: "A small inaccuracy — no big damage.",
+coach-review.js:1839: "A slight loss of ground; the position is still playable.",
+coach-review.js:1840: "Not ideal but balance was preserved.",
+coach-review.js:1848: "A solid, reasonable move.",
+coach-review.js:1849: "A good choice that holds the position.",
+coach-review.js:1853: "A solid move from your opponent.",
+coach-review.js:1854: "A reasonable choice that keeps your opponent's position together.",
+coach-review.js:1858: "A solid, reasonable move.",
+coach-review.js:1859: "A choice that holds the position.",
+coach-review.js:1868: "Best move — you matched the engine's choice.",
+coach-review.js:1869: "Spot on; nothing was better.",
+coach-review.js:1870: "Right call — you handled the position optimally.",
+coach-review.js:1873: "Your opponent found the best move — same as the engine.",
+coach-review.js:1874: "Spot on from your opponent; nothing was better.",
+coach-review.js:1875: "Your opponent made the right call and handled the position optimally.",
+coach-review.js:1878: "Best move — same as the engine.",
+coach-review.js:1879: "Spot on; nothing was better.",
+coach-review.js:1880: "The right call; the position is held optimally.",
+coach-review.js:1885: emotion: "winning",
+coach-review.js:1888: "Nice move — the evaluation swung your way.",
+coach-review.js:1889: "Good choice; you picked up a small edge.",
+coach-review.js:1890: "Effective move; your position eased up a bit.",
+coach-review.js:1893: "Nice move from your opponent — the evaluation swung their way.",
+coach-review.js:1894: "Your opponent picked a good move; they got a small edge.",
+coach-review.js:1895: "An effective move; your opponent's position eased up a bit.",
+coach-review.js:1898: "Nice move — the evaluation shifted.",
+coach-review.js:1899: "Good choice; a small edge was gained.",
+coach-review.js:1900: "An effective move; the position eased up.",
+coach-review.js:1905: emotion: "winning",
+coach-review.js:1908: "Excellent move — the position clearly swung your way.",
+coach-review.js:1909: "Great choice — you handed your opponent serious problems.",
+coach-review.js:1910: "A strong call; your advantage grew visibly.",
+coach-review.js:1913: "An excellent move from your opponent — the position swung their way.",
+coach-review.js:1914: "A great choice from your opponent; they handed you serious problems.",
+coach-review.js:1915: "A strong call from your opponent; their advantage grew visibly.",
+coach-review.js:1918: "An excellent move — the position clearly turned.",
+coach-review.js:1919: "A great choice; serious problems for the opponent.",
+coach-review.js:1920: "A strong call; the advantage grew visibly.",
+coach-review.js:1928: "Brilliant! The evaluation clearly swung your way.",
+coach-review.js:1929: "A very strong move — the position is largely winning.",
+coach-review.js:1930: "A great choice; you've left your opponent in serious trouble.",
+coach-review.js:1933: "Your opponent played brilliantly — the evaluation clearly swung their way.",
+coach-review.js:1934: "A very strong move from your opponent; the position is largely winning for them.",
+coach-review.js:1935: "A great choice from your opponent; they've left you in serious trouble.",
+coach-review.js:1938: "Brilliant! The evaluation clearly turned.",
+coach-review.js:1939: "A very strong move — the position is largely winning.",
+coach-review.js:1940: "A great choice; serious trouble for the other side.",
+coach-review.js:1945: emotion: "opportunity",
+coach-review.js:1949: "Mate is on the horizon here; play carefully.",
+coach-review.js:1952: "Your opponent is building a mate threat — be careful!",
+coach-review.js:1953: "Your opponent is looking for a mating line; stay alert.",
+coach-review.js:1957: "Mate is on the horizon — careful!",
+coach-review.js:1965: "Opening theory — you played one of the known lines.",
+coach-review.js:1966: "A well-known opening move.",
+coach-review.js:1969: "Your opponent played opening theory — a known line.",
+coach-review.js:1970: "A well-known opening move from your opponent.",
+coach-review.js:1973: "Opening theory — one of the known lines.",
+coach-review.js:1974: "A well-known opening move.",
+coach-review.js:2023: * Positive improvements (negative loss) get "great" / "brilliant" only
+coach-review.js:2032: // a visible gap than to mislead the user with a fake "solid" tick
+coach-review.js:2043: if (loss >= 10) return "mistake";
+coach-review.js:2044: if (loss >= 5) return "inaccuracy";
+coach-review.js:2048: // overwhelmingly winning, otherwise small noise reads as "brilliant".
+coach-review.js:2049: if (loss <= -15 && Math.abs(curEvalMover) < 8) return "brilliant";
+coach-review.js:2061: perspective === "self" || perspective === "opp" ? perspective : "neutral";
+coach-review.js:2121: if (self) return "You won material with this move.";
+coach-review.js:2122: if (opp) return "Your opponent won material with this move.";
+coach-review.js:2123: return "Material was won on this move.";
+coach-review.js:2125: if (self) return "Bu hamleyle malzeme kazandın.";
+coach-review.js:2126: if (opp) return "Rakibin bu hamleyle malzeme kazandı.";
+coach-review.js:2127: return "Bu hamleyle malzeme kazanıldı.";
+coach-review.js:2131: if (self) return "An unequal trade — you gave up material.";
+coach-review.js:2132: if (opp) return "A losing trade for your opponent.";
+coach-review.js:2133: return "A losing trade.";
+coach-review.js:2135: if (self) return "Eşit olmayan bir değişim — malzeme verdin.";
+coach-review.js:2136: if (opp) return "Rakibin için kayıplı bir değişim oldu.";
+coach-review.js:2137: return "Kayıplı bir değişim.";
+coach-review.js:2141: if (self) return "A sensible, equal trade.";
+coach-review.js:2143: return "A sensible, equal trade.";
+coach-review.js:2145: if (self) return "Mantıklı, denk bir taş değişimi yaptın.";
+coach-review.js:2146: if (opp) return "Rakibin denk bir taş değişimi yaptı.";
+coach-review.js:2147: return "Mantıklı, denk bir taş değişimi.";
+coach-review.js:2151: if (typeof prevEvalWhite === "number" && typeof curEvalWhite === "number") {
+coach-review.js:2155: if (self) return "After this move you left a piece hanging.";
+coach-review.js:2156: if (opp) return "After this move your opponent left a piece hanging.";
+coach-review.js:2157: return "A piece was left undefended after this move.";
+coach-review.js:2159: if (self) return "Bu hamleden sonra bir taşını boşta bıraktın.";
+coach-review.js:2160: if (opp) return "Rakibin bu hamleden sonra bir taşını boşta bıraktı.";
+coach-review.js:2161: return "Bu hamleden sonra bir taş savunmasız kaldı.";
+coach-review.js:2167: return "You found a line that exploited your opponent's weakness.";
+coach-review.js:2168: if (opp) return "Your opponent found a line where you stayed weak.";
+coach-review.js:2169: return "A line exploiting a weakness was found.";
+coach-review.js:2171: if (self) return "Rakibinin zayıf kaldığı bir hat buldun.";
+coach-review.js:2172: if (opp) return "Rakibin zayıf kaldığın bir hat buldu.";
+coach-review.js:2173: return "Pozisyondaki zayıf bir hat keşfedildi.";
+coach-review.js:2183: //   "Daha iyisi vardı: At f3'e"
+coach-review.js:2184: //   "Daha iyisi vardı: rakibinin f6'daki atını alabilirdin"
+coach-review.js:2187: p: "piyon",
+coach-review.js:2189: b: "fil",
+coach-review.js:2191: q: "vezir",
+coach-review.js:2192: k: "şah",
+coach-review.js:2195: p: "Piyon",
+coach-review.js:2197: b: "Fil",
+coach-review.js:2199: q: "Vezir",
+coach-review.js:2200: k: "Şah",
+coach-review.js:2260: if (game && game.colorOfWinner === "white") winner = "w";
+coach-review.js:2261: else if (game && game.colorOfWinner === "black") winner = "b";
+coach-review.js:2262: else if (headers && headers.Result === "1-0") winner = "w";
+coach-review.js:2263: else if (headers && headers.Result === "0-1") winner = "b";
+coach-review.js:2275: else if (/time|timeout|süre|zaman/.test(txt)) lossType = "time";
+coach-review.js:2276: else if (/resign|abandon|terk/.test(txt)) lossType = "resign";
+coach-review.js:2313: // "at" → "atını", "fil" → "filini", "vezir" → "vezirini", "kale" → "kalesini",
+coach-review.js:2314: // "şah" → "şahını", "piyon" → "piyonunu"
+coach-review.js:2316: at: "atını",
+coach-review.js:2317: fil: "filini",
+coach-review.js:2318: kale: "kalesini",
+coach-review.js:2319: vezir: "vezirini",
+coach-review.js:2320: şah: "şahını",
+coach-review.js:2321: piyon: "piyonunu",
+coach-review.js:2323: return map[name] || name + "ını";
+coach-review.js:2328: n: "knight",
+coach-review.js:2329: b: "bishop",
+coach-review.js:2332: k: "king",
+coach-review.js:2336: n: "Knight",
+coach-review.js:2337: b: "Bishop",
+coach-review.js:2340: k: "King",
+coach-review.js:2347: if (!["blunder", "mistake", "inaccuracy"].includes(category)) return "";
+coach-review.js:2359: const pieceName = _PIECE_EN_CAP[pieceChar.toLowerCase()] || "Piece";
+coach-review.js:2361: const tn = _PIECE_EN[target.toLowerCase()] || "piece";
+coach-review.js:2391: " (capturing the " +
+coach-review.js:2396: if (self) return "Better was: " + pieceName + " to " + dst + ".";
+coach-review.js:2399: "Better was: " + pieceName + " to " + dst + " for your opponent."
+coach-review.js:2401: return "Better was: " + pieceName + " to " + dst + ".";
+coach-review.js:2405: const pieceName = _PIECE_TR_CAP[pieceChar.toLowerCase()] || "Taş";
+coach-review.js:2408: const tn = _PIECE_TR[target.toLowerCase()] || "taşı";
+coach-review.js:2412: "Daha iyisi vardı: rakibinin " +
+coach-review.js:2414: " karesindeki " +
+coach-review.js:2416: " alabilirdin (" +
+coach-review.js:2424: "Daha iyisi: rakibin " +
+coach-review.js:2426: " karesindeki " +
+coach-review.js:2428: " alabilirdi (" +
+coach-review.js:2435: "Daha iyisi vardı: " + pieceName + " " + dstStr + " (" + tn + " alımı)."
+coach-review.js:2439: return "Daha iyisi vardı: " + pieceName + " " + dstStr + " hamlesi.";
+coach-review.js:2441: return "Daha iyisi: " + pieceName + " " + dstStr + " hamlesi vardı.";
+coach-review.js:2442: return "Daha iyisi vardı: " + pieceName + " " + dstStr + ".";
+coach-review.js:2450: // layer reads this to generate "Daha iyisi vardı: At f3'e" style hints
+coach-review.js:2466: // mode="manual". "review" was getting 403 and silently
+coach-review.js:2468: // the neutral "solid" badge). This is a user-initiated
+coach-review.js:2477: "[ForkSightReview] analyze runtime error:",
+coach-review.js:2486: "[ForkSightReview] analyze failed:",
+coach-review.js:2546: modalEl = document.createElement("div");
+coach-review.js:2547: modalEl.className = "forksight-review-modal";
+coach-review.js:2549: <div class="forksight-review-backdrop"></div>
+coach-review.js:2550: <div class="forksight-review-shell" role="dialog" aria-label="ForkSight oyun incelemesi">
+coach-review.js:2556: .querySelector(".forksight-review-backdrop")
+coach-review.js:2557: .addEventListener("click", close);
+coach-review.js:2566: if (typeof prefill === "string" && prefill.length > 0) {
+coach-review.js:2571: <button class="forksight-review-close" aria-label="Kapat">×</button>
+coach-review.js:2572: <div class="forksight-review-prompt forksight-review-methodpick">
+coach-review.js:2573: <div class="forksight-review-promptHead">
+coach-review.js:2574: <img class="forksight-review-coach" alt="" />
+coach-review.js:2580: <div class="forksight-review-methodpick-grid">
+coach-review.js:2581: <button class="forksight-review-methodpick-card" data-method="url">
+coach-review.js:2582: <span class="forksight-review-methodpick-ico">🔗</span>
+coach-review.js:2583: <span class="forksight-review-methodpick-title">URL ile</span>
+coach-review.js:2584: <span class="forksight-review-methodpick-desc">
+coach-review.js:2588: <button class="forksight-review-methodpick-card" data-method="pgn">
+coach-review.js:2589: <span class="forksight-review-methodpick-ico">📋</span>
+coach-review.js:2590: <span class="forksight-review-methodpick-title">PGN ile</span>
+coach-review.js:2591: <span class="forksight-review-methodpick-desc">
+coach-review.js:2600: modalEl.querySelector(".forksight-review-coach").src =
+coach-review.js:2601: chrome.runtime.getURL("avatars/thinking.png");
+coach-review.js:2604: .querySelector(".forksight-review-close")
+coach-review.js:2605: .addEventListener("click", close);
+coach-review.js:2607: .querySelectorAll(".forksight-review-methodpick-card")
+coach-review.js:2609: btn.addEventListener("click", () => {
+coach-review.js:2620: <button class="forksight-review-close" aria-label="Kapat">×</button>
+coach-review.js:2621: <div class="forksight-review-prompt">
+coach-review.js:2622: <div class="forksight-review-promptHead">
+coach-review.js:2623: <img class="forksight-review-coach" alt="" />
+coach-review.js:2629: <input class="forksight-review-input" type="text" inputmode="url"
+coach-review.js:2630: placeholder="https://www.chess.com/game/live/1388711047"
+coach-review.js:2631: value="${esc(prefill || "")}" autofocus />
+coach-review.js:2632: <div class="forksight-review-hint">
+coach-review.js:2636: <div class="forksight-review-actions">
+coach-review.js:2637: <button class="forksight-review-cancel">← Geri</button>
+coach-review.js:2638: <button class="forksight-review-go">Analiz Et</button>
+coach-review.js:2640: <div class="forksight-review-error" hidden></div>
+coach-review.js:2645: modalEl.querySelector(".forksight-review-coach").src =
+coach-review.js:2646: chrome.runtime.getURL("avatars/thinking.png");
+coach-review.js:2649: const input = modalEl.querySelector(".forksight-review-input");
+coach-review.js:2650: const errEl = modalEl.querySelector(".forksight-review-error");
+coach-review.js:2656: "Bağlantıyı tanıyamadım. Örnek: https://www.chess.com/game/live/123456789";
+coach-review.js:2660: if (parsed.type !== "live" && parsed.type !== "daily") {
+coach-review.js:2662: "Şu an yalnızca live ve daily oyunlar destekleniyor (tip: " +
+coach-review.js:2671: modalEl.querySelector(".forksight-review-go").addEventListener("click", go);
+coach-review.js:2673: .querySelector(".forksight-review-cancel")
+coach-review.js:2674: .addEventListener("click", () => openPrompt());
+coach-review.js:2676: .querySelector(".forksight-review-close")
+coach-review.js:2677: .addEventListener("click", close);
+coach-review.js:2687: <button class="forksight-review-close" aria-label="Kapat">×</button>
+coach-review.js:2688: <div class="forksight-review-prompt">
+coach-review.js:2689: <div class="forksight-review-promptHead">
+coach-review.js:2690: <img class="forksight-review-coach" alt="" />
+coach-review.js:2696: <textarea class="forksight-review-input forksight-review-textarea"
+coach-review.js:2698: placeholder='[Event "..."]&#10;[White "..."]&#10;[Black "..."]&#10;...&#10;&#10;1. e4 c5 2. Nf3 Nc6 ...'
+coach-review.js:2700: <div class="forksight-review-hint">
+coach-review.js:2705: <div class="forksight-review-actions">
+coach-review.js:2706: <button class="forksight-review-cancel">← Geri</button>
+coach-review.js:2707: <button class="forksight-review-go">Analiz Et</button>
+coach-review.js:2709: <div class="forksight-review-error" hidden></div>
+coach-review.js:2714: modalEl.querySelector(".forksight-review-coach").src =
+coach-review.js:2715: chrome.runtime.getURL("avatars/thinking.png");
+coach-review.js:2718: const input = modalEl.querySelector(".forksight-review-input");
+coach-review.js:2719: const errEl = modalEl.querySelector(".forksight-review-error");
+coach-review.js:2725: errEl.textContent = (e && e.message) || "PGN ayrıştırılamadı.";
+coach-review.js:2730: modalEl.querySelector(".forksight-review-go").addEventListener("click", go);
+coach-review.js:2732: .querySelector(".forksight-review-cancel")
+coach-review.js:2733: .addEventListener("click", () => openPrompt());
+coach-review.js:2735: .querySelector(".forksight-review-close")
+coach-review.js:2736: .addEventListener("click", close);
+coach-review.js:2751: loadingGifUrl = chrome.runtime.getURL("gifs/loading.gif");
+coach-review.js:2754: <button class="forksight-review-close" aria-label="Kapat">×</button>
+coach-review.js:2755: <div class="forksight-review-loading">
+coach-review.js:2756: <img class="forksight-review-spinner" src="${loadingGifUrl}" alt="" draggable="false"/>
+coach-review.js:2757: <div id="forksight-review-loading-msg">${esc(message || "Oyun bilgileri alınıyor…")}</div>
+coach-review.js:2758: <div class="forksight-review-progress-wrap" id="forksight-review-progress-wrap" style="display:none">
+coach-review.js:2759: <div class="forksight-review-progress-bar"><div class="forksight-review-progress-fill" id="forksight-review-progress-fill"></div></div>
+coach-review.js:2760: <div class="forksight-review-progress-text" id="forksight-review-progress-text">0%</div>
+coach-review.js:2765: .querySelector(".forksight-review-close")
+coach-review.js:2766: .addEventListener("click", close);
+coach-review.js:2771: const msgEl = modalEl.querySelector("#forksight-review-loading-msg");
+coach-review.js:2773: const wrap = modalEl.querySelector("#forksight-review-progress-wrap");
+coach-review.js:2778: const fill = modalEl.querySelector("#forksight-review-progress-fill");
+coach-review.js:2779: const txt = modalEl.querySelector("#forksight-review-progress-text");
+coach-review.js:2789: <button class="forksight-review-close" aria-label="Kapat">×</button>
+coach-review.js:2790: <div class="forksight-review-error-box">
+coach-review.js:2791: <div class="forksight-review-error-ico">⚠️</div>
+coach-review.js:2794: <div class="forksight-review-actions">
+coach-review.js:2795: <button class="forksight-review-cancel">Kapat</button>
+coach-review.js:2796: <button class="forksight-review-retry">Tekrar Dene</button>
+coach-review.js:2801: .querySelector(".forksight-review-close")
+coach-review.js:2802: .addEventListener("click", close);
+coach-review.js:2804: .querySelector(".forksight-review-cancel")
+coach-review.js:2805: .addEventListener("click", close);
+coach-review.js:2807: .querySelector(".forksight-review-retry")
+coach-review.js:2808: .addEventListener("click", () => {
+coach-review.js:2818: // 14 is the sweet spot used by Lichess' "rapid" cloud analysis: deep
+coach-review.js:2829: type: "getGameAnalysis",
+coach-review.js:2864: type: "saveGameAnalysis",
+coach-review.js:2871: ? bests.map((u) => (typeof u === "string" ? u : null))
+coach-review.js:2899: showLoading("Oyun bilgileri alınıyor…");
+coach-review.js:2904: showError(e && e.message ? e.message : "Bilinmeyen ağ hatası.", parsed);
+coach-review.js:2909: // in second person ("siz" / "rakibiniz"). User can also pick "izleyici"
+coach-review.js:2921: showLoading("Önceki analiz aranıyor…");
+coach-review.js:2938: typeof bm === "string" &&
+coach-review.js:2957: T("Hamleler değerlendiriliyor… (Stockfish derinlik {n})").replace(
+coach-review.js:3043: ? "white"
+coach-review.js:3055: (headers.Result === "*" ? "Sonlandırılmamış" : ""),
+coach-review.js:3061: username: headers.Black || "Siyah",
+coach-review.js:3065: color: "white",
+coach-review.js:3072: // 6) Ask who the viewer played as (or "izleyici").
+coach-review.js:3080: showLoading("Önceki analiz aranıyor…");
+coach-review.js:3096: typeof bm === "string" &&
+coach-review.js:3113: T("Hamleler değerlendiriliyor… (Stockfish derinlik {n})").replace(
+coach-review.js:3151: * or null ("izleyici" — neutral commentary). Resolves to `undefined` if
+coach-review.js:3158: const whitePlayer = bottom.color === "white" ? bottom : top;
+coach-review.js:3159: const blackPlayer = bottom.color === "white" ? top : bottom;
+coach-review.js:3161: const blackName = esc(blackPlayer.username || "2. Oyuncu (Siyah)");
+coach-review.js:3166: <button class="forksight-review-close" aria-label="Kapat">×</button>
+coach-review.js:3167: <div class="forksight-review-sidepick">
+coach-review.js:3171: <div class="forksight-review-sidepick-row">
+coach-review.js:3172: <button class="forksight-review-sidepick-btn" data-side="w">
+coach-review.js:3173: <span class="forksight-review-dot forksight-review-dot--w"></span>
+coach-review.js:3174: <span class="forksight-review-sidepick-name">${whiteName}</span>
+coach-review.js:3175: <span class="forksight-review-sidepick-rating">${whiteRating}</span>
+coach-review.js:3177: <button class="forksight-review-sidepick-btn" data-side="b">
+coach-review.js:3178: <span class="forksight-review-dot forksight-review-dot--b"></span>
+coach-review.js:3179: <span class="forksight-review-sidepick-name">${blackName}</span>
+coach-review.js:3180: <span class="forksight-review-sidepick-rating">${blackRating}</span>
+coach-review.js:3183: <button class="forksight-review-sidepick-neutral" data-side="none">
+coach-review.js:3197: .querySelector(".forksight-review-close")
+coach-review.js:3198: .addEventListener("click", () => {
+coach-review.js:3212: modalEl.querySelectorAll("[data-side]").forEach((btn) =>
+coach-review.js:3213: btn.addEventListener("click", () => {
+coach-review.js:3224: { key: "brilliant", trLabel: "Harika", icon: "brilliant" },
+coach-review.js:3225: { key: "great", trLabel: "Çok iyi", icon: "great" },
+coach-review.js:3226: { key: "book", trLabel: "Kitap", icon: "book" },
+coach-review.js:3227: { key: "best", trLabel: "En iyi", icon: "best" },
+coach-review.js:3228: { key: "good", trLabel: "Mükemmel", icon: "good" },
+coach-review.js:3229: { key: "solid", trLabel: "İyi", icon: "ok" },
+coach-review.js:3230: { key: "inaccuracy", trLabel: "Yanlışlık", icon: "dubious" },
+coach-review.js:3231: { key: "mistake", trLabel: "Hata", icon: "inaccuracy_dark" },
+coach-review.js:3232: { key: "blunder", trLabel: "Gaf", icon: "blunder" },
+coach-review.js:3321: `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="3.2" ` +
+coach-review.js:3322: `fill="${color}" stroke="#1a1a1a" stroke-width="0.6"/>`;
+coach-review.js:3325: `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" ` +
+coach-review.js:3326: `class="forksight-evalgraph">` +
+coach-review.js:3327: `<rect x="0" y="0" width="${W}" height="${H}" fill="#2a2a2a"/>` +
+coach-review.js:3328: `<path d="${path}" fill="#f5f5f5"/>` +
+coach-review.js:3330: `stroke="rgba(245,197,24,0.45)" stroke-width="0.6" stroke-dasharray="3,3"/>` +
+coach-review.js:3361: localStorage.setItem("forksight_tts", _ttsEnabled ? "1" : "0");
+coach-review.js:3368: _ttsEnabled = localStorage.getItem("forksight_tts") === "1";
+coach-review.js:3383: // Edge/Chrome modern builds expose "Microsoft … Online (Natural)"
+coach-review.js:3409: const whitePlayer = bottom.color === "white" ? bottom : top;
+coach-review.js:3410: const blackPlayer = bottom.color === "white" ? top : bottom;
+coach-review.js:3412: const blackName = esc(blackPlayer.username || headers.Black || T("Siyah"));
+coach-review.js:3424: ? game.colorOfWinner === "white"
+coach-review.js:3444: ? "An outstanding game — your accuracy is " +
+coach-review.js:3447: : "Olağanüstü bir oyun çıkardın — doğruluğun %" +
+coach-review.js:3449: ". Hadi hamleleri birlikte inceleyelim.";
+coach-review.js:3452: ? "Nice performance! Your accuracy is " +
+coach-review.js:3454: "%. Let's review a few critical moments together."
+coach-review.js:3455: : "Güzel bir performans! Doğruluğun %" +
+coach-review.js:3457: ". Birkaç kritik anı birlikte gözden geçirelim.";
+coach-review.js:3460: ? "Good job — still, there's room to improve. Let's start the review."
+coach-review.js:3461: : "İyi iş — yine de geliştirebileceğin yerler var. İncelemeyi başlatalım.";
+coach-review.js:3465: : "Birkaç zorlu an olmuş; ama merak etme, her oyun öğretir. Beraber bakalım.";
+coach-review.js:3471: ? "I've reviewed the game. When you're ready, hit 'Start Review'."
+coach-review.js:3472: : "Oyunu inceledim. Hazır olduğunda 'İncelemeyi Başlat' diyebilirsin.";
+coach-review.js:3480: iconUrl = chrome.runtime.getURL("analysis_icons/" + r.icon + ".png");
+coach-review.js:3483: `<tr><td class="forksight-summary-num">${wv}</td>` +
+coach-review.js:3484: `<td class="forksight-summary-lab">` +
+coach-review.js:3486: ? `<img src="${iconUrl}" alt="" class="forksight-summary-ico"/>`
+coach-review.js:3489: `<td class="forksight-summary-num">${bv}</td></tr>`
+coach-review.js:3494: <button class="forksight-review-close" aria-label="${T("Kapat")}">×</button>
+coach-review.js:3495: <button class="forksight-review-lang" id="forksight-review-lang" title="${T("Dil")}" aria-label="${T("Dil")}">🌐 <span class="forksight-review-lang-code">${window.ForkSightI18n && window.ForkSightI18n.getLang() === "tr" ? "TR" : "EN"}</span></button>
+coach-review.js:3496: <button class="forksight-review-tts" id="forksight-review-tts" title="${T("Sesli oku")}"
+coach-review.js:3498: <span class="forksight-tts-ico">${_ttsEnabled ? "🔊" : "🔈"}</span>
+coach-review.js:3500: <div class="forksight-review-summary">
+coach-review.js:3501: <header class="forksight-review-meta">
+coach-review.js:3502: <div class="forksight-review-player">
+coach-review.js:3503: <span class="forksight-review-dot forksight-review-dot--w"></span>
+coach-review.js:3504: <span class="forksight-review-pname">${whiteName}</span>
+coach-review.js:3505: <span class="forksight-review-prating">${esc(whitePlayer.rating || headers.WhiteElo || "")}</span>
+coach-review.js:3507: <div class="forksight-review-vs">vs</div>
+coach-review.js:3508: <div class="forksight-review-player">
+coach-review.js:3509: <span class="forksight-review-dot forksight-review-dot--b"></span>
+coach-review.js:3510: <span class="forksight-review-pname">${blackName}</span>
+coach-review.js:3511: <span class="forksight-review-prating">${esc(blackPlayer.rating || headers.BlackElo || "")}</span>
+coach-review.js:3514: <div class="forksight-review-result">
+coach-review.js:3515: <span class="forksight-review-resnum">${esc(result)}</span>
+coach-review.js:3516: <span class="forksight-review-resmsg">${esc(game.resultMessage || headers.Termination || "")}</span>
+coach-review.js:3519: <div class="forksight-summary-coach">
+coach-review.js:3520: <img class="forksight-summary-av" id="forksight-summary-av" alt="" />
+coach-review.js:3521: <div class="forksight-summary-bubble">
+coach-review.js:3522: <span id="forksight-summary-text"></span>
+coach-review.js:3523: <span class="forksight-summary-caret">▌</span>
+coach-review.js:3527: <div class="forksight-summary-graph ${flip ? "forksight-summary-graph--flip" : ""}">
+coach-review.js:3531: <table class="forksight-summary-stats">
+coach-review.js:3538: <tr class="forksight-summary-acc">
+coach-review.js:3539: <td class="forksight-summary-num">${fmtAcc(stats.accuracy.w)}</td>
+coach-review.js:3540: <td class="forksight-summary-lab"><span>${T("Doğruluk")}</span></td>
+coach-review.js:3541: <td class="forksight-summary-num">${fmtAcc(stats.accuracy.b)}</td>
+coach-review.js:3549: <button class="forksight-summary-start" id="forksight-summary-start">
+coach-review.js:3550: → ${T("İncelemeyi Başlat")}
+coach-review.js:3556: modalEl.querySelector("#forksight-summary-av").src =
+coach-review.js:3557: chrome.runtime.getURL("avatars/thinking.png");
+coach-review.js:3560: const textEl = modalEl.querySelector("#forksight-summary-text");
+coach-review.js:3565: .querySelector(".forksight-review-close")
+coach-review.js:3566: .addEventListener("click", close);
+coach-review.js:3569: const langBtnS = modalEl.querySelector("#forksight-review-lang");
+coach-review.js:3571: langBtnS.addEventListener("click", () => {
+coach-review.js:3573: const codeEl = langBtnS.querySelector(".forksight-review-lang-code");
+coach-review.js:3579: const ttsBtn = modalEl.querySelector("#forksight-review-tts");
+coach-review.js:3580: ttsBtn.addEventListener("click", () => {
+coach-review.js:3582: ttsBtn.setAttribute("aria-pressed", _ttsEnabled ? "true" : "false");
+coach-review.js:3583: ttsBtn.querySelector(".forksight-tts-ico").textContent = _ttsEnabled
+coach-review.js:3590: .querySelector("#forksight-summary-start")
+coach-review.js:3591: .addEventListener("click", () => {
+coach-review.js:3609: const whitePlayer = bottom.color === "white" ? bottom : top;
+coach-review.js:3610: const blackPlayer = bottom.color === "white" ? top : bottom;
+coach-review.js:3626: ? game.colorOfWinner === "white"
+coach-review.js:3656: (color === "w" ? headers.White || "Beyaz" : headers.Black || "Siyah"),
+coach-review.js:3661: (color === "w" ? headers.WhiteElo || "" : headers.BlackElo || ""),
+coach-review.js:3666: <div class="forksight-rb-player" data-pos="${pos}" data-color="${color}">
+coach-review.js:3667: <img class="forksight-rb-player-av"
+coach-review.js:3670: <div class="forksight-rb-player-mid">
+coach-review.js:3671: <div class="forksight-rb-player-name">
+coach-review.js:3673: <span class="forksight-rb-player-rating">${
+coach-review.js:3675: ? "(" + playerRatingFor(p, color) + ")"
+coach-review.js:3679: <div class="forksight-rb-player-cap"
+coach-review.js:3680: id="forksight-rb-cap-${pos}"></div>
+coach-review.js:3682: <div class="forksight-rb-player-clock"
+coach-review.js:3683: id="forksight-rb-clk-${pos}">${esc(formatClock(baseClockSecs))}</div>
+coach-review.js:3687: <button class="forksight-review-close" aria-label="${T("Kapat")}">×</button>
+coach-review.js:3688: <button class="forksight-review-lang" id="forksight-review-lang" title="${T("Dil")}" aria-label="${T("Dil")}">🌐 <span class="forksight-review-lang-code">${window.ForkSightI18n && window.ForkSightI18n.getLang() === "tr" ? "TR" : "EN"}</span></button>
+coach-review.js:3689: <button class="forksight-review-tts" id="forksight-review-tts" title="${T("Sesli oku")}"
+coach-review.js:3691: <span class="forksight-tts-ico">${_ttsEnabled ? "🔊" : "🔈"}</span>
+coach-review.js:3693: <div class="forksight-review-layout">
+coach-review.js:3694: <aside class="forksight-review-board">
+coach-review.js:3695: <div class="forksight-rb-wrap">
+coach-review.js:3697: <div class="forksight-rb-boardrow${flipBoard ? " forksight-rb-boardrow--flip" : ""}">
+coach-review.js:3698: <div class="forksight-rb-bar" id="forksight-rb-bar" title="${T("Değerlendirme çubuğu")}">
+coach-review.js:3699: <div class="forksight-rb-bar-black" id="forksight-rb-bar-black" style="height:50%"></div>
+coach-review.js:3700: <div class="forksight-rb-bar-white" id="forksight-rb-bar-white" style="height:50%"></div>
+coach-review.js:3701: <div class="forksight-rb-bar-tick"></div>
+coach-review.js:3702: <div class="forksight-rb-bar-label" id="forksight-rb-bar-label">0.0</div>
+coach-review.js:3704: <div class="forksight-rb-host" id="forksight-rb-host"></div>
+coach-review.js:3706: <div class="forksight-rb-nav">
+coach-review.js:3707: <button class="forksight-rb-btn" data-nav="start" title="${T("Başa")}">⏮</button>
+coach-review.js:3708: <button class="forksight-rb-btn" data-nav="prev" title="${T("Geri")}">◀</button>
+coach-review.js:3709: <span class="forksight-rb-counter" id="forksight-rb-counter">0 / ${timeline.length - 1}</span>
+coach-review.js:3710: <button class="forksight-rb-btn" data-nav="next" title="${T("İleri")}">▶</button>
+coach-review.js:3711: <button class="forksight-rb-btn" data-nav="end" title="${T("Sona")}">⏭</button>
+coach-review.js:3716: <section class="forksight-review-side">
+coach-review.js:3717: <header class="forksight-review-meta">
+coach-review.js:3718: <div class="forksight-review-player">
+coach-review.js:3719: <span class="forksight-review-dot forksight-review-dot--w"></span>
+coach-review.js:3720: <span class="forksight-review-pname">${esc(whitePlayer.username || headers.White || T("Beyaz"))}</span>
+coach-review.js:3721: <span class="forksight-review-prating">${esc(whitePlayer.rating || headers.WhiteElo || "")}</span>
+coach-review.js:3723: <div class="forksight-review-vs">vs</div>
+coach-review.js:3724: <div class="forksight-review-player">
+coach-review.js:3725: <span class="forksight-review-dot forksight-review-dot--b"></span>
+coach-review.js:3726: <span class="forksight-review-pname">${esc(blackPlayer.username || headers.Black || T("Siyah"))}</span>
+coach-review.js:3727: <span class="forksight-review-prating">${esc(blackPlayer.rating || headers.BlackElo || "")}</span>
+coach-review.js:3730: <div class="forksight-review-result">
+coach-review.js:3731: <span class="forksight-review-resnum">${esc(result)}</span>
+coach-review.js:3732: <span class="forksight-review-resmsg">${esc(game.resultMessage || headers.Termination || "")}</span>
+coach-review.js:3734: <div class="forksight-review-meta-row">
+coach-review.js:3735: <span>${esc(headers.Event || "Live Chess")}</span>
+coach-review.js:3740: <div class="forksight-review-narration" id="forksight-review-narration">
+coach-review.js:3741: <img class="forksight-review-narration-av" id="forksight-narration-av" alt="" />
+coach-review.js:3742: <div class="forksight-review-narration-text" id="forksight-narration-text">
+coach-review.js:3743: ${T("Başlangıç pozisyonu. Sağdaki hamleye veya ileri/geri tuşlarına tıklayarak oyunu dolaş.")}
+coach-review.js:3746: <h4 class="forksight-review-mlh">${T("Hamleler")}</h4>
+coach-review.js:3747: <ol class="forksight-review-moves" id="forksight-review-moves">
+coach-review.js:3752: <span class="forksight-review-mn">${r.n}.</span>
+coach-review.js:3753: <span class="forksight-review-mw" data-ply="${r.w.ply}">${esc(r.w.san || "")}</span>
+coach-review.js:3754: <span class="forksight-review-mb" data-ply="${r.b ? r.b.ply : ""}">${esc(r.b ? r.b.san || "" : "")}</span>
+coach-review.js:3764: const hostEl = modalEl.querySelector("#forksight-rb-host");
+coach-review.js:3765: const counterEl = modalEl.querySelector("#forksight-rb-counter");
+coach-review.js:3767: // don't crash now that the "STOCKFISH:" label was removed from the
+coach-review.js:3770: const barWhiteEl = modalEl.querySelector("#forksight-rb-bar-white");
+coach-review.js:3771: const barBlackEl = modalEl.querySelector("#forksight-rb-bar-black");
+coach-review.js:3772: const barLabelEl = modalEl.querySelector("#forksight-rb-bar-label");
+coach-review.js:3773: const narrAvEl = modalEl.querySelector("#forksight-narration-av");
+coach-review.js:3774: const narrTextEl = modalEl.querySelector("#forksight-narration-text");
+coach-review.js:3775: const movesListEl = modalEl.querySelector("#forksight-review-moves");
+coach-review.js:3776: const closeBtn = modalEl.querySelector(".forksight-review-close");
+coach-review.js:3778: const capTopEl = modalEl.querySelector("#forksight-rb-cap-top");
+coach-review.js:3779: const capBottomEl = modalEl.querySelector("#forksight-rb-cap-bottom");
+coach-review.js:3780: const clkTopEl = modalEl.querySelector("#forksight-rb-clk-top");
+coach-review.js:3781: const clkBottomEl = modalEl.querySelector("#forksight-rb-clk-bottom");
+coach-review.js:3782: closeBtn.addEventListener("click", close);
+coach-review.js:3787: const langBtn = modalEl.querySelector("#forksight-review-lang");
+coach-review.js:3789: langBtn.addEventListener("click", () => {
+coach-review.js:3791: const codeEl = langBtn.querySelector(".forksight-review-lang-code");
+coach-review.js:3798: const ttsBtn = modalEl.querySelector("#forksight-review-tts");
+coach-review.js:3800: ttsBtn.addEventListener("click", () => {
+coach-review.js:3802: ttsBtn.setAttribute("aria-pressed", _ttsEnabled ? "true" : "false");
+coach-review.js:3803: ttsBtn.querySelector(".forksight-tts-ico").textContent = _ttsEnabled
+coach-review.js:3896: "forksight-rb-player--active",
+coach-review.js:3903: .querySelectorAll(".forksight-review-mw, .forksight-review-mb")
+coach-review.js:3904: .forEach((el) => el.classList.remove("forksight-review-active"));
+coach-review.js:3910: active.classList.add("forksight-review-active");
+coach-review.js:3915: active.scrollIntoView({ block: "nearest", behavior: "smooth" });
+coach-review.js:3982: "Başlangıç pozisyonu. Sağdaki hamleye veya ileri/geri tuşlarına tıklayarak oyunu dolaş.";
+coach-review.js:4008: // "best" / "great" / "brilliant" all imply "engine agreed this was
+coach-review.js:4013: // narration stops falsely claiming "bundan daha iyisi yoktu".
+coach-review.js:4029: (cat === "best" || cat === "great" || cat === "brilliant")
+coach-review.js:4043: prefix = step.moveNo + ". hamleniz (" + step.san + "): ";
+coach-review.js:4046: "Rakibinizin " + step.moveNo + ". hamlesi (" + step.san + "): ";
+coach-review.js:4048: const moverLabel = step.side === "w" ? "Beyaz" : "Siyah";
+coach-review.js:4059: // Engine best-move hint ("Daha iyisi vardı: …") — only for blunder/
+coach-review.js:4075: // Spoken text: comment + hints only (no "Rakibinizin 4. hamlesi…"
+coach-review.js:4096: modalEl.querySelectorAll(".forksight-rb-btn").forEach((btn) => {
+coach-review.js:4097: btn.addEventListener("click", () => {
+coach-review.js:4107: movesListEl.addEventListener("click", (e) => {
+coach-review.js:4124: } else if (e.key === "ArrowRight") {
+coach-review.js:4146: raw = JSON.parse(localStorage.getItem("taktik_user") || "null");
+coach-review.js:4151: <button class="forksight-review-close" aria-label="Kapat">×</button>
+coach-review.js:4152: <div class="forksight-review-profile">
+coach-review.js:4153: <img class="forksight-review-profile-av" alt="" />
+coach-review.js:4155: <div class="forksight-review-profile-sub">ForkSight Coach kullanıcısı</div>
+coach-review.js:4156: <div class="forksight-review-profile-msg">
+coach-review.js:4159: <div class="forksight-review-actions">
+coach-review.js:4160: <button class="forksight-review-cancel">Kapat</button>
+coach-review.js:4165: modalEl.querySelector(".forksight-review-profile-av").src =
+coach-review.js:4169: .querySelector(".forksight-review-close")
+coach-review.js:4170: .addEventListener("click", close);
+coach-review.js:4172: .querySelector(".forksight-review-cancel")
+coach-review.js:4173: .addEventListener("click", close);
+avatar.js:13: * "forksight_avatar_pos") with a localStorage fallback so the user
+avatar.js:20: "use strict";
+avatar.js:22: const STORAGE_KEY = "forksight_avatar_pos";
+avatar.js:23: const VISIBLE_KEY = "forksight_avatar_visible";
+avatar.js:27: const SUMMARY_KEY = "forksight_avatar_last_summary";
+avatar.js:28: const GAMEOVER_KEY = "forksight_avatar_gameover";
+avatar.js:32: "winning",
+avatar.js:33: "thinking",
+avatar.js:34: "worried",
+avatar.js:35: "losing",
+avatar.js:36: "opportunity",
+avatar.js:37: "mistake",
+avatar.js:51: // Attention-grabbing states (mistake / opportunity) "stick" briefly so
+avatar.js:69: if (typeof ev !== "number" || !isFinite(ev)) return "neutral";
+avatar.js:70: if (ev >= 1.5) return "winning";
+avatar.js:72: if (ev >= -0.5) return "thinking";
+avatar.js:73: if (ev >= -1.5) return "worried";
+avatar.js:74: return "losing";
+avatar.js:179: el.classList.remove("forksight-avatar--dragging");
+avatar.js:203: el.classList.add("forksight-avatar--dragging");
+avatar.js:217: "click",
+avatar.js:238: containerEl.classList.toggle("forksight-avatar--blink", !!on);
+avatar.js:279: containerEl.classList.add("forksight-avatar--clickable");
+avatar.js:280: containerEl.title = "ForkSight Coach — oyun özeti için tıkla";
+avatar.js:294: containerEl.classList.remove("forksight-avatar--clickable");
+avatar.js:295: containerEl.title = "ForkSight Coach (sürükleyerek taşı)";
+avatar.js:303: if (evalChange <= -1.5) next = "mistake";
+avatar.js:314: next = "opportunity";
+avatar.js:327: if (next === "mistake" || next === "opportunity") {
+avatar.js:344: containerEl.classList.remove("forksight-avatar--clickable");
+avatar.js:345: containerEl.title = "ForkSight Coach (sürükleyerek taşı)";
+avatar.js:361: if (result === "win")
+avatar.js:362: return { text: "Tebrikler — kazandın!", mood: "happy" };
+avatar.js:364: return { text: "Bir dahaki sefere, iyi savaştın.", mood: "losing" };
+avatar.js:366: return { text: "Berabere — sıkı bir mücadeleydi.", mood: "thinking" };
+avatar.js:367: return { text: "Oyun bitti.", mood: "neutral" };
+avatar.js:371: if (!s || !s.moveCount) return "Oyun çok kısa sürdü — analiz yetersiz.";
+avatar.js:373: return "Çok temiz oynadın — sağlam karar verme!";
+avatar.js:375: return "Genel olarak tutarlı bir oyundu.";
+avatar.js:377: return "Birkaç kritik hamle pahalıya patladı — bir dahaki maçta tempoyu düşürmeyi dene.";
+avatar.js:379: return "Bir blunder maçı çevirdi — hamle öncesi son bir kontrol işe yarar.";
+avatar.js:381: return "Orta seviyede birkaç hata vardı, geliştirilebilir.";
+avatar.js:382: return "Dengeli bir oyundu, devam!";
+avatar.js:387: modalEl = document.createElement("div");
+avatar.js:388: modalEl.className = "forksight-summary-modal";
+avatar.js:389: modalEl.setAttribute("role", "dialog");
+avatar.js:390: modalEl.setAttribute("aria-label", "Oyun özeti");
+avatar.js:402: <div class="forksight-summary-backdrop"></div>
+avatar.js:403: <div class="forksight-summary-card" role="document">
+avatar.js:404: <button class="forksight-summary-close" aria-label="Kapat">×</button>
+avatar.js:405: <div class="forksight-summary-head">
+avatar.js:406: <img class="forksight-summary-avatar" alt="" />
+avatar.js:407: <div class="forksight-summary-headtext">
+avatar.js:408: <div class="forksight-summary-title">${escapeHtml(rl.text)}</div>
+avatar.js:409: <div class="forksight-summary-sub">${escapeHtml(coachVerdict(s))}</div>
+avatar.js:412: <div class="forksight-summary-grid">
+avatar.js:413: <div class="forksight-summary-cell">
+avatar.js:414: <div class="forksight-summary-num">${moveCount}</div>
+avatar.js:415: <div class="forksight-summary-lab">analiz edilen hamle</div>
+avatar.js:417: <div class="forksight-summary-cell">
+avatar.js:418: <div class="forksight-summary-num">${escapeHtml(dur)}</div>
+avatar.js:419: <div class="forksight-summary-lab">süre</div>
+avatar.js:421: <div class="forksight-summary-cell">
+avatar.js:422: <div class="forksight-summary-num">${avg}</div>
+avatar.js:423: <div class="forksight-summary-lab">hamle başına ort. kayıp</div>
+avatar.js:425: <div class="forksight-summary-cell">
+avatar.js:426: <div class="forksight-summary-num">${worst}</div>
+avatar.js:427: <div class="forksight-summary-lab">en kötü hamle</div>
+avatar.js:430: <div class="forksight-summary-tags">
+avatar.js:431: <span class="forksight-tag forksight-tag--bl">Blunder: ${bl}</span>
+avatar.js:432: <span class="forksight-tag forksight-tag--ms">Hata: ${ms}</span>
+avatar.js:433: <span class="forksight-tag forksight-tag--ia">Yanlışlık: ${ia}</span>
+avatar.js:435: <div class="forksight-summary-foot">
+avatar.js:436: <button class="forksight-summary-ok">Tamam</button>
+avatar.js:444: const av = modalEl.querySelector(".forksight-summary-avatar");
+avatar.js:449: .querySelector(".forksight-summary-close")
+avatar.js:450: .addEventListener("click", close);
+avatar.js:452: .querySelector(".forksight-summary-ok")
+avatar.js:453: .addEventListener("click", close);
+avatar.js:455: .querySelector(".forksight-summary-backdrop")
+avatar.js:456: .addEventListener("click", close);
+avatar.js:497: menuEl = document.createElement("div");
+avatar.js:498: menuEl.className = "forksight-avatar-menu";
+avatar.js:506: <button class="forksight-menu-item" data-act="login">
+avatar.js:507: <span class="forksight-menu-ico">🔐</span>
+avatar.js:508: <span class="forksight-menu-lab">Giriş Yap / Kayıt Ol</span>
+avatar.js:512: ? `<button class="forksight-menu-item" data-act="summary">
+avatar.js:513: <span class="forksight-menu-ico">🏁</span>
+avatar.js:514: <span class="forksight-menu-lab">Son Oyun Özeti</span>
+avatar.js:521: <button class="forksight-menu-item" data-act="profile">
+avatar.js:522: <span class="forksight-menu-ico">👤</span>
+avatar.js:523: <span class="forksight-menu-lab">Profilim</span>
+avatar.js:525: <button class="forksight-menu-item" data-act="analyze">
+avatar.js:526: <span class="forksight-menu-ico">📊</span>
+avatar.js:527: <span class="forksight-menu-lab">Analiz Et</span>
+avatar.js:531: ? `<button class="forksight-menu-item" data-act="summary">
+avatar.js:532: <span class="forksight-menu-ico">🏁</span>
+avatar.js:533: <span class="forksight-menu-lab">Son Oyun Özeti</span>
+avatar.js:554: menuEl.addEventListener("click", (e) => {
+avatar.js:555: const btn = e.target.closest(".forksight-menu-item");
+avatar.js:560: else if (act === "profile") openProfile();
+avatar.js:562: else if (act === "login") openLogin();
+avatar.js:593: typeof window.ForkSightReview.open === "function"
+avatar.js:597: alert("Analiz modülü yüklenemedi. Sayfayı yenileyin.");
+avatar.js:605: typeof window.ForkSightProfile.open === "function"
+avatar.js:617: typeof window.ForkSightReview.openProfile === "function"
+avatar.js:625: alert("Profil:\n\nKullanıcı: " + u);
+avatar.js:628: alert("Profil bilgisi alınamadı.");
+avatar.js:636: typeof window.ForkSightAuth.openLogin === "function"
+avatar.js:643: alert("Giriş modülü hazır değil. Sayfayı yenileyin.");
+avatar.js:647: if (document.getElementById("forksight-avatar")) return;
+avatar.js:654: containerEl = document.createElement("div");
+avatar.js:655: containerEl.id = "forksight-avatar";
+avatar.js:656: containerEl.className = "forksight-avatar";
+avatar.js:658: containerEl.setAttribute("role", "img");
+avatar.js:659: containerEl.setAttribute("aria-label", "ForkSight Coach");
+avatar.js:660: containerEl.title = "ForkSight Coach (sürükleyerek taşı)";
+avatar.js:662: imgEl = document.createElement("img");
+avatar.js:663: imgEl.className = "forksight-avatar__img";
+avatar.js:681: containerEl.addEventListener("click", (e) => {
+avatar.js:697: containerEl.classList.add("forksight-avatar--clickable");
+avatar.js:704: window.addEventListener("resize", () => {
+avatar.js:712: if (document.readyState === "loading") {
+popup.html:17: --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+popup.html:283: <div id="status" class="status checking">Sunucu kontrol ediliyor…</div>
+popup.html:284: <div id="userInfo" class="user-info" style="display: none"></div>
+popup.html:286: <div class="section" id="settingsSection" hidden style="display: none">
+popup.html:287: <h3 id="settingsTitle">⚙️ Sunucu Ayarları</h3>
+popup.html:289: <input type="text" id="apiUrl" placeholder="https://forksight.net" />
+popup.html:290: <button class="btn" id="saveUrl" style="margin-top: 6px">
+popup.html:295: <div class="section" id="statsSection" style="display: none">
+popup.html:296: <h3 id="statsTitle">📊 Sunucu Durumu</h3>
+popup.html:297: <div class="grid" id="statsGrid"></div>
+popup.html:300: <div class="section">
+popup.html:301: <h3 id="shortcutsTitle">⌨️ Kısayollar</h3>
+popup.html:309: <div class="section">
+popup.html:311: <span id="langTitle">🌐 Dil</span>
+popup.html:319: <div id="adminSection" style="display: none">
+popup.html:320: <span class="admin-link" id="adminLink">🔧 Admin Paneli</span>
+popup.html:323: <div class="ver" id="verInfo"></div>
+popup.js:2: const DEFAULT_API = "https://forksight.net";
+popup.js:8: serverRunning: "✅ Sunucu çalışıyor",
+popup.js:9: serverDown: "❌ Sunucu bağlantısı yok",
+popup.js:10: serverChecking: "Sunucu kontrol ediliyor…",
+popup.js:11: serverSettings: "⚙️ Sunucu Ayarları",
+popup.js:14: urlSaved: "✅ URL kaydedildi",
+popup.js:15: httpsOnly: "❌ Sadece HTTPS URL kullanılabilir",
+popup.js:17: load: "Yük",
+popup.js:18: analyses: "Analiz",
+popup.js:19: users: "Kullanıcı",
+popup.js:20: shortcuts: "⌨️ Kısayollar",
+popup.js:21: analyze: "Analiz",
+popup.js:22: clear: "Temizle",
+popup.js:23: safeMode: "Gizle",
+popup.js:24: adminPanel: "🔧 Admin Paneli",
+popup.js:25: language: "🌐 Dil",
+popup.js:28: serverRunning: "✅ Server is running",
+popup.js:29: serverDown: "❌ Server connection failed",
+popup.js:30: serverChecking: "Checking server…",
+popup.js:31: serverSettings: "⚙️ Server Settings",
+popup.js:43: safeMode: "Hide",
+popup.js:44: adminPanel: "🔧 Admin Panel",
+popup.js:49: const bl = (navigator.language || "en").split("-")[0].toLowerCase();
+popup.js:58: document.getElementById("settingsTitle").textContent = t("serverSettings");
+popup.js:61: document.getElementById("statsTitle").textContent = t("serverStatus");
+popup.js:62: document.getElementById("shortcutsTitle").textContent = t("shortcuts");
+popup.js:66: document.getElementById("adminLink").textContent = t("adminPanel");
+popup.js:67: document.getElementById("langTitle").textContent = t("language");
+popup.js:69: const statsGrid = document.getElementById("statsGrid");
+popup.js:75: <div class="stat"><div class="v">${vals[0]}</div><div class="l">${t("load")}</div></div>
+popup.js:76: <div class="stat"><div class="v">${vals[1]}</div><div class="l">${t("analyses")}</div></div>
+popup.js:77: <div class="stat"><div class="v">${vals[2]}</div><div class="l">${t("users")}</div></div>
+popup.js:83: const apiUrlInput = document.getElementById("apiUrl");
+popup.js:85: const statsSection = document.getElementById("statsSection");
+popup.js:86: const statsGrid = document.getElementById("statsGrid");
+popup.js:87: const userInfoEl = document.getElementById("userInfo");
+popup.js:88: const adminSection = document.getElementById("adminSection");
+popup.js:89: const verInfo = document.getElementById("verInfo");
+popup.js:95: ["taktik_api_base", "taktik_token", "taktik_user", "taktik_lang"],
+popup.js:112: document.getElementById("langSelect").addEventListener("change", (e) => {
+popup.js:130: chrome.runtime.sendMessage({ type: "update_api_base", url });
+popup.js:138: statusEl.textContent = t("serverChecking");
+popup.js:139: statusEl.className = "status checking";
+popup.js:143: statusEl.textContent = t("serverRunning");
+popup.js:149: statusEl.className = "status fail";
+popup.js:158: <div class="stat"><div class="v">${d.load_percent || 0}%</div><div class="l">${t("load")}</div></div>
+popup.js:159: <div class="stat"><div class="v">${d.total_completed || 0}</div><div class="l">${t("analyses")}</div></div>
+popup.js:160: <div class="stat"><div class="v">${d.users || 0}</div><div class="l">${t("users")}</div></div>
+popup.js:171: chrome.storage.local.get("taktik_is_admin", (r) => {
+popup.js:174: document.getElementById("adminLink").onclick = () => {
+inject.js:11: "use strict";
+inject.js:23: "pointerdown",
+inject.js:24: "pointerup",
+inject.js:25: "pointermove",
+inject.js:29: "click",
+inject.js:30: "dblclick",
+inject.js:46: // Function.name "addEventListener" olarak korunsun (.name fingerprint kontrolü için).
+inject.js:51: typeof listener === "function" &&
+inject.js:59: if (prop === "isTrusted") return true;
+inject.js:61: if (typeof value === "function") return value.bind(target);
+background.js:3: const DEFAULT_API = "https://forksight.net";
+background.js:14: ["taktik_token", "taktik_refresh_token", "taktik_api_base"],
+background.js:24: const NOTIF_ALARM = "forksight_notif_poll";
+background.js:39: const stored = await chrome.storage.local.get(["taktik_notif_viewer_id"]);
+background.js:68: "Content-Type": "application/json",
+background.js:86: "taktik_notif_last_ts",
+background.js:87: "taktik_api_base",
+background.js:101: type: n.image_url ? "image" : "basic",
+background.js:104: iconUrl: n.icon_url || "icon128.png",
+background.js:110: const notifId = "forksight_notif_" + n.id;
+background.js:134: "taktik_api_base",
+background.js:139: await reportNotificationEvent(base, nid, "clicked");
+background.js:148: const h = { "Content-Type": "application/json" };
+background.js:149: if (authToken) h["Authorization"] = `Bearer ${authToken}`;
+background.js:166: "Content-Type": "application/json",
+background.js:186: chrome.storage.local.remove(["taktik_token", "taktik_refresh_token"]);
+background.js:192: if (msg.type === "update_api_base") {
+background.js:204: if (msg.type === "get_api_base") {
+background.js:209: if (msg.type === "verify_token") {
+background.js:217: "Content-Type": "application/json",
+background.js:241: chrome.storage.local.remove(["taktik_token", "taktik_refresh_token"]);
+background.js:257: return { ok: false, error: "Rate limit — lütfen yavaşlayın" };
+background.js:259: return { ok: false, error: "Sunucu yoğun, tekrar deneyin" };
+background.js:261: return { ok: false, error: "Oturum süresi doldu", expired: true };
+background.js:269: if (msg.type === "getGameAnalysis") {
+background.js:281: if (msg.type === "saveGameAnalysis") {
+background.js:301: return { ok: false, error: "Oturum süresi doldu", expired: true };
+background.js:309: if (msg.type === "login") {
+background.js:312: headers: { "Content-Type": "application/json" },
+background.js:333: if (msg.type === "register") {
+background.js:336: headers: { "Content-Type": "application/json" },
+background.js:364: "taktik_token",
+background.js:365: "taktik_refresh_token",
+background.js:366: "taktik_is_admin",
+background.js:372: if (msg.type === "ping") {
+background.js:380: if (msg.type === "version") {
+background.js:384: .catch(() => sendResponse({ error: "bağlantı yok" }));
+background.js:401: if (msg.type === "chess_com_verify") {
+background.js:420: if (msg.type === "chess_com_link") {
+background.js:455: if (msg.type === "me_profile") {
+background.js:471: if (d.limit != null) params.set("limit", String(d.limit));
+background.js:474: if (d.time_class) params.set("time_class", d.time_class);
+i18n.js:6: *   T("Profil")  → seçili dil EN ise "Profile", TR ise "Profil"
+i18n.js:25: "use strict";
+i18n.js:30: Profil: "Profile",
+i18n.js:32: Analiz: "Analysis",
+i18n.js:33: Ayarlar: "Settings",
+i18n.js:38: "EN YÜKSEK": "PEAK",
+i18n.js:39: "GÜNLÜK SERİ": "DAILY STREAK",
+i18n.js:41: "Bugün de iyi şanslar!": "Good luck today!",
+i18n.js:42: "Güzel bir başlangıç! 🚀": "Nice start! 🚀",
+i18n.js:43: "Chess.com hesabı bağlı değil": "Chess.com account not linked",
+i18n.js:51: "Daha fazla yükle": "Load more",
+i18n.js:52: "Henüz oyun çekilmedi.": "No games synced yet.",
+i18n.js:55: Açılış: "Opening",
+i18n.js:56: "Yan açılış": "Flank opening",
+i18n.js:57: "Yarı-açık oyun": "Semi-open game",
+i18n.js:58: "Açık oyun": "Open game",
+i18n.js:59: "Kapalı oyun": "Closed game",
+i18n.js:60: "Hint savunması": "Indian defense",
+i18n.js:61: "Genelde 1.c4 veya 1.Nf3 ile başlayan düzensiz/yan açılışlar. Merkez kontrolünü kanat taşları ile dengelemeyi gerektirir.":
+i18n.js:62: "Irregular / flank openings starting usually with 1.c4 or 1.Nf3. Center is contested with wing pieces — requires positional understanding.",
+i18n.js:63: "Beyaz 1.e4 oynar, siyah merkezi simetrik karşılamaz (örn. Sicilyen, Caro-Kann). Yapı planını bilmek kritiktir.":
+i18n.js:64: "White plays 1.e4 and Black answers asymmetrically (e.g. Sicilian, Caro-Kann). Knowing the typical pawn structures is critical.",
+i18n.js:65: "Klasik 1.e4 e5 açılışları (İtalyan, İspanyol, vs.). Hızlı gelişim ve şah güvenliği esastır.":
+i18n.js:66: "Classical 1.e4 e5 openings (Italian, Ruy Lopez, etc.). Fast development and king safety are the priorities.",
+i18n.js:67: "1.d4 d5 ile gelen kapalı oyunlar. Piyon yapısı uzun süre kalır, planlı oyun gerekir.":
+i18n.js:68: "Closed games starting with 1.d4 d5. Pawn structures persist; long-term planning matters more than quick tactics.",
+i18n.js:69: "1.d4 Nf6 ile başlayan Hint savunmaları (King's Indian, Nimzo vb.). Stratejik, manevralı oyun.":
+i18n.js:70: "Indian defenses starting with 1.d4 Nf6 (King's Indian, Nimzo, etc.). Strategic, maneuvering play.",
+i18n.js:73: Genel: "Overview",
+i18n.js:74: "Faz Analizi": "Phase Analysis",
+i18n.js:75: "Zayıf Açılışlar": "Weakest Openings",
+i18n.js:76: "İlk ~15 hamle. Taşları geliştir, merkeze hâkim ol, şahı roka et.":
+i18n.js:77: "First ~15 moves. Develop pieces, control the center, castle the king.",
+i18n.js:78: "Çok kaybediyorsan 1-2 açılışı ezberle ve aynısını her oyunda tekrarla.":
+i18n.js:79: "If you lose a lot here, learn 1-2 openings and repeat them in every game.",
+i18n.js:80: "15-40. hamleler. Plan kur, zayıf kareleri yakala, taktiklere dikkat et.":
+i18n.js:81: "Moves 15-40. Build plans, target weak squares, watch for tactics.",
+i18n.js:82: "Hamleden önce 'rakip bana ne yapabilir?' sorusunu sor; bedava taş kayıplarını azaltır.":
+i18n.js:83: "Before each move ask 'what can my opponent do to me?' — it cuts blunders.",
+i18n.js:84: "40+ hamle. Az taş kaldı; şahı aktif kullan, piyon terfisi öne çıkar.":
+i18n.js:85: "Move 40+. Few pieces left; activate the king, pawn promotion becomes key.",
+i18n.js:86: "Şah+vezir mat, K+R mat, K+P son oyun temellerini çalış — kazandığın oyun kaymasını engeller.":
+i18n.js:87: "Study K+Q, K+R and K+P endgame basics — it prevents losing won games.",
+i18n.js:90: "Chess.com Kullanıcı Adı": "Chess.com Username",
+i18n.js:91: "kullanıcı adı": "username",
+i18n.js:94: "↻ Oyunları Yeniden Senkronize Et": "↻ Re-sync Games",
+i18n.js:95: Oturum: "Session",
+i18n.js:96: "Çıkış Yap": "Log out",
+i18n.js:98: Türkçe: "Turkish",
+i18n.js:99: İngilizce: "English",
+i18n.js:102: "Oyun yüklenemedi.": "Could not load the game.",
+i18n.js:103: "Sunucuya ulaşılamadı.": "Could not reach the server.",
+i18n.js:104: "Boş olamaz.": "Cannot be empty.",
+i18n.js:105: "Kaydediliyor…": "Saving…",
+i18n.js:106: "Chess.com kullanıcısı bulunamadı.": "Chess.com user not found.",
+i18n.js:107: "Bağlanılamadı.": "Could not connect.",
+i18n.js:108: "Senkronize ediliyor…": "Syncing…",
+i18n.js:109: "Senkronizasyon başlatıldı, birkaç saniye sürebilir.":
+i18n.js:110: "Sync started — this may take a few seconds.",
+i18n.js:112: Bildirimler: "Notifications",
+i18n.js:113: Premium: "Premium",
+i18n.js:117: "Sesli oku": "Read aloud",
+i18n.js:121: Harika: "Brilliant",
+i18n.js:122: "Çok iyi": "Great",
+i18n.js:124: "En iyi": "Best",
+i18n.js:126: İyi: "Solid",
+i18n.js:127: Yanlışlık: "Inaccuracy",
+i18n.js:128: Hata: "Mistake",
+i18n.js:131: "İncelemeyi Başlat": "Start Review",
+i18n.js:132: Beyaz: "White",
+i18n.js:134: "Hamleler değerlendiriliyor… (Stockfish derinlik {n})":
+i18n.js:135: "Analyzing moves… (Stockfish depth {n})",
+i18n.js:138: __streak_lt_7__: "{n} days here — keep going!",
+i18n.js:139: __streak_lt_30__: "{n}-day streak — impressive!",
+i18n.js:208: if (typeof cb !== "function") return () => {};

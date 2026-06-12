@@ -276,34 +276,41 @@
       <span class="popup-logo">♟</span>
       <div>
         <div class="popup-brand">ForkSight</div>
-        <div class="popup-sub">Realtime Chess Intelligence</div>
+        <div class="popup-sub">Chess Training & Coaching</div>
       </div>
       <span class="popup-platform">Chess.com</span>
     </div>
     <div id="status" class="status checking">Sunucu kontrol ediliyor…</div>
     <div id="userInfo" class="user-info" style="display: none"></div>
 
-    <div class="section" id="settingsSection" hidden style="display: none">
-      <h3 id="settingsTitle">⚙️ Sunucu Ayarları</h3>
-      <label id="urlLabel">Sunucu URL:</label>
-      <input type="text" id="apiUrl" placeholder="https://forksight.net" />
-      <button class="btn" id="saveUrl" style="margin-top: 6px">
-        💾 Kaydet
-      </button>
-    </div>
-
     <div class="section" id="statsSection" style="display: none">
       <h3 id="statsTitle">📊 Sunucu Durumu</h3>
       <div class="grid" id="statsGrid"></div>
     </div>
 
-    <div class="section">
-      <h3 id="shortcutsTitle">⌨️ Kısayollar</h3>
-      <div class="shortcuts">
-        <div><span id="scAnalyze">Analiz</span><kbd>F2</kbd></div>
-        <div><span id="scClear">Temizle</span><kbd>F3</kbd></div>
-        <div><span id="scSafe">Gizle</span><kbd>F4</kbd></div>
-      </div>
+    <div class="section" id="quotaSection" style="display: none">
+      <h3 id="quotaTitle">📊 Günlük Kullanım</h3>
+      <div
+        id="quotaList"
+        style="display: flex; flex-direction: column; gap: 6px; font-size: 12px"
+      ></div>
+      <a
+        id="quotaUpgrade"
+        href="#"
+        style="
+          display: none;
+          margin-top: 10px;
+          text-align: center;
+          background: linear-gradient(135deg, #f5c518, #e0a800);
+          color: #0a0e14;
+          font-weight: 700;
+          padding: 8px;
+          border-radius: 8px;
+          text-decoration: none;
+          font-size: 12px;
+        "
+        >⭐ Premium'a Geç</a
+      >
     </div>
 
     <div class="section">

@@ -1,5 +1,5 @@
 /*
- * ForkSight — Chess.com Page-Level Styles
+ * ForkSight â€” Chess.com Page-Level Styles
  *
  * NOTE: The floating analysis panel lives entirely inside a closed Shadow DOM.
  * All panel CSS (colors, layout, components) is defined in PANEL_STYLES inside
@@ -28,4 +28,1534 @@
   pointer-events: none;
   z-index: 46;
   overflow: visible;
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ * ForkSight Coach Avatar â€” passive draggable mascot
+ * Rendered by avatar.js. Position persisted via chrome.storage.local.
+ * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.forksight-avatar {
+  position: fixed;
+  width: 110px;
+  height: 110px;
+  z-index: 2147483600;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
+  touch-action: none;
+}
+
+.forksight-avatar:hover {
+  transform: scale(1.05);
+}
+
+.forksight-avatar--dragging {
+  cursor: grabbing;
+  transition: none;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.38));
+  transform: scale(1.04);
+}
+
+.forksight-avatar__img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Game-over CTA: gentle pulsing glow inviting the user to click. */
+.forksight-avatar--blink {
+  animation: forksight-avatar-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes forksight-avatar-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28))
+      drop-shadow(0 0 0 rgba(245, 197, 24, 0));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28))
+      drop-shadow(0 0 18px rgba(245, 197, 24, 0.85));
+    transform: scale(1.08);
+  }
+}
+
+/* ─── Living mascot: roaming + micro-animations ───────────────────────
+ * The container handles position (left/top via JS) + hover/drag scale.
+ * An inner wrapper carries walk/idle/hop transforms so they never clash
+ * with the container's scale. The img carries the horizontal flip. */
+.forksight-avatar__inner {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform-origin: 50% 88%;
+  will-change: transform;
+}
+.forksight-avatar.fs-walking .forksight-avatar__inner {
+  animation: fs-av-walk 0.5s ease-in-out infinite;
+}
+@keyframes fs-av-walk {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-7px) rotate(3deg);
+  }
+}
+.forksight-avatar.fs-idle .forksight-avatar__inner {
+  animation: fs-av-breath 3.6s ease-in-out infinite;
+}
+@keyframes fs-av-breath {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.02, 0.98);
+  }
+}
+.forksight-avatar.fs-hop .forksight-avatar__inner {
+  animation: fs-av-hop 0.6s ease;
+}
+@keyframes fs-av-hop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  30% {
+    transform: translateY(-34px) scale(0.88, 1.14);
+  }
+  60% {
+    transform: translateY(0) scale(1.12, 0.88);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+/* Direction: base art faces LEFT → mirror when moving right. */
+.forksight-avatar__img {
+  transition: transform 0.22s ease;
+}
+.forksight-avatar.fs-face-right .forksight-avatar__img {
+  transform: scaleX(-1);
+}
+/* Speech bubble */
+.forksight-avatar__bubble {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  margin-bottom: 4px;
+  transform: translateX(-50%) translateY(6px) scale(0.92);
+  background: #162232;
+  border: 1px solid rgba(245, 197, 24, 0.5);
+  color: #e6edf3;
+  font:
+    600 13px/1.42 -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  padding: 8px 12px;
+  border-radius: 12px;
+  width: max-content;
+  max-width: 210px;
+  text-align: center;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.18);
+}
+.forksight-avatar__bubble.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+.forksight-avatar__bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #162232;
+}
+@media (prefers-reduced-motion: reduce) {
+  .forksight-avatar.fs-walking .forksight-avatar__inner,
+  .forksight-avatar.fs-idle .forksight-avatar__inner,
+  .forksight-avatar.fs-hop .forksight-avatar__inner {
+    animation: none;
+  }
+}
+
+/* ¦¦¦ End-of-game summary modal ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦ */
+/* Clickable affordance: subtle "lift" when avatar is awaiting a tap. */
+.forksight-avatar--clickable {
+  cursor: pointer;
+}
+
+.forksight-summary-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483601;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  animation: forksight-summary-fade 160ms ease-out;
+}
+@keyframes forksight-summary-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.forksight-summary-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 12, 24, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.forksight-summary-card {
+  position: relative;
+  z-index: 1;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  background: linear-gradient(180deg, #1c2440 0%, #131a30 100%);
+  color: #eef2ff;
+  border: 1px solid rgba(245, 197, 24, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  padding: 22px 22px 18px;
+  animation: forksight-summary-pop 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+@keyframes forksight-summary-pop {
+  from {
+    transform: translateY(12px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+.forksight-summary-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: 0;
+  color: #aab3d0;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.forksight-summary-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+.forksight-summary-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.forksight-summary-avatar {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+}
+.forksight-summary-headtext {
+  min-width: 0;
+}
+.forksight-summary-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.forksight-summary-sub {
+  font-size: 13px;
+  color: #b8c0e0;
+  line-height: 1.45;
+}
+.forksight-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.forksight-summary-cell {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.forksight-summary-num {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f5c518;
+  line-height: 1.1;
+}
+.forksight-summary-lab {
+  font-size: 11px;
+  color: #9aa3c4;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.forksight-summary-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.forksight-tag {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  color: #d5dcf5;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.forksight-tag--bl {
+  color: #ff7676;
+  border-color: rgba(255, 118, 118, 0.4);
+}
+.forksight-tag--ms {
+  color: #ffb84a;
+  border-color: rgba(255, 184, 74, 0.4);
+}
+.forksight-tag--ia {
+  color: #6dd3ff;
+  border-color: rgba(109, 211, 255, 0.4);
+}
+.forksight-summary-foot {
+  display: flex;
+  justify-content: flex-end;
+}
+.forksight-summary-ok {
+  background: linear-gradient(180deg, #f5c518 0%, #d9a800 100%);
+  color: #1a1f33;
+  border: 0;
+  padding: 9px 22px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(245, 197, 24, 0.3);
+}
+.forksight-summary-ok:hover {
+  filter: brightness(1.08);
+}
+/* ─── Avatar action menu (popover) ─────────────────────────────── */
+.forksight-avatar-menu {
+  position: fixed;
+  z-index: 2147483646;
+  background: linear-gradient(180deg, #1a2540 0%, #0f1a30 100%);
+  border: 1px solid rgba(245, 197, 24, 0.45);
+  border-radius: 14px;
+  padding: 6px;
+  min-width: 180px;
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  animation: forksight-menu-pop 140ms ease-out;
+}
+@keyframes forksight-menu-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.forksight-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: #eef3ff;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.forksight-menu-item:hover {
+  background: rgba(245, 197, 24, 0.12);
+}
+.forksight-menu-item:active {
+  background: rgba(245, 197, 24, 0.22);
+}
+.forksight-menu-ico {
+  font-size: 18px;
+  line-height: 1;
+}
+.forksight-menu-lab {
+  flex: 1;
+}
+
+/* ─── Coach Review modal (analysis viewer) ─────────────────────── */
+.forksight-review-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483645;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #eef3ff;
+}
+.forksight-review-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 13, 26, 0.72);
+  backdrop-filter: blur(4px);
+  animation: forksight-fade-in 160ms ease-out;
+}
+.forksight-review-shell {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1100px, 94vw);
+  max-height: 92vh;
+  background: linear-gradient(180deg, #15213b 0%, #0c1428 100%);
+  border: 1px solid rgba(245, 197, 24, 0.35);
+  border-radius: 20px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: forksight-fade-in 200ms ease-out;
+}
+@keyframes forksight-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.forksight-review-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: transparent;
+  color: #f5c518;
+  border: 0;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 8px;
+  z-index: 2;
+  line-height: 1;
+}
+.forksight-review-close:hover {
+  background: rgba(245, 197, 24, 0.15);
+}
+
+/* Language toggle (🌐 TR/EN) — alt sağda TTS butonunun solunda; üst
+ * köşede oyuncu/ELO başlığını örtmesin diye buraya taşındı. */
+.forksight-review-lang {
+  position: absolute;
+  bottom: 14px;
+  right: 62px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #f5c518;
+  border: 1px solid rgba(245, 197, 24, 0.4);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0 10px;
+  height: 40px;
+  border-radius: 20px;
+  z-index: 3;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+.forksight-review-lang:hover {
+  background: rgba(245, 197, 24, 0.22);
+}
+.forksight-review-lang-code {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Prompt step */
+.forksight-review-prompt {
+  padding: 36px 40px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.forksight-review-promptHead {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.forksight-review-coach {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid #f5c518;
+  background: #0b1224;
+}
+.forksight-review-prompt h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  color: #f5c518;
+}
+.forksight-review-prompt p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.85;
+}
+.forksight-review-input {
+  background: #0b1224;
+  border: 1px solid rgba(245, 197, 24, 0.35);
+  border-radius: 10px;
+  color: #eef3ff;
+  padding: 12px 14px;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.forksight-review-input:focus {
+  border-color: #f5c518;
+}
+.forksight-review-textarea {
+  min-height: 200px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  white-space: pre;
+}
+.forksight-review-hint {
+  font-size: 12px;
+  opacity: 0.7;
+  line-height: 1.5;
+}
+.forksight-review-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.forksight-review-actions button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.forksight-review-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: #cfd6e6;
+}
+.forksight-review-go,
+.forksight-review-retry {
+  background: #f5c518;
+  color: #0b1224;
+}
+.forksight-review-cancel:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.forksight-review-go:hover,
+.forksight-review-retry:hover {
+  background: #ffd233;
+}
+.forksight-review-error {
+  background: rgba(255, 90, 90, 0.12);
+  border: 1px solid rgba(255, 90, 90, 0.4);
+  color: #ff9c9c;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.forksight-review-notice {
+  background: rgba(245, 197, 24, 0.1);
+  border: 1px solid rgba(245, 197, 24, 0.35);
+  color: #f5d878;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.forksight-review-notice b {
+  color: #ffe8a3;
+}
+
+/* Method picker (URL vs FEN) — 2-card grid shown before either input form */
+.forksight-review-methodpick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 4px;
+}
+.forksight-review-methodpick-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  padding: 24px 16px;
+  background: #0b1224;
+  border: 1px solid rgba(245, 197, 24, 0.35);
+  border-radius: 14px;
+  color: #eef3ff;
+  cursor: pointer;
+  min-height: 160px;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+.forksight-review-methodpick-card:hover {
+  background: #111b34;
+  border-color: #f5c518;
+  transform: translateY(-2px);
+}
+.forksight-review-methodpick-ico {
+  font-size: 34px;
+  line-height: 1;
+}
+.forksight-review-methodpick-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f5c518;
+}
+.forksight-review-methodpick-desc {
+  font-size: 12px;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* Side picker (post-fetch "which color did you play?" step) */
+.forksight-review-sidepick {
+  padding: 36px 40px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.forksight-review-sidepick h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #f5c518;
+}
+.forksight-review-sidepick p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.85;
+  line-height: 1.5;
+}
+.forksight-review-sidepick-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 6px;
+}
+.forksight-review-sidepick-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #0b1224;
+  border: 1px solid rgba(245, 197, 24, 0.35);
+  border-radius: 12px;
+  color: #eef3ff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+.forksight-review-sidepick-btn:hover {
+  background: #111b34;
+  border-color: #f5c518;
+  transform: translateY(-1px);
+}
+.forksight-review-sidepick-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.forksight-review-sidepick-rating {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: 500;
+}
+.forksight-review-sidepick-neutral {
+  background: transparent;
+  border: 1px dashed rgba(245, 197, 24, 0.35);
+  color: #cfd6e6;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.forksight-review-sidepick-neutral:hover {
+  color: #f5c518;
+  border-color: #f5c518;
+}
+
+/* Loading + error states */
+.forksight-review-loading,
+.forksight-review-error-box {
+  padding: 56px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+/* Yalnızca loading/error gösterilirken shell'i kompakt + yarı saydam yap
+   (geniş 1100px varsayılan analiz layout'u için; boş alan oluşmasın). */
+.forksight-review-shell:has(> .forksight-review-loading),
+.forksight-review-shell:has(> .forksight-review-error-box) {
+  width: min(420px, 92vw);
+  background: linear-gradient(
+    180deg,
+    rgba(21, 33, 59, 0.78) 0%,
+    rgba(12, 20, 40, 0.78) 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: rgba(245, 197, 24, 0.25);
+}
+.forksight-review-shell:has(> .forksight-review-loading)
+  .forksight-review-loading,
+.forksight-review-shell:has(> .forksight-review-error-box)
+  .forksight-review-error-box {
+  padding: 36px 28px;
+  gap: 14px;
+}
+.forksight-review-spinner {
+  /* Native GIF (800×600, 4:3) — sized by height so it scales nicely on
+     small modals. Width auto preserves aspect ratio (~240px wide). */
+  width: auto;
+  height: 180px;
+  max-width: 80%;
+  object-fit: contain;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  animation: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+/* Endgame king-square badges (trophy / flag / clock / draw). Pops in
+   with a soft overshoot and gets a subtle drop shadow so it floats on
+   top of the piece. transform-box + origin keep the scale anchored on
+   the icon center instead of the SVG root. */
+@keyframes forksight-rb-endbadge-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.forksight-rb-endbadge {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: forksight-rb-endbadge-pop 520ms cubic-bezier(0.34, 1.56, 0.64, 1)
+    both;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
+  pointer-events: none;
+}
+@keyframes forksight-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.forksight-review-error-ico {
+  font-size: 40px;
+}
+.forksight-review-error-box h3 {
+  margin: 0;
+  color: #f5c518;
+}
+.forksight-review-error-box p {
+  margin: 0;
+  opacity: 0.85;
+  max-width: 420px;
+}
+
+/* Loading progress bar (eager pre-analysis) */
+.forksight-review-progress-wrap {
+  width: min(420px, 80%);
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+.forksight-review-progress-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(245, 197, 24, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(245, 197, 24, 0.25);
+}
+.forksight-review-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #f5c518, #ffd84a);
+  border-radius: 6px;
+  transition: width 180ms ease-out;
+  box-shadow: 0 0 8px rgba(245, 197, 24, 0.5);
+}
+.forksight-review-progress-text {
+  font-size: 12px;
+  color: #f5c518;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.4px;
+}
+
+/* Review layout */
+.forksight-review-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 0;
+  height: min(720px, 88vh);
+}
+.forksight-review-board {
+  background: #08101e;
+  border-right: 1px solid rgba(245, 197, 24, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.forksight-review-board-placeholder {
+  text-align: center;
+  opacity: 0.6;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.forksight-review-board-emoji {
+  font-size: 64px;
+  color: #f5c518;
+  margin-bottom: 12px;
+}
+.forksight-review-side {
+  display: flex;
+  flex-direction: column;
+  padding: 22px 22px 16px;
+  gap: 12px;
+  overflow: hidden;
+}
+.forksight-review-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid rgba(245, 197, 24, 0.15);
+  padding-bottom: 12px;
+  /* Reserve room for the absolute-positioned close (×) button so
+     player ratings on the right don't get clipped underneath it. */
+  padding-right: 36px;
+}
+.forksight-review-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.forksight-review-dot {
+  flex: 0 0 auto;
+}
+.forksight-review-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.forksight-review-dot--w {
+  background: #f4f4f4;
+}
+.forksight-review-dot--b {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.forksight-review-pname {
+  font-weight: 600;
+  font-size: 14px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+}
+.forksight-review-prating {
+  font-size: 12px;
+  opacity: 0.7;
+  flex: 0 0 auto;
+}
+.forksight-review-vs {
+  font-size: 11px;
+  opacity: 0.5;
+  padding: 0 8px;
+  flex: 0 0 auto;
+}
+.forksight-review-result {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.forksight-review-resnum {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f5c518;
+}
+.forksight-review-resmsg {
+  font-size: 13px;
+  opacity: 0.75;
+}
+.forksight-review-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+.forksight-review-narration {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(180deg, #2f2f2f 0%, #262626 100%);
+  border: 1px solid rgba(245, 197, 24, 0.28);
+  border-radius: 14px;
+  padding: 12px 16px 12px 12px;
+  min-height: 110px;
+}
+.forksight-review-narration-av {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  border: 0;
+  background: transparent;
+  flex: 0 0 96px;
+  object-fit: contain;
+  /* No circular crop — show the full avatar body (chess.com-style). */
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+.forksight-review-narration-text {
+  position: relative;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #f3f3f3;
+  background: #1f1f1f;
+  border: 1px solid rgba(245, 197, 24, 0.22);
+  border-radius: 10px;
+  padding: 10px 14px;
+  flex: 1 1 auto;
+  min-height: 60px;
+  align-self: center;
+}
+.forksight-review-narration-text::before {
+  /* Speech-bubble pointer aimed at the avatar. */
+  content: "";
+  position: absolute;
+  left: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-right: 9px solid rgba(245, 197, 24, 0.22);
+}
+.forksight-review-narration-text::after {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #1f1f1f;
+}
+.forksight-review-mlh {
+  margin: 4px 0 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #f5c518;
+}
+.forksight-review-moves {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+.forksight-review-moves li {
+  display: grid;
+  grid-template-columns: 42px 1fr 1fr;
+  gap: 8px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.forksight-review-moves li:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.025);
+}
+.forksight-review-mn {
+  opacity: 0.55;
+}
+.forksight-review-mw,
+.forksight-review-mb {
+  font-weight: 500;
+}
+
+/* Profile mini-modal */
+.forksight-review-profile {
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.forksight-review-profile-av {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid #f5c518;
+  background: #0b1224;
+}
+.forksight-review-profile h3 {
+  margin: 0;
+  color: #f5c518;
+  font-size: 22px;
+}
+.forksight-review-profile-sub {
+  font-size: 13px;
+  opacity: 0.7;
+}
+.forksight-review-profile-msg {
+  font-size: 13px;
+  opacity: 0.85;
+  max-width: 360px;
+}
+
+/* Responsive: stack the layout on narrow viewports */
+@media (max-width: 780px) {
+  .forksight-review-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    max-height: 88vh;
+  }
+  .forksight-review-board {
+    height: 260px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(245, 197, 24, 0.15);
+  }
+}
+/* â”€â”€â”€ Interactive review board (Chunk 2) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.forksight-rb-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  width: 100%;
+  height: 100%;
+  min-height: 0; /* allow inner board to shrink */
+  box-sizing: border-box;
+}
+.forksight-rb-boardrow {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  flex: 1 1 auto; /* board area absorbs leftover vertical space */
+  min-height: 0;
+}
+.forksight-rb-boardrow--flip .forksight-rb-bar {
+  flex-direction: column-reverse; /* white at top when viewer is black */
+}
+.forksight-rb-bar {
+  position: relative;
+  width: 22px;
+  flex: 0 0 22px;
+  display: flex;
+  flex-direction: column; /* default: black top, white bottom */
+  background: #2b2b2b;
+  border: 1px solid rgba(245, 197, 24, 0.25);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.forksight-rb-bar-white {
+  background: linear-gradient(180deg, #f5f5f5 0%, #d8d8d8 100%);
+  transition: height 220ms ease;
+}
+.forksight-rb-bar-black {
+  background: linear-gradient(180deg, #1a1a1a 0%, #303030 100%);
+  transition: height 220ms ease;
+}
+.forksight-rb-bar-tick {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(245, 197, 24, 0.5);
+  pointer-events: none;
+}
+.forksight-rb-bar-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.2px;
+  pointer-events: none;
+  padding: 1px 0;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+}
+.forksight-rb-bar-label[data-side="w"] {
+  bottom: 2px;
+  color: #1a1a1a;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.7);
+}
+.forksight-rb-bar-label[data-side="b"] {
+  top: 2px;
+  color: #f5f5f5;
+}
+.forksight-rb-boardrow--flip .forksight-rb-bar-label[data-side="w"] {
+  bottom: auto;
+  top: 2px;
+}
+.forksight-rb-boardrow--flip .forksight-rb-bar-label[data-side="b"] {
+  top: auto;
+  bottom: 2px;
+}
+.forksight-rb-host {
+  /* Fill the available vertical space in the board row, then let
+     aspect-ratio derive the width so the board stays square no matter
+     whether the modal is height- or width-constrained. */
+  height: 100%;
+  width: auto;
+  max-width: min(560px, 100%);
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #2a2a2a;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  flex: 0 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+.forksight-rb {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.forksight-rb-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0;
+  flex: 0 0 auto;
+}
+.forksight-rb-btn {
+  background: rgba(245, 197, 24, 0.12);
+  color: #f5c518;
+  border: 1px solid rgba(245, 197, 24, 0.4);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 32px;
+  line-height: 1;
+  transition: background 120ms ease;
+}
+.forksight-rb-btn:hover {
+  background: rgba(245, 197, 24, 0.25);
+}
+.forksight-rb-btn:active {
+  background: rgba(245, 197, 24, 0.4);
+}
+.forksight-rb-counter {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+  min-width: 70px;
+  text-align: center;
+}
+/* ── Player strip (above + below the board) ───────────────────────── */
+.forksight-rb-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: min(590px, 100%); /* board (560) + bar (22) + gap (8) */
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+.forksight-rb-player--active {
+  background: rgba(245, 197, 24, 0.12);
+  border-color: rgba(245, 197, 24, 0.45);
+  box-shadow: 0 0 0 1px rgba(245, 197, 24, 0.15) inset;
+}
+.forksight-rb-player-av {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #1a1a1a;
+  flex: 0 0 34px;
+}
+.forksight-rb-player-mid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.forksight-rb-player-name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f5f5f5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.forksight-rb-player-rating {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.65;
+}
+.forksight-rb-player-cap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1px;
+  min-height: 14px;
+}
+.forksight-rb-cap-pc {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  margin-right: -3px;
+}
+.forksight-rb-cap-pc:last-of-type {
+  margin-right: 0;
+}
+.forksight-rb-cap-adv {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f5c518;
+  font-variant-numeric: tabular-nums;
+}
+.forksight-rb-player-clock {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #f5f5f5;
+  background: #1f1f1f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 3px 8px;
+  min-width: 62px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.forksight-rb-player--active .forksight-rb-player-clock {
+  background: #f5c518;
+  color: #1a1a1a;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+.forksight-rb-eval {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+.forksight-rb-eval-lab {
+  opacity: 0.7;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.forksight-rb-eval-val {
+  font-weight: 700;
+  font-size: 15px;
+  color: #f5c518;
+  font-variant-numeric: tabular-nums;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* Active move highlight in the move list */
+.forksight-review-mw,
+.forksight-review-mb {
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 100ms ease;
+}
+.forksight-review-mw:hover,
+.forksight-review-mb:hover {
+  background: rgba(245, 197, 24, 0.12);
+}
+.forksight-review-active {
+  background: rgba(245, 197, 24, 0.35) !important;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* --- Summary screen (chess.com-style intro) --- */
+.forksight-review-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 22px 22px 22px;
+  overflow-y: auto;
+  max-height: 88vh;
+}
+.forksight-summary-coach {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 6px 0 4px 0;
+}
+.forksight-summary-av {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 2px solid rgba(245, 197, 24, 0.55);
+  background: #1a1a1a;
+  flex: 0 0 84px;
+  object-fit: cover;
+  box-shadow: 0 0 18px rgba(245, 197, 24, 0.18);
+}
+.forksight-summary-bubble {
+  position: relative;
+  background: linear-gradient(180deg, #2f2f2f 0%, #262626 100%);
+  border: 1px solid rgba(245, 197, 24, 0.35);
+  border-radius: 12px;
+  padding: 12px 16px;
+  flex: 1 1 auto;
+  font-size: 14px;
+  line-height: 1.45;
+  min-height: 60px;
+  color: #f3f3f3;
+}
+.forksight-summary-bubble::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 22px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 10px solid rgba(245, 197, 24, 0.35);
+}
+.forksight-summary-bubble::after {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 23px;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 9px solid #2f2f2f;
+}
+.forksight-summary-caret {
+  display: inline-block;
+  width: 8px;
+  color: #f5c518;
+  animation: forksight-caret 0.9s steps(2, start) infinite;
+}
+@keyframes forksight-caret {
+  to {
+    opacity: 0;
+  }
+}
+
+.forksight-summary-graph {
+  width: 100%;
+  height: 90px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(245, 197, 24, 0.18);
+}
+.forksight-summary-graph svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.forksight-summary-graph--flip svg {
+  transform: scaleY(-1);
+}
+
+.forksight-summary-stats {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.forksight-summary-stats thead th {
+  text-align: center;
+  padding: 6px 4px;
+  color: #f5c518;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.forksight-summary-stats td {
+  padding: 7px 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.forksight-summary-num {
+  width: 28%;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: #fff;
+}
+.forksight-summary-lab {
+  text-align: center;
+  color: #cfcfcf;
+}
+.forksight-summary-lab span {
+  vertical-align: middle;
+}
+.forksight-summary-ico {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.forksight-summary-acc td {
+  font-size: 15px;
+  padding-bottom: 10px;
+  border-top: 0;
+}
+.forksight-summary-acc .forksight-summary-num {
+  color: #f5c518;
+  font-size: 18px;
+}
+.forksight-summary-start {
+  margin-top: 8px;
+  background: linear-gradient(180deg, #2c8a32 0%, #1f6826 100%);
+  color: #fff;
+  border: 1px solid #3aa641;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+.forksight-summary-start:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(58, 166, 65, 0.35);
+}
+
+/* --- TTS toggle button (bottom-right floating, no header overlap) --- */
+.forksight-review-tts {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(245, 197, 24, 0.4);
+  color: #f5c518;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  z-index: 3;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  transition:
+    background 120ms ease,
+    transform 120ms ease;
+}
+.forksight-review-tts:hover {
+  background: rgba(245, 197, 24, 0.22);
+  transform: translateY(-1px);
+}
+.forksight-review-tts[aria-pressed="true"] {
+  background: rgba(58, 166, 65, 0.4);
+  border-color: #3aa641;
+  color: #fff;
 }

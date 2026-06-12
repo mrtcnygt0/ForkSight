@@ -4762,6 +4762,35 @@
 
       updateEvalBar(playerEval);
 
+      // ─── Coach Avatar — emotion update (passive, never reveals best move)
+      try {
+        const _av = window.ForkSightAvatar;
+        if (_av && typeof _av.update === "function") {
+          let _topGap = null;
+          if (response.moves.length >= 2) {
+            const _s1 = Math.max(
+              -15,
+              Math.min(15, parseScore(response.moves[0].score)),
+            );
+            const _s2 = Math.max(
+              -15,
+              Math.min(15, parseScore(response.moves[1].score)),
+            );
+            _topGap = Math.abs(_s1 - _s2);
+          }
+          const _evalChange =
+            !isPlayerTurn && coachPrevEval !== null
+              ? playerEval - coachPrevEval
+              : null;
+          _av.update({
+            playerEval,
+            isPlayerTurn,
+            evalChange: _evalChange,
+            topGap: _topGap,
+          });
+        }
+      } catch (_) {}
+
       // Position insights (plan + detect)
       const { insights, planHints, phase } = analyzePositionInsights(
         fenBoard,
@@ -6114,6 +6143,11 @@
     if (!isGameEndDetected()) return;
 
     lastGameEndDetected = Date.now();
+
+    // Coach Avatar: blink CTA inviting the user to open the game review.
+    try {
+      window.ForkSightAvatar?.update?.({ isGameOver: true });
+    } catch (_) {}
 
     // Faz 6B: show coach game summary modal once per game
     try {

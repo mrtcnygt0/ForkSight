@@ -19,7 +19,7 @@
       "world": "MAIN"
     },
     {
-      "js": ["content.js"],
+      "js": ["content.js", "avatar.js"],
       "css": ["style.css"],
       "matches": ["https://lichess.org/*"],
       "run_at": "document_idle"
@@ -34,7 +34,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["icon.png"],
+      "resources": ["icon.png", "avatars/*.png"],
       "matches": ["https://lichess.org/*"]
     }
   ]

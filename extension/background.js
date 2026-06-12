@@ -10,15 +10,11 @@ let refreshTimer = null;
 let notificationViewerId = null;
 
 // Başlangıçta storage'dan yükle
-chrome.storage.local.get(
-  ["taktik_token", "taktik_refresh_token", "taktik_api_base"],
-  (r) => {
-    if (r.taktik_token) authToken = r.taktik_token;
-    if (r.taktik_refresh_token) refreshToken = r.taktik_refresh_token;
-    if (r.taktik_api_base) API_BASE = r.taktik_api_base;
-    if (authToken) scheduleRefresh();
-  },
-);
+chrome.storage.local.get(["taktik_token", "taktik_refresh_token"], (r) => {
+  if (r.taktik_token) authToken = r.taktik_token;
+  if (r.taktik_refresh_token) refreshToken = r.taktik_refresh_token;
+  if (authToken) scheduleRefresh();
+});
 
 // ─── Notification Polling ───────────────────────────
 const NOTIF_ALARM = "forksight_notif_poll";
@@ -82,11 +78,8 @@ async function reportNotificationEvent(base, notificationId, eventType) {
 
 async function checkNotifications() {
   try {
-    const stored = await chrome.storage.local.get([
-      "taktik_notif_last_ts",
-      "taktik_api_base",
-    ]);
-    const base = stored.taktik_api_base || DEFAULT_API;
+    const stored = await chrome.storage.local.get(["taktik_notif_last_ts"]);
+    const base = DEFAULT_API;
     const since = stored.taktik_notif_last_ts || 0;
 
     const r = await fetch(`${base}/notifications?since=${since}`);
@@ -129,12 +122,9 @@ chrome.notifications.onClicked.addListener(async (notifId) => {
   const match = notifId.match(/^forksight_notif_(\d+)$/);
   if (!match) return;
   const nid = match[1];
-  const stored = await chrome.storage.local.get([
-    `notif_meta_${nid}`,
-    "taktik_api_base",
-  ]);
+  const stored = await chrome.storage.local.get([`notif_meta_${nid}`]);
   const meta = stored[`notif_meta_${nid}`] || {};
-  const base = stored.taktik_api_base || DEFAULT_API;
+  const base = DEFAULT_API;
   const url = meta.click_url;
   await reportNotificationEvent(base, nid, "clicked");
   if (url) {
@@ -189,20 +179,46 @@ async function doRefresh() {
 
 // ─── Mesaj İşleyici ─────────────────────────────────
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg.type === "update_api_base") {
-    const url = (msg.url || DEFAULT_API).replace(/\/+$/, "");
-    if (!url.startsWith("https://")) {
-      sendResponse({ ok: false, error: "Only HTTPS URLs allowed" });
-      return true;
-    }
-    API_BASE = url;
-    chrome.storage.local.set({ taktik_api_base: API_BASE });
-    sendResponse({ ok: true });
+  if (msg.type === "get_api_base") {
+    sendResponse({ url: API_BASE });
     return true;
   }
 
-  if (msg.type === "get_api_base") {
-    sendResponse({ url: API_BASE });
+  // İçerik script'lerinin /tts gibi auth'lu endpoint'leri direkt çağırabilmesi
+  // için access token'ı ödünç verir. Sadece kısa ömürlü access token döner;
+  // refresh token paylaşılmaz.
+  if (msg.type === "get_token") {
+    sendResponse({ token: authToken || null, apiBase: API_BASE });
+    return true;
+  }
+
+  // Kullanıcının mevcut quota durumunu çeker (TTS, game-analysis, ...).
+  if (msg.type === "me_quota") {
+    fetch(`${API_BASE}/me/quota`, { method: "GET", headers: apiHeaders() })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "open_extension_page") {
+    // content-script -> background: chrome.tabs eklentisi içinden açılır
+    const page = String(msg.page || "").replace(/^\/+/, "");
+    if (!/^[a-z0-9_\-./]+\.html$/i.test(page)) {
+      sendResponse({ ok: false, error: "invalid page" });
+      return true;
+    }
+    try {
+      chrome.tabs.create({ url: chrome.runtime.getURL(page) });
+      sendResponse({ ok: true });
+    } catch (e) {
+      sendResponse({ ok: false, error: String(e) });
+    }
     return true;
   }
 
@@ -254,11 +270,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     })
       .then((r) => {
         if (r.status === 429)
-          return { ok: false, error: "Rate limit — lütfen yavaşlayın" };
+          return { ok: false, error: "Rate limit — please slow down" };
         if (r.status === 503)
-          return { ok: false, error: "Sunucu yoğun, tekrar deneyin" };
+          return { ok: false, error: "Server busy, please try again" };
         if (r.status === 401)
-          return { ok: false, error: "Oturum süresi doldu", expired: true };
+          return { ok: false, error: "Session expired", expired: true };
         return r.json();
       })
       .then((data) => sendResponse(data))
@@ -266,15 +282,31 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
 
-  if (msg.type === "reset") {
-    fetch(`${API_BASE}/reset`, {
+  if (msg.type === "getGameAnalysis") {
+    const { site, gameId, depth } = msg.data || {};
+    const url =
+      `${API_BASE}/game-analysis?site=${encodeURIComponent(site)}` +
+      `&game_id=${encodeURIComponent(gameId)}&depth=${encodeURIComponent(depth)}`;
+    fetch(url, { method: "GET", headers: apiHeaders() })
+      .then((r) => r.json())
+      .then((data) => sendResponse(data))
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "saveGameAnalysis") {
+    fetch(`${API_BASE}/game-analysis`, {
       method: "POST",
       headers: apiHeaders(),
-      body: "{}",
+      body: JSON.stringify(msg.data),
     })
-      .then((r) => {
+      .then(async (r) => {
+        if (r.status === 402) {
+          const body = await r.json().catch(() => ({}));
+          return { ok: false, quota: true, ...body };
+        }
         if (r.status === 401)
-          return { ok: false, error: "Oturum süresi doldu", expired: true };
+          return { ok: false, error: "Session expired", expired: true };
         return r.json();
       })
       .then((data) => sendResponse(data))
@@ -357,18 +389,338 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     fetch(`${API_BASE}/version`, { method: "GET" })
       .then((r) => r.json())
       .then((data) => sendResponse(data))
-      .catch(() => sendResponse({ error: "bağlantı yok" }));
+      .catch(() => sendResponse({ error: "no connection" }));
     return true;
   }
 
-  if (msg.type === "game_result") {
-    fetch(`${API_BASE}/game-result`, {
+  // ─── Chess.com entegrasyon endpoint'leri ─────────────
+  if (msg.type === "chess_com_verify") {
+    fetch(`${API_BASE}/chess-com/verify`, {
       method: "POST",
       headers: apiHeaders(),
-      body: JSON.stringify(msg.data),
+      body: JSON.stringify({
+        chess_com_username: msg.data?.chess_com_username || "",
+      }),
     })
-      .then((r) => r.json())
-      .then((data) => sendResponse(data))
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "chess_com_link") {
+    fetch(`${API_BASE}/chess-com/link`, {
+      method: "POST",
+      headers: apiHeaders(),
+      body: JSON.stringify({
+        chess_com_username: msg.data?.chess_com_username || "",
+      }),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "chess_com_sync") {
+    const force = !!(msg.data && msg.data.force);
+    const url = `${API_BASE}/chess-com/sync` + (force ? "?force=true" : "");
+    fetch(url, {
+      method: "POST",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "me_profile") {
+    fetch(`${API_BASE}/me/profile`, { method: "GET", headers: apiHeaders() })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "me_games") {
+    const params = new URLSearchParams();
+    const d = msg.data || {};
+    if (d.limit != null) params.set("limit", String(d.limit));
+    if (d.offset != null) params.set("offset", String(d.offset));
+    if (d.result) params.set("result", d.result);
+    if (d.time_class) params.set("time_class", d.time_class);
+    const qs = params.toString();
+    fetch(`${API_BASE}/me/games${qs ? "?" + qs : ""}`, {
+      method: "GET",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "me_game_pgn") {
+    const id = encodeURIComponent(String(msg.data?.id || ""));
+    fetch(`${API_BASE}/me/games/${id}`, {
+      method: "GET",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "me_weakness") {
+    fetch(`${API_BASE}/me/weakness-report`, {
+      method: "GET",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  // ─── Bulmacalar (Quiz) ─────────────────────────────
+  if (msg.type === "quiz_stats") {
+    fetch(`${API_BASE}/quiz/stats`, { method: "GET", headers: apiHeaders() })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "quiz_themes") {
+    fetch(`${API_BASE}/quiz/themes`, { method: "GET", headers: apiHeaders() })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "quiz_daily") {
+    fetch(`${API_BASE}/quiz/daily`, { method: "GET", headers: apiHeaders() })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "quiz_next") {
+    const d = msg.data || {};
+    const qs = new URLSearchParams();
+    if (d.exclude_id) qs.set("exclude_id", String(d.exclude_id));
+    if (d.theme) qs.set("theme", String(d.theme));
+    if (d.puzzle_id) qs.set("puzzle_id", String(d.puzzle_id));
+    const url = qs.toString()
+      ? `${API_BASE}/quiz/next?${qs.toString()}`
+      : `${API_BASE}/quiz/next`;
+    fetch(url, { method: "GET", headers: apiHeaders() })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  // Faz 3.1: Başarımlar & Liderlik
+  if (msg.type === "achievements_me") {
+    fetch(`${API_BASE}/achievements/me`, {
+      method: "GET",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "leaderboard") {
+    const d = msg.data || {};
+    const qs = new URLSearchParams();
+    if (d.metric) qs.set("metric", String(d.metric));
+    if (d.limit) qs.set("limit", String(d.limit));
+    const url = qs.toString()
+      ? `${API_BASE}/leaderboard?${qs.toString()}`
+      : `${API_BASE}/leaderboard`;
+    fetch(url, { method: "GET", headers: apiHeaders() })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "quiz_solve") {
+    const d = msg.data || {};
+    fetch(`${API_BASE}/quiz/solve`, {
+      method: "POST",
+      headers: apiHeaders(),
+      body: JSON.stringify({
+        puzzle_id: d.puzzle_id,
+        move_uci: d.move_uci || d.uci,
+        used_hint: d.used_hint || 0,
+        time_ms: d.time_ms || 0,
+        step: d.step || 1,
+        prev_uci: d.prev_uci || null,
+        opp_uci: d.opp_uci || null,
+      }),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "lichess_move") {
+    const d = msg.data || {};
+    fetch(`${API_BASE}/lichess/move`, {
+      method: "POST",
+      headers: apiHeaders(),
+      body: JSON.stringify({
+        lichess_id: d.lichess_id,
+        move_index: d.move_index || 0,
+        move_uci: d.move_uci || d.uci,
+        used_hint: d.used_hint || 0,
+        time_ms: d.time_ms || 0,
+      }),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "quiz_hint") {
+    const d = msg.data || {};
+    const params = new URLSearchParams();
+    params.set("puzzle_id", String(d.puzzle_id));
+    params.set("level", String(d.level || 1));
+    fetch(`${API_BASE}/quiz/hint?${params.toString()}`, {
+      method: "GET",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "quiz_backfill") {
+    const d = msg.data || {};
+    const params = new URLSearchParams();
+    if (d.limit_games != null) params.set("limit_games", String(d.limit_games));
+    if (d.include_mate2 != null)
+      params.set("include_mate2", d.include_mate2 ? "true" : "false");
+    fetch(`${API_BASE}/quiz/backfill?${params.toString()}`, {
+      method: "POST",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "quiz_puzzle_detail") {
+    const id = encodeURIComponent(String((msg.data || {}).puzzle_id || ""));
+    fetch(`${API_BASE}/quiz/puzzle/${id}`, {
+      method: "GET",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
       .catch((err) => sendResponse({ ok: false, error: err.message }));
     return true;
   }

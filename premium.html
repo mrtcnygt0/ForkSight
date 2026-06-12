@@ -1,0 +1,2386 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ForkSight Premium — Sınırsız Satranç Koçluğu</title>
+    <meta
+      name="description"
+      content="ForkSight Premium: sınırsız oyun analizi, sınırsız bulmaca ipucu, yapay zekâ sesli koç anlatımı ve derinlik 25 motor analizi. Gold ve Diamond kademeleri, GitHub Sponsors ile destekle, premium anında hesabında."
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0a0f17" />
+    <link rel="canonical" href="https://forksight.net/premium" />
+    <link rel="icon" href="/icons/maskot.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ForkSight" />
+    <meta property="og:url" content="https://forksight.net/premium" />
+    <meta property="og:title" content="ForkSight Premium" />
+    <meta
+      property="og:description"
+      content="Sınırsız analiz, sınırsız ipucu, sesli koç. GitHub Sponsors ile destekle — premium otomatik aktive olsun."
+    />
+    <meta
+      property="og:image"
+      content="https://forksight.net/icons/maskot.png"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #0a0f17;
+        --bg2: #0e1620;
+        --panel: #121a26;
+        --panel2: #162232;
+        --border: #1f2d40;
+        --border2: #26384f;
+        --text: #e6edf3;
+        --muted: #8a96a8;
+        --dim: #5e6b7e;
+        --green: #6fe49c;
+        --green2: #22c55e;
+        --gold: #f5c518;
+        --gold2: #e8a317;
+        --gold-soft: rgba(245, 197, 24, 0.12);
+        --gold-border: rgba(245, 197, 24, 0.35);
+        --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        --radius: 14px;
+      }
+      html,
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter",
+          sans-serif;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        overflow-x: hidden;
+      }
+      a {
+        color: var(--green);
+        text-decoration: none;
+      }
+      a:hover {
+        color: var(--gold);
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+        border: none;
+        background: none;
+        color: inherit;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ─── Aurora backdrop ─── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background:
+          radial-gradient(
+            55% 40% at 75% -10%,
+            rgba(245, 197, 24, 0.1),
+            transparent 60%
+          ),
+          radial-gradient(
+            45% 35% at 15% 15%,
+            rgba(111, 228, 156, 0.07),
+            transparent 60%
+          ),
+          radial-gradient(
+            60% 50% at 50% 110%,
+            rgba(232, 163, 23, 0.06),
+            transparent 65%
+          );
+      }
+
+      /* ─── Floating chess pieces ─── */
+      .float-piece {
+        position: fixed;
+        z-index: 0;
+        pointer-events: none;
+        user-select: none;
+        font-size: 130px;
+        opacity: 0.05;
+        color: var(--gold);
+        animation: floaty 14s ease-in-out infinite;
+        text-shadow: 0 0 60px rgba(245, 197, 24, 0.6);
+      }
+      .fp-1 {
+        top: 12%;
+        left: 4%;
+        animation-delay: 0s;
+      }
+      .fp-2 {
+        top: 55%;
+        right: 5%;
+        font-size: 170px;
+        animation-delay: -5s;
+      }
+      .fp-3 {
+        bottom: 8%;
+        left: 12%;
+        font-size: 100px;
+        animation-delay: -9s;
+      }
+      @keyframes floaty {
+        0%,
+        100% {
+          transform: translateY(0) rotate(-4deg);
+        }
+        50% {
+          transform: translateY(-26px) rotate(5deg);
+        }
+      }
+
+      /* ─── Header ─── */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(12px);
+        background: rgba(10, 15, 23, 0.78);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 18px;
+        color: var(--text);
+      }
+      .brand img {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+      }
+      .brand .crown {
+        color: var(--gold);
+        font-size: 13px;
+        border: 1px solid var(--gold-border);
+        background: var(--gold-soft);
+        padding: 2px 9px;
+        border-radius: 20px;
+        letter-spacing: 0.04em;
+      }
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .lang-btn {
+        border: 1px solid var(--border2);
+        border-radius: 8px;
+        padding: 5px 11px;
+        font-size: 12.5px;
+        color: var(--muted);
+        transition: 0.2s;
+      }
+      .lang-btn:hover {
+        color: var(--gold);
+        border-color: var(--gold-border);
+      }
+
+      /* ─── Hero ─── */
+      .hero {
+        padding: 88px 0 60px;
+        text-align: center;
+        position: relative;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--gold-soft);
+        border: 1px solid var(--gold-border);
+        color: var(--gold);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 16px;
+        border-radius: 30px;
+        margin-bottom: 22px;
+        animation: badgePulse 3s ease-in-out infinite;
+      }
+      @keyframes badgePulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(245, 197, 24, 0.25);
+        }
+        50% {
+          box-shadow: 0 0 0 9px rgba(245, 197, 24, 0);
+        }
+      }
+      h1 {
+        font-size: clamp(34px, 6vw, 62px);
+        font-weight: 900;
+        line-height: 1.12;
+        letter-spacing: -0.02em;
+        margin-bottom: 18px;
+      }
+      .shimmer {
+        background: linear-gradient(
+          110deg,
+          #f5c518 20%,
+          #fff6d8 38%,
+          #f5c518 52%,
+          #e8a317 70%
+        );
+        background-size: 220% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 5s linear infinite;
+      }
+      @keyframes shimmer {
+        to {
+          background-position: -220% 0;
+        }
+      }
+      .hero p.lead {
+        max-width: 620px;
+        margin: 0 auto 34px;
+        color: var(--muted);
+        font-size: clamp(15px, 2.2vw, 18.5px);
+      }
+      .cta-row {
+        display: flex;
+        gap: 14px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 13px 28px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 15.5px;
+        transition:
+          transform 0.18s,
+          box-shadow 0.18s,
+          filter 0.18s;
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn-gold {
+        background: linear-gradient(
+          135deg,
+          #f7d54a 0%,
+          #f5c518 45%,
+          #e8a317 100%
+        );
+        color: #1a1405;
+        box-shadow:
+          0 8px 28px rgba(245, 197, 24, 0.32),
+          inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      }
+      .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow:
+          0 14px 38px rgba(245, 197, 24, 0.42),
+          inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        filter: saturate(1.08);
+      }
+      .btn-ghost {
+        border: 1px solid var(--border2);
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .btn-ghost:hover {
+        border-color: var(--gold-border);
+        color: var(--gold);
+        transform: translateY(-2px);
+      }
+      .hero-note {
+        margin-top: 18px;
+        font-size: 13px;
+        color: var(--dim);
+      }
+      .hero-note b {
+        color: var(--green);
+        font-weight: 600;
+      }
+
+      /* ─── Section scaffolding ─── */
+      section {
+        padding: 64px 0;
+        position: relative;
+      }
+      .sec-title {
+        text-align: center;
+        font-size: clamp(24px, 4vw, 34px);
+        font-weight: 800;
+        margin-bottom: 10px;
+        letter-spacing: -0.01em;
+      }
+      .sec-sub {
+        text-align: center;
+        color: var(--muted);
+        max-width: 560px;
+        margin: 0 auto 44px;
+        font-size: 15.5px;
+      }
+      .gold-text {
+        color: var(--gold);
+      }
+
+      /* ─── Comparison table ─── */
+      .cmp-card {
+        background: linear-gradient(180deg, var(--panel) 0%, var(--bg2) 100%);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+      .cmp-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14.5px;
+      }
+      .cmp-table th,
+      .cmp-table td {
+        padding: 15px 20px;
+        text-align: center;
+      }
+      .cmp-table th:first-child,
+      .cmp-table td:first-child {
+        text-align: left;
+      }
+      .cmp-table thead th {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--dim);
+        border-bottom: 1px solid var(--border);
+        padding-top: 22px;
+        padding-bottom: 16px;
+      }
+      .cmp-table thead th.col-premium {
+        color: var(--gold);
+        position: relative;
+        background: linear-gradient(
+          180deg,
+          rgba(245, 197, 24, 0.1),
+          rgba(245, 197, 24, 0.035)
+        );
+      }
+      .cmp-table tbody tr {
+        border-bottom: 1px solid rgba(31, 45, 64, 0.55);
+        transition: background 0.15s;
+      }
+      .cmp-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.015);
+      }
+      .cmp-table tbody tr:last-child {
+        border-bottom: none;
+      }
+      .cmp-table td.col-premium {
+        background: rgba(245, 197, 24, 0.045);
+        color: #ffe9a3;
+        font-weight: 600;
+      }
+      .cmp-table td .feat-name {
+        font-weight: 600;
+        color: var(--text);
+        display: block;
+      }
+      .cmp-table td .feat-desc {
+        font-size: 12.5px;
+        color: var(--dim);
+        display: block;
+        margin-top: 2px;
+      }
+      .pill-free {
+        color: var(--muted);
+      }
+      .pill-inf {
+        color: var(--gold);
+        font-weight: 800;
+        letter-spacing: 0.02em;
+      }
+      .cmp-table thead th.col-gold {
+        color: #ffd86b;
+      }
+      .cmp-table td.col-gold {
+        color: #ffe9a3;
+        font-weight: 600;
+      }
+      .lock {
+        opacity: 0.55;
+      }
+
+      /* ─── How it works ─── */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        counter-reset: step;
+      }
+      .step {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 26px 22px;
+        position: relative;
+        transition: 0.2s;
+      }
+      .step:hover {
+        border-color: var(--gold-border);
+        transform: translateY(-3px);
+      }
+      .step::before {
+        counter-increment: step;
+        content: counter(step);
+        position: absolute;
+        top: -16px;
+        left: 22px;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 15px;
+        color: #1a1405;
+        background: linear-gradient(135deg, #f7d54a, #e8a317);
+        box-shadow: 0 4px 14px rgba(245, 197, 24, 0.35);
+      }
+      .step h3 {
+        font-size: 16.5px;
+        margin: 8px 0 8px;
+      }
+      .step p {
+        color: var(--muted);
+        font-size: 13.8px;
+      }
+      .step .ico {
+        font-size: 26px;
+        margin-bottom: 4px;
+        display: block;
+      }
+
+      /* ─── Account linking widget ─── */
+      .link-card {
+        max-width: 520px;
+        margin: 0 auto;
+        background: linear-gradient(
+          180deg,
+          var(--panel2) 0%,
+          var(--panel) 100%
+        );
+        border: 1px solid var(--gold-border);
+        border-radius: 20px;
+        padding: 30px 30px 26px;
+        box-shadow:
+          0 18px 50px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(245, 197, 24, 0.06) inset;
+      }
+      .link-card h3 {
+        font-size: 18px;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .link-card .sub {
+        color: var(--muted);
+        font-size: 13.5px;
+        margin-bottom: 20px;
+      }
+      .fld {
+        margin-bottom: 12px;
+      }
+      .fld input {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border2);
+        border-radius: 10px;
+        padding: 12px 14px;
+        color: var(--text);
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .fld input:focus {
+        border-color: var(--gold);
+      }
+      .msg {
+        min-height: 20px;
+        font-size: 13px;
+        margin: 6px 0 10px;
+      }
+      .msg.err {
+        color: #ff7b72;
+      }
+      .msg.ok {
+        color: var(--green);
+      }
+      .btn-block {
+        width: 100%;
+        justify-content: center;
+      }
+      .acct-status {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 13px 16px;
+        margin-bottom: 14px;
+      }
+      .acct-status .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .dot.on {
+        background: var(--green2);
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+      }
+      .dot.off {
+        background: var(--dim);
+      }
+      .dot.gold {
+        background: var(--gold);
+        box-shadow: 0 0 8px rgba(245, 197, 24, 0.7);
+      }
+      .acct-status .lbl {
+        font-size: 13.5px;
+        color: var(--muted);
+      }
+      .acct-status .val {
+        font-size: 14px;
+        font-weight: 700;
+        margin-left: auto;
+      }
+      .link-actions {
+        display: flex;
+        gap: 10px;
+        flex-direction: column;
+      }
+      .btn-github {
+        background: #1c2128;
+        border: 1px solid #30363d;
+        color: var(--text);
+      }
+      .btn-github:hover {
+        border-color: var(--gold-border);
+        transform: translateY(-1px);
+      }
+      .btn-github svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+      }
+      .mini-link {
+        font-size: 12.5px;
+        color: var(--dim);
+        text-align: center;
+        margin-top: 12px;
+      }
+      .mini-link button {
+        color: var(--dim);
+        text-decoration: underline;
+        font-size: 12.5px;
+      }
+      .mini-link button:hover {
+        color: #ff7b72;
+      }
+
+      /* ─── Pricing ─── */
+      .bill-toggle {
+        display: flex;
+        justify-content: center;
+        gap: 0;
+        margin: 0 auto 30px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 30px;
+        padding: 4px;
+        width: max-content;
+      }
+      .bill-opt {
+        padding: 8px 20px;
+        border-radius: 24px;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--muted);
+        transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+      }
+      .bill-opt.active {
+        background: linear-gradient(135deg, #f7d54a, #e8a317);
+        color: #1a1405;
+      }
+      .bill-save {
+        font-size: 11px;
+        background: var(--green2);
+        color: #04210f;
+        font-weight: 800;
+        padding: 1px 7px;
+        border-radius: 10px;
+        margin-left: 7px;
+      }
+      .bill-opt.active .bill-save {
+        background: #1a1405;
+        color: var(--gold);
+      }
+      .plans {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 300px));
+        gap: 20px;
+        justify-content: center;
+      }
+      .plan {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 32px 28px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        transition: 0.22s;
+      }
+      .plan:hover {
+        transform: translateY(-4px);
+      }
+      .plan.best {
+        border-color: var(--gold-border);
+        background:
+          linear-gradient(
+            180deg,
+            rgba(245, 197, 24, 0.07) 0%,
+            rgba(18, 26, 38, 0) 45%
+          ),
+          var(--panel);
+        box-shadow:
+          0 20px 55px rgba(0, 0, 0, 0.45),
+          0 0 30px rgba(245, 197, 24, 0.07);
+      }
+      .plan .flag {
+        position: absolute;
+        top: -13px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #f7d54a, #e8a317);
+        color: #1a1405;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 14px;
+        border-radius: 20px;
+        box-shadow: 0 4px 14px rgba(245, 197, 24, 0.4);
+      }
+      .plan h3 {
+        font-size: 17px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .plan .price {
+        font-size: 42px;
+        font-weight: 900;
+        margin: 8px 0 2px;
+        letter-spacing: -0.02em;
+      }
+      .plan .price small {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--dim);
+      }
+      .plan .per {
+        color: var(--dim);
+        font-size: 13px;
+        margin-bottom: 20px;
+      }
+      .plan ul {
+        list-style: none;
+        margin-bottom: 26px;
+        flex: 1;
+      }
+      .plan li {
+        padding: 7px 0;
+        font-size: 14px;
+        color: var(--muted);
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+      }
+      .plan li::before {
+        content: "✓";
+        color: var(--gold);
+        font-weight: 800;
+        flex-shrink: 0;
+      }
+      .plan li.dimmed::before {
+        content: "·";
+        color: var(--dim);
+      }
+      .plan.free h3 {
+        color: var(--muted);
+      }
+      .plan.gold h3 {
+        color: var(--gold);
+      }
+      .plan.diamond h3 {
+        color: #9bd6ff;
+      }
+      .plan .price small {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--dim);
+      }
+      .plan button[disabled] {
+        opacity: 0.5;
+        cursor: default;
+        pointer-events: none;
+      }
+
+      /* ─── FAQ ─── */
+      .faq {
+        max-width: 680px;
+        margin: 0 auto;
+      }
+      details {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        margin-bottom: 10px;
+        overflow: hidden;
+        transition: border-color 0.2s;
+      }
+      details[open] {
+        border-color: var(--gold-border);
+      }
+      summary {
+        padding: 16px 20px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14.5px;
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      summary::after {
+        content: "+";
+        color: var(--gold);
+        font-size: 19px;
+        font-weight: 400;
+        transition: transform 0.2s;
+      }
+      details[open] summary::after {
+        transform: rotate(45deg);
+      }
+      details .ans {
+        padding: 0 20px 17px;
+        color: var(--muted);
+        font-size: 13.8px;
+      }
+
+      /* ─── Toast ─── */
+      .toast {
+        position: fixed;
+        bottom: 26px;
+        left: 50%;
+        transform: translateX(-50%) translateY(90px);
+        background: var(--panel2);
+        border: 1px solid var(--gold-border);
+        color: var(--text);
+        padding: 13px 22px;
+        border-radius: 13px;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 100;
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.55);
+        opacity: 0;
+        transition:
+          transform 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.18),
+          opacity 0.3s;
+        max-width: min(440px, 90vw);
+        text-align: center;
+      }
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+      .toast.err {
+        border-color: rgba(255, 123, 114, 0.5);
+      }
+
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 30px 0 40px;
+        text-align: center;
+        color: var(--dim);
+        font-size: 13px;
+      }
+      footer a {
+        color: var(--muted);
+        margin: 0 9px;
+      }
+
+      /* ─── Reveal on scroll ─── */
+      .rv {
+        opacity: 0;
+        transform: translateY(22px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+      .rv.in {
+        opacity: 1;
+        transform: none;
+      }
+
+      @media (max-width: 860px) {
+        .steps {
+          grid-template-columns: 1fr;
+          gap: 26px;
+        }
+        .plans {
+          grid-template-columns: 1fr;
+        }
+        .cmp-table {
+          font-size: 13px;
+        }
+        .cmp-table th,
+        .cmp-table td {
+          padding: 12px 10px;
+        }
+        .float-piece {
+          display: none;
+        }
+        .hero {
+          padding: 56px 0 40px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+        .rv {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      /* ─── Yaşayan maskot (roaming fox) ─── */
+      .fox-mascot {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 40;
+        width: var(--fox-size, 96px);
+        height: var(--fox-size, 96px);
+        pointer-events: none;
+        will-change: transform;
+        transform: translate3d(0, 0, 0);
+      }
+      .fox-mascot-body {
+        position: absolute;
+        inset: 0;
+        pointer-events: auto;
+        cursor: pointer;
+        transform: scaleX(1);
+        transition: transform 0.25s ease;
+        -webkit-tap-highlight-color: transparent;
+      }
+      /* Temel görsel sola bakar; sağa giderken yatay aynala. */
+      .fox-mascot.face-right .fox-mascot-body {
+        transform: scaleX(-1);
+      }
+      .fox-mascot-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+      .fox-mascot.is-walking .fox-mascot-img {
+        animation: foxWalk 0.5s ease-in-out infinite;
+      }
+      @keyframes foxWalk {
+        0%,
+        100% {
+          transform: translateY(0) rotate(-2.5deg);
+        }
+        50% {
+          transform: translateY(-6px) rotate(2.5deg);
+        }
+      }
+      .fox-mascot.is-idle .fox-mascot-img {
+        animation: foxBreath 3.4s ease-in-out infinite;
+      }
+      @keyframes foxBreath {
+        0%,
+        100% {
+          transform: translateY(0) scale(1, 1);
+        }
+        50% {
+          transform: translateY(-2px) scale(1.015, 0.99);
+        }
+      }
+      .fox-mascot.is-hop .fox-mascot-img {
+        animation: foxHop 0.55s ease;
+      }
+      @keyframes foxHop {
+        0% {
+          transform: translateY(0) scale(1, 1);
+        }
+        28% {
+          transform: translateY(-30px) scale(0.9, 1.12);
+        }
+        58% {
+          transform: translateY(0) scale(1.1, 0.9);
+        }
+        100% {
+          transform: translateY(0) scale(1, 1);
+        }
+      }
+      .fox-bubble {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% - 8px);
+        transform: translateX(-50%) translateY(8px) scale(0.9);
+        background: var(--panel2);
+        border: 1px solid var(--gold-border);
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.4;
+        padding: 9px 13px;
+        border-radius: 13px;
+        width: max-content;
+        max-width: 220px;
+        text-align: center;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.18);
+      }
+      .fox-bubble.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
+      .fox-bubble::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 7px solid transparent;
+        border-top-color: var(--panel2);
+      }
+      .fox-dismiss {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        z-index: 2;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--panel2);
+        border: 1px solid var(--border2);
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        pointer-events: auto;
+        opacity: 0;
+        transition:
+          opacity 0.2s,
+          color 0.2s,
+          border-color 0.2s;
+      }
+      .fox-mascot:hover .fox-dismiss {
+        opacity: 1;
+      }
+      .fox-dismiss:hover {
+        color: #ff7b72;
+        border-color: rgba(255, 123, 114, 0.5);
+      }
+      .fox-reshow {
+        position: fixed;
+        left: 18px;
+        bottom: 18px;
+        z-index: 40;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: var(--panel2);
+        border: 1px solid var(--gold-border);
+        font-size: 24px;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+        transition: transform 0.18s;
+      }
+      .fox-reshow:hover {
+        transform: translateY(-3px) scale(1.06);
+      }
+      @media (max-width: 760px) {
+        .fox-mascot {
+          --fox-size: 72px;
+        }
+        .fox-bubble {
+          max-width: 160px;
+          font-size: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="float-piece fp-1">♞</div>
+    <div class="float-piece fp-2">♛</div>
+    <div class="float-piece fp-3">♜</div>
+
+    <header>
+      <div class="wrap nav">
+        <a class="brand" href="/">
+          <img src="/icons/maskot.png" alt="ForkSight" />
+          ForkSight <span class="crown">★ PREMIUM</span>
+        </a>
+        <div class="nav-right">
+          <button class="lang-btn" id="langBtn">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ─── HERO ─── -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-badge">
+          ♟
+          <span data-i="heroBadge"
+            >Açık kaynak projeye destek ol, Premium senin olsun</span
+          >
+        </div>
+        <h1>
+          <span data-i="heroLine1">Satrancın</span><br />
+          <span class="shimmer" data-i="heroLine2">sınırsız hali.</span>
+        </h1>
+        <p class="lead" data-i="heroLead">
+          Sınırsız oyun analizi, sınırsız bulmaca ipucu, yapay zekâ sesli koç
+          anlatımı ve derinlik 25 motor gücü. GitHub Sponsors üzerinden destekle
+          — premium saniyeler içinde hesabında.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-gold" id="ctaSponsor" href="#plans"
+            >★ <span data-i="ctaSponsor">Premium'a Geç</span></a
+          >
+          <a class="btn btn-ghost" href="#compare"
+            ><span data-i="ctaCompare">Neler kazanırım?</span> ↓</a
+          >
+        </div>
+        <div class="hero-note" data-i-html="heroNote">
+          Ödemeler <b>GitHub Sponsors</b> güvencesiyle alınır — kart bilgin bize
+          hiç ulaşmaz.
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── COMPARISON ─── -->
+    <section id="compare">
+      <div class="wrap">
+        <h2 class="sec-title rv">
+          <span data-i="cmpTitle1">Free güzel.</span>
+          <span class="gold-text" data-i="cmpTitle2">Premium bambaşka.</span>
+        </h2>
+        <p class="sec-sub rv" data-i="cmpSub">
+          Aşağıdaki limitler sunucudaki gerçek değerlerdir — pazarlama metni
+          değil.
+        </p>
+        <div class="cmp-card rv">
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th data-i="thFeature">Özellik</th>
+                <th data-i="thFree">Free</th>
+                <th class="col-gold" data-i="thGold">★ Gold</th>
+                <th class="col-premium" data-i="thDiamond">💎 Diamond</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <span class="feat-name" data-i="fGameA">Oyun analizi</span
+                  ><span class="feat-desc" data-i="fGameAd"
+                    >Oyun sonrası tam motor incelemesi</span
+                  >
+                </td>
+                <td class="pill-free"><span data-i="perDay3">3 / gün</span></td>
+                <td class="col-gold">
+                  <span data-i="valGold25">25 / gün</span>
+                </td>
+                <td class="col-premium">
+                  <span class="pill-inf" data-i="unlimited">Sınırsız</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="feat-name" data-i="fHint">Bulmaca ipucu</span
+                  ><span class="feat-desc" data-i="fHintd"
+                    >Kademeli ipucu sistemi (3 seviye)</span
+                  >
+                </td>
+                <td class="pill-free"><span data-i="perDay3">3 / gün</span></td>
+                <td class="col-gold">
+                  <span data-i="valGold30">30 / gün</span>
+                </td>
+                <td class="col-premium">
+                  <span class="pill-inf" data-i="unlimited">Sınırsız</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="feat-name" data-i="fTts">Sesli koç anlatımı</span
+                  ><span class="feat-desc" data-i="fTtsd"
+                    >ElevenLabs yapay zekâ sesi ile hamle yorumları</span
+                  >
+                </td>
+                <td class="pill-free">
+                  <span data-i="tts500">500 karakter / gün</span>
+                </td>
+                <td class="col-gold">
+                  <span data-i="ttsGold">5.000 karakter / gün</span>
+                </td>
+                <td class="col-premium">
+                  <span data-i="ttsDiamond">20.000 karakter / gün</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="feat-name" data-i="fReview"
+                    >Detaylı koç incelemesi</span
+                  ><span class="feat-desc" data-i="fReviewd"
+                    >Hamle hamle anlatımlı tam oyun dersi</span
+                  >
+                </td>
+                <td class="pill-free">
+                  <span data-i="perWeek2">2 / hafta</span>
+                </td>
+                <td class="col-gold">
+                  <span data-i="reviewGold">15 / hafta</span>
+                </td>
+                <td class="col-premium">
+                  <span class="pill-inf" data-i="unlimited">Sınırsız</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="feat-name" data-i="fBackfill"
+                    >Oyun arşivi yükleme</span
+                  ><span class="feat-desc" data-i="fBackfilld"
+                    >Chess.com geçmişinden bulmaca üretimi</span
+                  >
+                </td>
+                <td class="pill-free">
+                  <span data-i="perDay5">5 oyun / gün</span>
+                </td>
+                <td class="col-gold">
+                  <span data-i="backfillGold">25 oyun / gün</span>
+                </td>
+                <td class="col-premium">
+                  <span data-i="perDay50">50 oyun / gün</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="feat-name" data-i="fDepth">Motor derinliği</span
+                  ><span class="feat-desc" data-i="fDepthd"
+                    >Stockfish 17 NNUE analiz derinliği</span
+                  >
+                </td>
+                <td class="pill-free">
+                  <span data-i="depth8">Derinlik 8</span>
+                </td>
+                <td class="col-gold">
+                  <span data-i="depthGold">Derinlik 18</span>
+                </td>
+                <td class="col-premium">
+                  <span data-i="depth25">Derinlik 25</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="feat-name" data-i="fSupport"
+                    >Geliştirici desteği</span
+                  ><span class="feat-desc" data-i="fSupportd"
+                    >Açık kaynak projenin yaşamasını sağlarsın</span
+                  >
+                </td>
+                <td class="pill-free lock">—</td>
+                <td class="col-gold">♥</td>
+                <td class="col-premium">♥♥</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── HOW IT WORKS ─── -->
+    <section id="how">
+      <div class="wrap">
+        <h2 class="sec-title rv" data-i="howTitle">Nasıl çalışır?</h2>
+        <p class="sec-sub rv" data-i="howSub">
+          Üç adımda premium — hepsi otomatik.
+        </p>
+        <div class="steps">
+          <div class="step rv">
+            <span class="ico">🔗</span>
+            <h3 data-i="step1t">Hesabını bağla</h3>
+            <p data-i="step1p">
+              ForkSight hesabına giriş yap ve GitHub hesabını tek tıkla eşle.
+            </p>
+          </div>
+          <div class="step rv">
+            <span class="ico">♥</span>
+            <h3 data-i="step2t">Sponsor ol</h3>
+            <p data-i="step2p">
+              GitHub Sponsors üzerinden aylık ya da tek seferlik destekle. Ödeme
+              tamamen GitHub'da.
+            </p>
+          </div>
+          <div class="step rv">
+            <span class="ico">⚡</span>
+            <h3 data-i="step3t">Premium aktif</h3>
+            <p data-i="step3p">
+              Sponsorluğun bize ulaşır ulaşmaz premium hesabında otomatik
+              açılır.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── ACCOUNT LINKING ─── -->
+    <section id="link">
+      <div class="wrap">
+        <h2 class="sec-title rv" data-i="linkTitle">Hesabını bağla</h2>
+        <p class="sec-sub rv" data-i="linkSub">
+          Premium'un doğru hesaba tanımlanması için GitHub hesabını ForkSight
+          hesabınla eşle.
+        </p>
+        <div class="link-card rv">
+          <!-- Logged-in / status view -->
+          <div id="statusView" style="display: none">
+            <div class="acct-status">
+              <span class="dot on"></span>
+              <span class="lbl" data-i="lblAccount">ForkSight hesabı</span>
+              <span class="val" id="svUser">—</span>
+            </div>
+            <div class="acct-status">
+              <span class="dot off" id="ghDot"></span>
+              <span class="lbl" data-i="lblGithub">GitHub bağlantısı</span>
+              <span class="val" id="svGithub" data-i="notLinked"
+                >Bağlı değil</span
+              >
+            </div>
+            <div class="acct-status">
+              <span class="dot off" id="prDot"></span>
+              <span class="lbl" data-i="lblPremium">Premium durumu</span>
+              <span class="val" id="svPremium" data-i="statusFree">Free</span>
+            </div>
+            <div class="link-actions">
+              <button class="btn btn-github btn-block" id="btnLinkGithub">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path
+                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                  />
+                </svg>
+                <span data-i="btnLinkGithub">GitHub ile bağla</span>
+              </button>
+              <button
+                class="btn btn-gold btn-block"
+                id="btnSponsor"
+                data-sponsor
+              >
+                ★ <span data-i="btnSponsor">GitHub Sponsors'a git</span>
+              </button>
+            </div>
+            <div class="mini-link">
+              <button id="btnRefresh" data-i="btnRefresh">Durumu yenile</button>
+              &nbsp;·&nbsp;
+              <button id="btnLogout" data-i="btnLogout">Çıkış yap</button>
+            </div>
+          </div>
+          <!-- Login view -->
+          <div id="loginView">
+            <h3>♟ <span data-i="loginTitle">ForkSight girişi</span></h3>
+            <p class="sub" data-i="loginSub">
+              Premium bağlamak için önce hesabına giriş yap.
+            </p>
+            <div class="fld">
+              <input
+                id="liUser"
+                type="text"
+                placeholder="Kullanıcı adı"
+                autocomplete="username"
+              />
+            </div>
+            <div class="fld">
+              <input
+                id="liPass"
+                type="password"
+                placeholder="Şifre"
+                autocomplete="current-password"
+              />
+            </div>
+            <div class="msg" id="liMsg"></div>
+            <button class="btn btn-gold btn-block" id="btnLogin">
+              🔑 <span data-i="btnLogin">Giriş yap</span>
+            </button>
+            <div class="mini-link">
+              <span data-i="noAccount"
+                >Hesabın yok mu? Eklentiden kayıt olabilirsin.</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PRICING ─── -->
+    <section id="plans">
+      <div class="wrap">
+        <h2 class="sec-title rv" data-i="plansTitle">Üyelik planları</h2>
+        <p class="sec-sub rv" data-i="plansSub">
+          Sana uyan kademeyi seç — Gold ya da Diamond. Yıllık ödemede 2 ay
+          bedava.
+        </p>
+        <div class="bill-toggle rv">
+          <button class="bill-opt active" id="billMonthly" data-i="billMonthly">
+            Aylık
+          </button>
+          <button class="bill-opt" id="billYearly">
+            <span data-i="billYearly">Yıllık</span>
+            <span class="bill-save" data-i="billSave">2 ay bedava</span>
+          </button>
+        </div>
+        <div class="plans">
+          <div class="plan free rv">
+            <h3 data-i="planFreeTitle">Free</h3>
+            <div class="price">$0</div>
+            <div class="per" data-i="planFreePer">sonsuza kadar ücretsiz</div>
+            <ul>
+              <li data-i="planFree1">Günde 3 oyun analizi</li>
+              <li data-i="planFree2">Günde 3 bulmaca ipucu</li>
+              <li data-i="planFree3">Derinlik 8 motor</li>
+              <li class="dimmed" data-i="planFree4">
+                Sesli koç sınırlı (500 karakter/gün)
+              </li>
+            </ul>
+            <button
+              class="btn btn-ghost btn-block"
+              disabled
+              data-i="planFreeCta"
+            >
+              Mevcut planın
+            </button>
+          </div>
+          <div class="plan gold rv">
+            <h3 data-i="planGoldTitle">★ Gold</h3>
+            <div class="price" id="goldPrice">$3<small>/ay</small></div>
+            <div class="per" id="goldPer">sponsorluğun sürdükçe premium</div>
+            <ul>
+              <li data-i="planGold1">Günde 25 oyun analizi</li>
+              <li data-i="planGold2">Günde 30 bulmaca ipucu</li>
+              <li data-i="planGold3">Sesli koç 5.000 karakter/gün</li>
+              <li data-i="planGold4">
+                Derinlik 18 motor + 15 koç incelemesi/hafta
+              </li>
+            </ul>
+            <button class="btn btn-ghost btn-block" data-sponsor>
+              ★ <span data-i="planGoldCta">Gold Ol</span>
+            </button>
+          </div>
+          <div class="plan diamond best rv">
+            <span class="flag" data-i="planFlag">En popüler</span>
+            <h3 data-i="planDiaTitle">💎 Diamond</h3>
+            <div class="price" id="diamondPrice">$6<small>/ay</small></div>
+            <div class="per" id="diamondPer">sponsorluğun sürdükçe premium</div>
+            <ul>
+              <li data-i="planDia1">Sınırsız oyun analizi</li>
+              <li data-i="planDia2">Sınırsız bulmaca ipucu</li>
+              <li data-i="planDia3">Sesli koç 20.000 karakter/gün</li>
+              <li data-i="planDia4">Derinlik 25 + sınırsız koç incelemesi</li>
+            </ul>
+            <button class="btn btn-gold btn-block" data-sponsor>
+              💎 <span data-i="planDiaCta">Diamond Ol</span>
+            </button>
+          </div>
+        </div>
+        <p class="hero-note" style="text-align: center" data-i-html="plansNote">
+          Ödeme tamamen <b>GitHub Sponsors</b> üzerinden alınır. Kart bilgilerin
+          bize hiç ulaşmaz.
+        </p>
+      </div>
+    </section>
+
+    <!-- ─── FAQ ─── -->
+    <section id="faq">
+      <div class="wrap">
+        <h2 class="sec-title rv" data-i="faqTitle">Sık sorulanlar</h2>
+        <div class="faq rv">
+          <details>
+            <summary data-i="faq1q">
+              Premium ne kadar sürede aktif olur?
+            </summary>
+            <div class="ans" data-i="faq1a">
+              GitHub hesabını bağladıysan, sponsorluğun bize ulaştığı anda
+              (genelde saniyeler içinde) otomatik aktive olur. Önce sponsor olup
+              sonra hesabını bağlarsan, bağladığın anda devreye girer.
+            </div>
+          </details>
+          <details>
+            <summary data-i="faq2q">
+              GitHub hesabımı neden bağlamam gerekiyor?
+            </summary>
+            <div class="ans" data-i="faq2a">
+              GitHub bize yalnızca sponsorun GitHub kullanıcı adını bildirir.
+              Doğru ForkSight hesabına premium tanımlayabilmemiz için bu iki
+              hesabı eşlememiz gerekir.
+            </div>
+          </details>
+          <details>
+            <summary data-i="faq3q">Aboneliğimi iptal edersem ne olur?</summary>
+            <div class="ans" data-i="faq3a">
+              Aylık sponsorluğu istediğin an GitHub üzerinden iptal edebilirsin.
+              Mevcut fatura dönemin sonuna kadar premium açık kalır, sonra
+              otomatik olarak Free'ye döner.
+            </div>
+          </details>
+          <details>
+            <summary data-i="faq4q">Kart bilgilerim güvende mi?</summary>
+            <div class="ans" data-i="faq4a">
+              Evet. Tüm ödeme GitHub Sponsors altyapısında işlenir; ForkSight
+              kart ya da ödeme bilgisi görmez, saklamaz.
+            </div>
+          </details>
+          <details>
+            <summary data-i="faq5q">Premium ne kazandırıyor?</summary>
+            <div class="ans" data-i="faq5a">
+              Gold: günde 25 oyun analizi ve 30 ipucu, 5.000 karakter/gün sesli
+              koç, derinlik 18 motor. Diamond: sınırsız analiz ve ipucu, 20.000
+              karakter/gün sesli koç, sınırsız detaylı koç incelemesi ve
+              derinlik 25 motor gücü. İkisinde de açık kaynak projeyi
+              yaşatırsın.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <div>
+          <a href="/" data-i="footHome">Ana sayfa</a>
+          <a href="/premium" data-i="footPremium">Premium</a>
+        </div>
+        <p style="margin-top: 10px">
+          © <span id="year"></span> ForkSight ·
+          <span data-i="footNote">Açık kaynak satranç koçu</span>
+        </p>
+      </div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      (function () {
+        "use strict";
+        const API = location.origin;
+        // GitHub Sponsors sayfası.
+        const SPONSOR_URL = "https://github.com/sponsors/mrtcnygt0";
+        const TOKEN_KEY = "forksight_token";
+        const USER_KEY = "forksight_user";
+        const $ = (s) => document.querySelector(s);
+
+        // ─── i18n: TR baseline DOM'dan yakalanır, EN sözlükle override ───
+        const TR = {};
+        document.querySelectorAll("[data-i]").forEach((el) => {
+          TR[el.dataset.i] = el.textContent;
+        });
+        document.querySelectorAll("[data-i-html]").forEach((el) => {
+          TR[el.dataset.iHtml] = el.innerHTML;
+        });
+
+        const EN = {
+          heroBadge: "Support the open-source project, Premium is yours",
+          heroLine1: "Chess,",
+          heroLine2: "without limits.",
+          heroLead:
+            "Unlimited game analysis, unlimited puzzle hints, AI voice coaching and depth-25 engine power. Support via GitHub Sponsors — premium lands in your account in seconds.",
+          ctaSponsor: "Go Premium",
+          ctaCompare: "What do I get?",
+          heroNote:
+            "Payments are handled securely by <b>GitHub Sponsors</b> — your card details never reach us.",
+          cmpTitle1: "Free is nice.",
+          cmpTitle2: "Premium is another league.",
+          cmpSub:
+            "The limits below are the real server values — not marketing copy.",
+          thFeature: "Feature",
+          thFree: "Free",
+          thGold: "★ Gold",
+          thDiamond: "💎 Diamond",
+          fGameA: "Game analysis",
+          fGameAd: "Full post-game engine review",
+          perDay3: "3 / day",
+          valGold25: "25 / day",
+          valGold30: "30 / day",
+          unlimited: "Unlimited",
+          fHint: "Puzzle hint",
+          fHintd: "Tiered hint system (3 levels)",
+          fTts: "Voice coaching",
+          fTtsd: "Move commentary with ElevenLabs AI voice",
+          tts500: "500 chars / day",
+          ttsGold: "5,000 chars / day",
+          ttsDiamond: "20,000 chars / day",
+          fReview: "Deep coach review",
+          fReviewd: "Move-by-move narrated full-game lesson",
+          perWeek2: "2 / week",
+          reviewGold: "15 / week",
+          fBackfill: "Game archive import",
+          fBackfilld: "Generate puzzles from Chess.com history",
+          perDay5: "5 games / day",
+          backfillGold: "25 games / day",
+          perDay50: "50 games / day",
+          fDepth: "Engine depth",
+          fDepthd: "Stockfish 17 NNUE analysis depth",
+          depth8: "Depth 8",
+          depthGold: "Depth 18",
+          depth25: "Depth 25",
+          fSupport: "Developer support",
+          fSupportd: "You keep the open-source project alive",
+          howTitle: "How it works",
+          howSub: "Premium in three steps — all automatic.",
+          step1t: "Link your account",
+          step1p:
+            "Sign in to ForkSight and link your GitHub account with one click.",
+          step2t: "Become a sponsor",
+          step2p:
+            "Support monthly or one-time via GitHub Sponsors. Payment stays on GitHub.",
+          step3t: "Premium activates",
+          step3p:
+            "The moment your sponsorship reaches us, premium turns on automatically.",
+          linkTitle: "Link your account",
+          linkSub:
+            "Match your GitHub account with your ForkSight account so premium lands on the right user.",
+          lblAccount: "ForkSight account",
+          lblGithub: "GitHub link",
+          notLinked: "Not linked",
+          lblPremium: "Premium status",
+          statusFree: "Free",
+          btnLinkGithub: "Link with GitHub",
+          btnSponsor: "Go to GitHub Sponsors",
+          btnRefresh: "Refresh status",
+          btnLogout: "Log out",
+          loginTitle: "ForkSight sign in",
+          loginSub: "Sign in to your account first to link premium.",
+          btnLogin: "Sign in",
+          noAccount: "No account? You can register from the extension.",
+          plansTitle: "Membership plans",
+          plansSub:
+            "Pick the tier that fits — Gold or Diamond. Yearly billing gets 2 months free.",
+          billMonthly: "Monthly",
+          billYearly: "Yearly",
+          billSave: "2 months free",
+          planFreeTitle: "Free",
+          planFreePer: "free forever",
+          planFree1: "3 game analyses per day",
+          planFree2: "3 puzzle hints per day",
+          planFree3: "Depth 8 engine",
+          planFree4: "Limited voice coaching (500 chars/day)",
+          planFreeCta: "Your current plan",
+          planGoldTitle: "★ Gold",
+          planGold1: "25 game analyses per day",
+          planGold2: "30 puzzle hints per day",
+          planGold3: "Voice coaching 5,000 chars/day",
+          planGold4: "Depth 18 engine + 15 coach reviews/week",
+          planGoldCta: "Get Gold",
+          planFlag: "Most popular",
+          planDiaTitle: "💎 Diamond",
+          planDia1: "Unlimited game analysis",
+          planDia2: "Unlimited puzzle hints",
+          planDia3: "Voice coaching 20,000 chars/day",
+          planDia4: "Depth 25 + unlimited coach reviews",
+          planDiaCta: "Get Diamond",
+          plansNote:
+            "Payment is handled entirely through <b>GitHub Sponsors</b>. Your card details never reach us.",
+          faqTitle: "Frequently asked",
+          faq1q: "How fast does premium activate?",
+          faq1a:
+            "If you've linked your GitHub account, it activates automatically the moment your sponsorship reaches us (usually within seconds). If you sponsor first and link later, it kicks in the moment you link.",
+          faq2q: "Why do I need to link my GitHub account?",
+          faq2a:
+            "GitHub only tells us the sponsor's GitHub username. To grant premium to the correct ForkSight account we need to match the two accounts.",
+          faq3q: "What happens if I cancel?",
+          faq3a:
+            "You can cancel a monthly sponsorship anytime on GitHub. Premium stays on until the end of your current billing cycle, then automatically reverts to Free.",
+          faq4q: "Are my card details safe?",
+          faq4a:
+            "Yes. All payment is processed by GitHub Sponsors; ForkSight never sees or stores any card or payment info.",
+          faq5q: "What does premium give me?",
+          faq5a:
+            "Gold: 25 game analyses & 30 hints per day, 5,000 chars/day voice coaching, depth-18 engine. Diamond: unlimited analysis & hints, 20,000 chars/day voice coaching, unlimited coach reviews and depth-25 engine. Both keep the open-source project alive.",
+          footHome: "Home",
+          footPremium: "Premium",
+          footNote: "Open-source chess coach",
+        };
+
+        const MSG = {
+          tr: {
+            loginEmpty: "Kullanıcı adı ve şifre gerekli.",
+            loggingIn: "⏳ Giriş yapılıyor…",
+            loginFail: "Giriş başarısız.",
+            serverErr: "Sunucu bağlantı hatası.",
+            needLogin: "Önce giriş yapmalısın.",
+            linkedOk: "✅ GitHub bağlandı! Sponsorluğun varsa premium aktif.",
+            refreshed: "Durum güncellendi.",
+            free: "Free",
+            notLinked: "Bağlı değil",
+            tierGold: "★ Gold",
+            tierDiamond: "💎 Diamond",
+            premiumGeneric: "★ Premium",
+            untilWord: "bitiş",
+          },
+          en: {
+            loginEmpty: "Username and password required.",
+            loggingIn: "⏳ Signing in…",
+            loginFail: "Sign in failed.",
+            serverErr: "Server connection error.",
+            needLogin: "You need to sign in first.",
+            linkedOk:
+              "✅ GitHub linked! Premium is active if you're a sponsor.",
+            refreshed: "Status updated.",
+            free: "Free",
+            notLinked: "Not linked",
+            tierGold: "★ Gold",
+            tierDiamond: "💎 Diamond",
+            premiumGeneric: "★ Premium",
+            untilWord: "until",
+          },
+        };
+
+        let lang = localStorage.getItem("forksight_lang") || "tr";
+        let lastStatus = null;
+
+        function t(key) {
+          return (MSG[lang] && MSG[lang][key]) || MSG.tr[key] || key;
+        }
+
+        function applyLang() {
+          const dict = lang === "en" ? EN : TR;
+          document.querySelectorAll("[data-i]").forEach((el) => {
+            const v = dict[el.dataset.i];
+            if (v != null) el.textContent = v;
+          });
+          document.querySelectorAll("[data-i-html]").forEach((el) => {
+            const v = dict[el.dataset.iHtml];
+            if (v != null) el.innerHTML = v;
+          });
+          document.documentElement.lang = lang;
+          $("#langBtn").textContent = lang === "en" ? "TR" : "EN";
+          renderPrices();
+          if (lastStatus) renderStatus(lastStatus);
+        }
+
+        $("#langBtn").addEventListener("click", () => {
+          lang = lang === "en" ? "tr" : "en";
+          localStorage.setItem("forksight_lang", lang);
+          applyLang();
+        });
+
+        // ─── Billing period (aylık / yıllık) ───
+        // GitHub Sponsors tier'larıyla eşleşen fiyatlar. Aylık = recurring tier,
+        // yıllık = one-time tier (365 gün). Fiyat değişirse server.py sabitlerini
+        // (GOLD_*/DIAMOND_*) ve GitHub tier'larını da güncelle.
+        const PRICES = {
+          gold: { monthly: 3, yearly: 29 },
+          diamond: { monthly: 6, yearly: 59 },
+        };
+        let billing = "monthly";
+        function renderPrices() {
+          const moTxt = lang === "en" ? "/mo" : "/ay";
+          const yrTxt = lang === "en" ? "/yr" : "/yıl";
+          const perActive =
+            lang === "en"
+              ? "while your sponsorship is active"
+              : "sponsorluğun sürdükçe premium";
+          ["gold", "diamond"].forEach((tier) => {
+            const p = PRICES[tier];
+            const priceEl = $("#" + tier + "Price");
+            const perEl = $("#" + tier + "Per");
+            if (!priceEl || !perEl) return;
+            if (billing === "yearly") {
+              const perMo = (p.yearly / 12).toFixed(2).replace(/\.?0+$/, "");
+              priceEl.innerHTML =
+                "$" + p.yearly + "<small>" + yrTxt + "</small>";
+              perEl.textContent =
+                lang === "en"
+                  ? "$" + perMo + "/mo billed yearly"
+                  : "yıllık ödemede ≈ $" + perMo + "/ay";
+            } else {
+              priceEl.innerHTML =
+                "$" + p.monthly + "<small>" + moTxt + "</small>";
+              perEl.textContent = perActive;
+            }
+          });
+          const bm = $("#billMonthly");
+          const by = $("#billYearly");
+          if (bm) bm.classList.toggle("active", billing === "monthly");
+          if (by) by.classList.toggle("active", billing === "yearly");
+        }
+        $("#billMonthly").addEventListener("click", () => {
+          billing = "monthly";
+          renderPrices();
+        });
+        $("#billYearly").addEventListener("click", () => {
+          billing = "yearly";
+          renderPrices();
+        });
+
+        // ─── Token helpers ───
+        function getToken() {
+          return localStorage.getItem(TOKEN_KEY) || "";
+        }
+        function setToken(tok, user) {
+          localStorage.setItem(TOKEN_KEY, tok);
+          if (user) localStorage.setItem(USER_KEY, user);
+        }
+        function clearToken() {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+        }
+
+        // Extension may open this page with #token=...&user=...
+        (function ingestHashToken() {
+          if (!location.hash) return;
+          const h = new URLSearchParams(location.hash.slice(1));
+          const tok = h.get("token");
+          if (tok) {
+            setToken(tok, h.get("user") || "");
+            history.replaceState(null, "", location.pathname + location.search);
+          }
+        })();
+
+        // ─── Toast ───
+        let toastTimer = null;
+        function toast(msg, isErr) {
+          const el = $("#toast");
+          el.textContent = msg;
+          el.classList.toggle("err", !!isErr);
+          el.classList.add("show");
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => el.classList.remove("show"), 3800);
+        }
+
+        // ─── View toggles ───
+        function showStatus() {
+          $("#loginView").style.display = "none";
+          $("#statusView").style.display = "block";
+        }
+        function showLogin() {
+          $("#statusView").style.display = "none";
+          $("#loginView").style.display = "block";
+        }
+
+        function liMsg(text, isErr) {
+          const el = $("#liMsg");
+          el.textContent = text || "";
+          el.className = "msg" + (isErr ? " err" : text ? " ok" : "");
+        }
+
+        // ─── Render account status ───
+        function renderStatus(j) {
+          $("#svUser").textContent =
+            j.username || localStorage.getItem(USER_KEY) || "—";
+          const ghDot = $("#ghDot");
+          const svGithub = $("#svGithub");
+          if (j.github_login) {
+            ghDot.className = "dot on";
+            svGithub.textContent = "@" + j.github_login;
+          } else {
+            ghDot.className = "dot off";
+            svGithub.textContent = t("notLinked");
+          }
+          const prDot = $("#prDot");
+          const svPremium = $("#svPremium");
+          if (j.is_premium) {
+            prDot.className = "dot gold";
+            const tierName =
+              j.tier === "diamond"
+                ? t("tierDiamond")
+                : j.tier === "gold"
+                  ? t("tierGold")
+                  : t("premiumGeneric");
+            if (j.premium_until) {
+              const d = new Date(j.premium_until * 1000);
+              svPremium.textContent =
+                tierName +
+                " · " +
+                t("untilWord") +
+                " " +
+                d.toLocaleDateString(lang === "en" ? "en-US" : "tr-TR");
+            } else {
+              svPremium.textContent = tierName;
+            }
+          } else {
+            prDot.className = "dot off";
+            svPremium.textContent = t("free");
+          }
+        }
+
+        // ─── Load status from server ───
+        async function loadStatus() {
+          const tk = getToken();
+          if (!tk) {
+            showLogin();
+            return;
+          }
+          try {
+            const r = await fetch(API + "/me/link-status", {
+              headers: { Authorization: "Bearer " + tk },
+            });
+            if (r.status === 401) {
+              clearToken();
+              showLogin();
+              return;
+            }
+            const j = await r.json();
+            if (j && j.ok) {
+              lastStatus = j;
+              showStatus();
+              renderStatus(j);
+            }
+          } catch (e) {
+            /* offline */
+          }
+        }
+
+        // ─── Login ───
+        async function doLogin() {
+          const u = $("#liUser").value.trim();
+          const p = $("#liPass").value;
+          if (!u || !p) {
+            liMsg(t("loginEmpty"), true);
+            return;
+          }
+          liMsg(t("loggingIn"));
+          try {
+            const r = await fetch(API + "/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username: u, password: p }),
+            });
+            const j = await r.json();
+            if (j && j.ok && j.token) {
+              setToken(j.token, u);
+              liMsg("");
+              loadStatus();
+            } else {
+              liMsg((j && (j.error || j.detail)) || t("loginFail"), true);
+            }
+          } catch (e) {
+            liMsg(t("serverErr"), true);
+          }
+        }
+
+        // ─── Link GitHub ───
+        async function linkGithub() {
+          const tk = getToken();
+          if (!tk) {
+            toast(t("needLogin"), true);
+            showLogin();
+            return;
+          }
+          try {
+            const r = await fetch(API + "/auth/github/start", {
+              headers: { Authorization: "Bearer " + tk },
+            });
+            if (r.status === 401) {
+              clearToken();
+              showLogin();
+              toast(t("needLogin"), true);
+              return;
+            }
+            const j = await r.json();
+            if (j && j.url) {
+              location.href = j.url;
+            } else {
+              toast((j && j.error) || t("serverErr"), true);
+            }
+          } catch (e) {
+            toast(t("serverErr"), true);
+          }
+        }
+
+        // ─── Wire up ───
+        $("#btnLogin").addEventListener("click", doLogin);
+        $("#liPass").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") doLogin();
+        });
+        $("#btnLinkGithub").addEventListener("click", linkGithub);
+        $("#btnRefresh").addEventListener("click", () => {
+          loadStatus();
+          toast(t("refreshed"));
+        });
+        $("#btnLogout").addEventListener("click", () => {
+          clearToken();
+          lastStatus = null;
+          showLogin();
+        });
+        document.querySelectorAll("[data-sponsor]").forEach((b) => {
+          b.addEventListener("click", () =>
+            window.open(SPONSOR_URL, "_blank", "noopener"),
+          );
+        });
+
+        // ?linked=login → success toast
+        (function onReturnFromGithub() {
+          const q = new URLSearchParams(location.search);
+          if (q.has("linked")) {
+            toast(t("linkedOk"));
+            history.replaceState(null, "", location.pathname);
+          }
+        })();
+
+        // ─── Reveal on scroll ───
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                e.target.classList.add("in");
+                io.unobserve(e.target);
+              }
+            });
+          },
+          { threshold: 0.12 },
+        );
+        document.querySelectorAll(".rv").forEach((el) => io.observe(el));
+
+        $("#year").textContent = new Date().getFullYear();
+        applyLang();
+        loadStatus();
+      })();
+    </script>
+
+    <!-- ─── Yaşayan maskot: ekranda gezen, ruh hali değişen tilki ─── -->
+    <script>
+      (function () {
+        "use strict";
+        const HIDE_KEY = "forksight_mascot_hidden";
+        const ICON = (s) => `/icons/fox-${s}.png`;
+        const STATES = [
+          "neutral",
+          "happy",
+          "winning",
+          "thinking",
+          "worried",
+          "opportunity",
+        ];
+        // Görselleri önceden yükle (ifade geçişlerinde takılma olmasın).
+        STATES.forEach((s) => {
+          const im = new Image();
+          im.src = ICON(s);
+        });
+
+        const prefersReduced = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        const isMobile = window.matchMedia("(max-width: 760px)").matches;
+        // Hareketsiz mod: mobil veya reduced-motion → köşede oturur, sadece
+        // ifade + balon + dokunma tepkisi verir (içeriği örtmesin diye).
+        const staticMode = prefersReduced || isMobile;
+
+        // ─── Dil (sayfa ile aynı anahtar) ───
+        const getLang = () =>
+          localStorage.getItem("forksight_lang") === "en" ? "en" : "tr";
+
+        const TIPS = {
+          tr: [
+            "Bir oyununu yükle, sana özel bulmaca çıkarayım! 🧩",
+            "Diamond ile motor derinliği 25'e çıkıyor 🔥",
+            "Takıldığın yerde ipucu isteyebilirsin 💡",
+            "Her gün biraz pratik — seriyi bozma! ✨",
+            "Sesli koç hamleleri sana anlatır 🎧",
+            "GitHub ile bağlan, premium saniyede aktif olsun ⚡",
+            "Beni sürükleyemezsin ama izleyebilirsin 👀",
+          ],
+          en: [
+            "Import a game and I'll craft puzzles for you! 🧩",
+            "Diamond unlocks depth-25 engine power 🔥",
+            "Stuck? You can always ask for a hint 💡",
+            "A little practice every day — keep the streak! ✨",
+            "The voice coach narrates your moves 🎧",
+            "Link GitHub and premium activates in seconds ⚡",
+            "You can't drag me, but you can watch me roam 👀",
+          ],
+        };
+        const REACTIONS = {
+          tr: [
+            "Hihi, beni mi dürttün? 🦊",
+            "Hazırım, hadi başlayalım!",
+            "Pati patı! 🐾",
+            "Bugün formdayım 😎",
+          ],
+          en: [
+            "Hehe, did you poke me? 🦊",
+            "I'm ready, let's go!",
+            "Boop! 🐾",
+            "I'm on fire today 😎",
+          ],
+        };
+        const PLAN_MSG = {
+          free: {
+            tr: "Free ile başlamak harika 🌱",
+            en: "Starting with Free is great 🌱",
+          },
+          gold: {
+            tr: "Gold çok mantıklı bir seçim ⭐",
+            en: "Gold is a smart pick ⭐",
+          },
+          diamond: {
+            tr: "Diamond! En güçlüsü 💎 (favorim)",
+            en: "Diamond! The strongest 💎 (my fave)",
+          },
+        };
+        const SPONSOR_MSG = {
+          tr: "İyi seçim! Açık kaynağı yaşatıyorsun 💛",
+          en: "Great choice! You keep open source alive 💛",
+        };
+        const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+
+        // ─── DOM ───
+        const root = document.createElement("div");
+        root.className = "fox-mascot is-idle";
+        root.setAttribute("aria-hidden", "true");
+        root.innerHTML = `
+          <button class="fox-dismiss" title="Gizle" aria-label="Gizle">×</button>
+          <div class="fox-bubble" role="status"></div>
+          <div class="fox-mascot-body"><img class="fox-mascot-img" src="${ICON("neutral")}" alt="" /></div>
+        `;
+        document.body.appendChild(root);
+        const bodyEl = root.querySelector(".fox-mascot-body");
+        const imgEl = root.querySelector(".fox-mascot-img");
+        const bubbleEl = root.querySelector(".fox-bubble");
+        const dismissEl = root.querySelector(".fox-dismiss");
+
+        const reshow = document.createElement("button");
+        reshow.className = "fox-reshow";
+        reshow.textContent = "🦊";
+        reshow.title = "Maskotu göster";
+        reshow.setAttribute("aria-label", "Maskotu göster");
+        document.body.appendChild(reshow);
+
+        const SIZE = () => root.offsetWidth || 96;
+
+        // ─── Durum ───
+        let curState = "neutral";
+        function setState(s) {
+          if (s === curState) return;
+          curState = s;
+          imgEl.src = ICON(s);
+        }
+        let bubbleTimer = null;
+        function say(text, ms) {
+          if (!text) return;
+          bubbleEl.textContent = text;
+          bubbleEl.classList.add("show");
+          clearTimeout(bubbleTimer);
+          bubbleTimer = setTimeout(
+            () => bubbleEl.classList.remove("show"),
+            ms || 4200,
+          );
+        }
+        function hopOnce() {
+          root.classList.add("is-hop");
+          setTimeout(() => root.classList.remove("is-hop"), 560);
+        }
+
+        // ─── Konum ───
+        const pad = 16;
+        const topMin = 84; // header'ın altında kalsın
+        let pos = {
+          x: window.innerWidth - SIZE() - 28,
+          y: window.innerHeight - SIZE() - 28,
+        };
+        let target = { ...pos };
+        function place() {
+          root.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0)`;
+        }
+        function bounds() {
+          return {
+            minX: pad,
+            maxX: Math.max(pad, window.innerWidth - SIZE() - pad),
+            minY: topMin,
+            maxY: Math.max(topMin, window.innerHeight - SIZE() - pad),
+          };
+        }
+        function clampPos() {
+          const b = bounds();
+          pos.x = Math.min(Math.max(pos.x, b.minX), b.maxX);
+          pos.y = Math.min(Math.max(pos.y, b.minY), b.maxY);
+        }
+        function newTarget() {
+          const b = bounds();
+          target = {
+            x: b.minX + Math.random() * (b.maxX - b.minX),
+            y: b.minY + Math.random() * (b.maxY - b.minY),
+          };
+        }
+        clampPos();
+        place();
+
+        // ─── Etkileşim: imleç ───
+        let cursor = { x: -9999, y: -9999 };
+        let cursorFresh = false;
+        let hovering = false; // imleç doğrudan tilkinin üstünde → tam duraklat
+        let resumeAt = 0; // hover bittikten sonra yürümeye dönüş zamanı
+        window.addEventListener(
+          "mousemove",
+          (e) => {
+            cursor.x = e.clientX;
+            cursor.y = e.clientY;
+            cursorFresh = true;
+          },
+          { passive: true },
+        );
+
+        // ─── Hover: üstüne gelince dur, mutlu bak; ayrılınca devam et ───
+        bodyEl.addEventListener("mouseenter", () => {
+          hovering = true;
+          root.classList.remove("is-walking");
+          root.classList.add("is-idle");
+          if (Date.now() > reactUntil) setState("happy");
+        });
+        bodyEl.addEventListener("mouseleave", () => {
+          hovering = false;
+          resumeAt = Date.now() + 600; // kısa bir nefes, sonra gez
+        });
+
+        // ─── Tıklama tepkisi ───
+        bodyEl.addEventListener("click", () => {
+          hopOnce();
+          setState("happy");
+          say(pick(REACTIONS[getLang()]), 2600);
+        });
+
+        // ─── Gizle / göster ───
+        function hideMascot() {
+          root.style.display = "none";
+          reshow.style.display = "flex";
+          try {
+            localStorage.setItem(HIDE_KEY, "1");
+          } catch (_) {}
+        }
+        function showMascot() {
+          root.style.display = "";
+          reshow.style.display = "none";
+          try {
+            localStorage.removeItem(HIDE_KEY);
+          } catch (_) {}
+        }
+        dismissEl.addEventListener("click", (e) => {
+          e.stopPropagation();
+          hideMascot();
+        });
+        reshow.addEventListener("click", showMascot);
+
+        // ─── Fiyat kartı + sponsor tepkileri ───
+        document.querySelectorAll(".plan").forEach((card) => {
+          card.addEventListener("mouseenter", () => {
+            const tier = card.classList.contains("diamond")
+              ? "diamond"
+              : card.classList.contains("gold")
+                ? "gold"
+                : "free";
+            setState(tier === "free" ? "opportunity" : "winning");
+            say(PLAN_MSG[tier][getLang()], 3000);
+            reactUntil = Date.now() + 3000;
+          });
+        });
+        document.querySelectorAll("[data-sponsor]").forEach((b) => {
+          b.addEventListener("mouseenter", () => {
+            setState("winning");
+            say(SPONSOR_MSG[getLang()], 3200);
+            reactUntil = Date.now() + 3200;
+          });
+          b.addEventListener("click", () => {
+            setState("winning");
+            hopOnce();
+            say(SPONSOR_MSG[getLang()], 3600);
+            reactUntil = Date.now() + 3600;
+          });
+        });
+
+        window.addEventListener("resize", () => {
+          clampPos();
+          newTarget();
+          place();
+        });
+
+        // ─── İlk açılış: gizliyse sadece pill göster ───
+        let hidden = false;
+        try {
+          hidden = localStorage.getItem(HIDE_KEY) === "1";
+        } catch (_) {}
+        if (hidden) {
+          root.style.display = "none";
+          reshow.style.display = "flex";
+        }
+
+        // ─── Davranış motoru ───
+        let phase = "walk"; // walk | idle
+        let idleUntil = 0;
+        let reactUntil = 0; // kart/sponsor tepkisi bu ana kadar ifadeyi kilitler
+        let noticeUntil = 0; // imleci fark etme süresi
+        const SPEED = 2.2;
+
+        function startIdle() {
+          phase = "idle";
+          root.classList.remove("is-walking");
+          root.classList.add("is-idle");
+          const dur = 1600 + Math.random() * 2400;
+          idleUntil = Date.now() + dur;
+          const action = Math.random();
+          if (Date.now() > reactUntil) {
+            if (action < 0.4) {
+              setState("thinking");
+            } else if (action < 0.72) {
+              setState("neutral");
+              if (Math.random() < 0.7) say(pick(TIPS[getLang()]), dur - 200);
+            } else {
+              setState("happy");
+            }
+          }
+        }
+        function startWalk() {
+          phase = "walk";
+          newTarget();
+          root.classList.remove("is-idle");
+          root.classList.add("is-walking");
+          if (Date.now() > reactUntil) setState("neutral");
+        }
+
+        // Hareketsiz mod: köşeye otur, periyodik ifade + ipucu.
+        if (staticMode) {
+          pos = { x: pad + 2, y: window.innerHeight - SIZE() - pad };
+          clampPos();
+          place();
+          root.classList.add("is-idle");
+          let i = 0;
+          setInterval(() => {
+            if (root.style.display === "none") return;
+            if (Date.now() < reactUntil) return;
+            i++;
+            if (i % 2 === 0) {
+              setState("thinking");
+            } else {
+              setState("happy");
+              say(pick(TIPS[getLang()]), 4200);
+            }
+          }, 6500);
+        } else {
+          startWalk();
+          let last = performance.now();
+          function loop(now) {
+            const dt = Math.min(2.2, (now - last) / 16.67);
+            last = now;
+            if (!document.hidden && root.style.display !== "none") {
+              // İmleç doğrudan üstündeyse: tam dur, hiç yürüme.
+              if (hovering || Date.now() < resumeAt) {
+                root.classList.remove("is-walking");
+                root.classList.add("is-idle");
+                requestAnimationFrame(loop);
+                return;
+              }
+              // İmleç yakın (ama üstünde değil) → ona doğru bak (yalnız yön).
+              if (cursorFresh && Date.now() > reactUntil) {
+                const cx = pos.x + SIZE() / 2;
+                const cy = pos.y + SIZE() / 2;
+                const dxc = cursor.x - cx;
+                const dyc = cursor.y - cy;
+                if (Math.hypot(dxc, dyc) < 150) {
+                  if (Date.now() > reactUntil) setState("opportunity");
+                  noticeUntil = Date.now() + 600;
+                  root.classList.toggle("face-right", dxc > 0);
+                }
+              }
+
+              if (phase === "walk") {
+                const dx = target.x - pos.x;
+                const dy = target.y - pos.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist < SPEED * dt + 0.5) {
+                  pos.x = target.x;
+                  pos.y = target.y;
+                  startIdle();
+                } else {
+                  const step = (SPEED * dt) / dist;
+                  pos.x += dx * step;
+                  pos.y += dy * step;
+                  // Yön: sağa giderken (dx>0) aynala; temel görsel sola bakar.
+                  if (Date.now() > noticeUntil) {
+                    root.classList.toggle("face-right", dx > 0);
+                  }
+                }
+                place();
+              } else if (phase === "idle") {
+                if (Date.now() >= idleUntil) startWalk();
+              }
+            }
+            requestAnimationFrame(loop);
+          }
+          requestAnimationFrame(loop);
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "ForkSight — Chess.com",
-  "version": "2.1.3",
-  "description": "Chess.com oyunlarında Stockfish ile anlık taktik analizi. Renkli oklar ile en iyi hamleleri gösterir.",
+  "name": "ForkSight — Chess Training & Coaching",
+  "version": "2.9.0",
+  "description": "Unofficial Chess.com training companion with puzzles, post-game coach review, and stats. Not affiliated with Chess.com.",
   "permissions": ["storage", "notifications", "alarms"],
-  "host_permissions": ["https://*/*"],
+  "host_permissions": ["https://forksight.net/*"],
   "icons": {
     "128": "icon.png"
   },
@@ -13,13 +13,14 @@
   },
   "content_scripts": [
     {
-      "js": ["inject.js"],
-      "matches": ["https://www.chess.com/*", "https://chess.com/*"],
-      "run_at": "document_start",
-      "world": "MAIN"
-    },
-    {
-      "js": ["content.js"],
+      "js": [
+        "i18n.js",
+        "content.js",
+        "avatar.js",
+        "coach-review.js",
+        "quiz-board.js",
+        "profile-panel.js"
+      ],
       "css": ["style.css"],
       "matches": ["https://www.chess.com/*", "https://chess.com/*"],
       "run_at": "document_idle"
@@ -34,7 +35,13 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["icon.png"],
+      "resources": [
+        "icon.png",
+        "avatars/*.png",
+        "pieces/*.png",
+        "analysis_icons/*.png",
+        "gifs/*.gif"
+      ],
       "matches": ["https://www.chess.com/*", "https://chess.com/*"]
     }
   ]

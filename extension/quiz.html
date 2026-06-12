@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ForkSight — Bulmacalar</title>
+    <style>
+      :root {
+        --bg: #0b0f17;
+        --card: #111827;
+        --card-2: #0f1622;
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #22c55e;
+        --accent-hover: #16a34a;
+        --warn: #f59e0b;
+        --danger: #ef4444;
+        --text: #e5e7eb;
+        --text-muted: #6b7280;
+        --text-dim: #9ca3af;
+        --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--font);
+        background: linear-gradient(180deg, #0b0f17 0%, #070a11 100%);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 24px;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      header .logo {
+        font-size: 32px;
+      }
+      header .title {
+        font-size: 22px;
+        font-weight: 700;
+      }
+      header .sub {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+      header .stats-mini {
+        margin-left: auto;
+        display: flex;
+        gap: 16px;
+      }
+      .stat-mini {
+        text-align: center;
+      }
+      .stat-mini .v {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .stat-mini .l {
+        font-size: 10px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 20px;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px;
+      }
+      .card h3 {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+      }
+
+      /* Board kapsayıcısı — içeriği quiz-board.js oluşturur. */
+      #boardArea {
+        width: 100%;
+        max-width: 560px;
+        margin: 0 auto;
+        position: relative;
+        min-height: 120px;
+      }
+      #boardArea .ph {
+        font-size: 12px;
+        color: var(--text-dim);
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px dashed var(--border);
+        border-radius: 10px;
+        padding: 30px 16px;
+        text-align: center;
+      }
+
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+      .pill {
+        background: rgba(34, 197, 94, 0.1);
+        color: #4ade80;
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        border-radius: 20px;
+        padding: 3px 10px;
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .pill.warn {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warn);
+        border-color: rgba(245, 158, 11, 0.25);
+      }
+      .pill.muted {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-muted);
+        border-color: var(--border);
+      }
+
+      .hint-bar {
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .hint-timer {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-family: ui-monospace, "SF Mono", monospace;
+        font-size: 13px;
+        color: var(--text-dim);
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        min-width: 84px;
+      }
+      .hint-timer .timer-label {
+        opacity: 0.7;
+      }
+      .hint-buttons {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .btn-hint {
+        padding: 6px 12px;
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        color: var(--warn);
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font);
+        transition: background 0.15s;
+      }
+      .btn-hint:hover:not(:disabled) {
+        background: rgba(245, 158, 11, 0.18);
+      }
+      .btn-hint:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .btn-hint.active {
+        background: var(--warn);
+        color: #1f1505;
+      }
+      .hint-status {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-left: auto;
+      }
+
+      .answer-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .answer-row input {
+        flex: 1;
+        padding: 9px 12px;
+        background: #1f2937;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        font-size: 13px;
+        font-family: ui-monospace, "SF Mono", monospace;
+        letter-spacing: 1px;
+        outline: none;
+      }
+      .answer-row input:focus {
+        border-color: var(--accent);
+      }
+
+      .btn {
+        padding: 9px 16px;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font);
+        transition:
+          background 0.15s,
+          transform 0.1s;
+      }
+      .btn:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: translateY(0);
+      }
+      .btn:disabled {
+        background: #374151;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn.secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .btn.secondary:hover {
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .btn.warn {
+        background: var(--warn);
+        color: #1f1505;
+      }
+      .btn.warn:hover {
+        background: #d97706;
+      }
+
+      #feedback {
+        margin-top: 12px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        display: none;
+      }
+      #feedback.ok {
+        background: rgba(34, 197, 94, 0.12);
+        color: #4ade80;
+        display: block;
+      }
+      #feedback.err {
+        background: rgba(239, 68, 68, 0.12);
+        color: #f87171;
+        display: block;
+      }
+      #feedback.info {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-dim);
+        display: block;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+      .stat-box {
+        background: var(--card-2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 8px;
+        text-align: center;
+      }
+      .stat-box .v {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .stat-box .l {
+        font-size: 10px;
+        color: var(--text-muted);
+        margin-top: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+
+      .by-type {
+        margin-top: 12px;
+        font-size: 12px;
+      }
+      .by-type-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        color: var(--text-dim);
+        border-bottom: 1px dashed var(--border);
+      }
+      .by-type-row:last-child {
+        border-bottom: none;
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .footer-note {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      .source-link {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+      .source-link a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .source-link a:hover {
+        text-decoration: underline;
+      }
+
+      .login-needed {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+      }
+      .login-needed h2 {
+        font-size: 18px;
+        color: var(--text);
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <span class="logo">🧩</span>
+        <div>
+          <div class="title">Bulmacalar</div>
+          <div class="sub">Kendi oyunlarından üretilmiş taktik soruları</div>
+        </div>
+        <div class="stats-mini" id="statsMini">
+          <div class="stat-mini">
+            <div class="v" id="miniRating">—</div>
+            <div class="l">Rating</div>
+          </div>
+          <div class="stat-mini">
+            <div class="v" id="miniStreak">—</div>
+            <div class="l">Seri</div>
+          </div>
+          <div class="stat-mini">
+            <div class="v" id="miniPoints">—</div>
+            <div class="l">Puan</div>
+          </div>
+        </div>
+      </header>
+
+      <div id="noAuth" class="card login-needed" style="display: none">
+        <h2>Giriş gerekli</h2>
+        <p>
+          Bulmacalar kendi oyunlarından üretildiği için önce ForkSight'a giriş
+          yap ve chess.com hesabını bağla.
+        </p>
+      </div>
+
+      <div id="main" class="layout" style="display: none">
+        <div class="card" id="puzzleCard">
+          <div class="meta-row" id="puzzleMeta"></div>
+          <div id="boardArea"></div>
+
+          <div class="hint-bar" id="hintBar">
+            <div class="hint-timer">
+              <span class="timer-label">⏱</span>
+              <span id="timerDisplay">0.0s</span>
+            </div>
+            <div class="hint-buttons">
+              <button
+                class="btn-hint"
+                id="btnHint1"
+                data-level="1"
+                title="Kalkış karesini göster (10→7 puan)"
+              >
+                💡 İpucu 1
+              </button>
+              <button
+                class="btn-hint"
+                id="btnHint2"
+                data-level="2"
+                title="Taşı göster (10→4 puan)"
+              >
+                💡 İpucu 2
+              </button>
+              <button
+                class="btn-hint"
+                id="btnHint3"
+                data-level="3"
+                title="Tam hamleyi göster (10→1 puan)"
+              >
+                💡 İpucu 3
+              </button>
+            </div>
+            <div class="hint-status" id="hintStatus"></div>
+          </div>
+
+          <div class="answer-row">
+            <input
+              type="text"
+              id="answerInput"
+              placeholder="UCI hamle… örn. e2e4 veya b7b8q"
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="5"
+            />
+            <button class="btn" id="btnSubmit">Cevapla</button>
+            <button class="btn secondary" id="btnSkip">Atla</button>
+          </div>
+          <div id="feedback"></div>
+          <div
+            class="source-link"
+            id="sourceLink"
+            style="margin-top: 10px"
+          ></div>
+        </div>
+
+        <aside>
+          <div class="card">
+            <h3>📊 İstatistik</h3>
+            <div class="grid-3">
+              <div class="stat-box">
+                <div class="v" id="sBoxRating">1200</div>
+                <div class="l">Rating</div>
+              </div>
+              <div class="stat-box">
+                <div class="v" id="sBoxStreak">0</div>
+                <div class="l">Seri</div>
+              </div>
+              <div class="stat-box">
+                <div class="v" id="sBoxBest">0</div>
+                <div class="l">En İyi</div>
+              </div>
+              <div class="stat-box">
+                <div class="v" id="sBoxSolved">0</div>
+                <div class="l">Çözüm</div>
+              </div>
+              <div class="stat-box">
+                <div class="v" id="sBoxAttempts">0</div>
+                <div class="l">Deneme</div>
+              </div>
+              <div class="stat-box">
+                <div class="v" id="sBoxTotal">0</div>
+                <div class="l">Toplam</div>
+              </div>
+            </div>
+            <div class="by-type" id="byType"></div>
+          </div>
+
+          <div class="card" style="margin-top: 14px">
+            <h3>⚙️ İşlemler</h3>
+            <div class="actions">
+              <button class="btn secondary" id="btnRefresh">🔁 Yenile</button>
+              <button class="btn warn" id="btnBackfill">
+                ⚙️ Geçmiş oyunlardan üret
+              </button>
+            </div>
+            <div class="footer-note" id="backfillNote"></div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="footer-note">
+        ForkSight • Bulmacalar Faz 1 (mate-1 / mate-2) — daha fazla tip yakında
+      </div>
+    </div>
+    <script src="quiz-board.js"></script>
+    <script src="quiz.js"></script>
+  </body>
+</html>

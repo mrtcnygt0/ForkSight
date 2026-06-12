@@ -17,10 +17,16 @@ const LANGS = {
     load: "Yük",
     analyses: "Analiz",
     users: "Kullanıcı",
-    shortcuts: "⌨️ Kısayollar",
-    analyze: "Analiz",
-    clear: "Temizle",
-    safeMode: "Gizle",
+    quotaTitle: "📊 Günlük Kullanım",
+    upgrade: "⭐ Premium'a Geç",
+    unlimited: "Sınırsız",
+    premiumOnly: "Premium gerekli",
+    featTts: "Koç sesli yorum",
+    featGame: "Oyun analizi",
+    featHint: "Bulmaca ipucu",
+    featQuiz: "Bulmaca oynama",
+    featReview: "Detaylı koç incelemesi",
+    loginForQuota: "Kullanım bilgisi için giriş yapın",
     adminPanel: "🔧 Admin Paneli",
     language: "🌐 Dil",
   },
@@ -37,10 +43,16 @@ const LANGS = {
     load: "Load",
     analyses: "Analyses",
     users: "Users",
-    shortcuts: "⌨️ Shortcuts",
-    analyze: "Analyze",
-    clear: "Clear",
-    safeMode: "Hide",
+    quotaTitle: "📊 Daily Usage",
+    upgrade: "⭐ Go Premium",
+    unlimited: "Unlimited",
+    premiumOnly: "Premium required",
+    featTts: "Coach voice",
+    featGame: "Game analysis",
+    featHint: "Puzzle hint",
+    featQuiz: "Puzzles played",
+    featReview: "Deep coach review",
+    loginForQuota: "Log in to see usage",
     adminPanel: "🔧 Admin Panel",
     language: "🌐 Language",
   },
@@ -55,14 +67,11 @@ function t(key) {
 }
 
 function applyLang() {
-  document.getElementById("settingsTitle").textContent = t("serverSettings");
-  document.getElementById("urlLabel").textContent = t("serverUrl");
-  document.getElementById("saveUrl").textContent = t("save");
   document.getElementById("statsTitle").textContent = t("serverStatus");
-  document.getElementById("shortcutsTitle").textContent = t("shortcuts");
-  document.getElementById("scAnalyze").textContent = t("analyze");
-  document.getElementById("scClear").textContent = t("clear");
-  document.getElementById("scSafe").textContent = t("safeMode");
+  const qt = document.getElementById("quotaTitle");
+  if (qt) qt.textContent = t("quotaTitle");
+  const qu = document.getElementById("quotaUpgrade");
+  if (qu) qu.textContent = t("upgrade");
   document.getElementById("adminLink").textContent = t("adminPanel");
   document.getElementById("langTitle").textContent = t("language");
   // Update stats if visible
@@ -80,8 +89,6 @@ function applyLang() {
 }
 
 const statusEl = document.getElementById("status");
-const apiUrlInput = document.getElementById("apiUrl");
-const saveUrlBtn = document.getElementById("saveUrl");
 const statsSection = document.getElementById("statsSection");
 const statsGrid = document.getElementById("statsGrid");
 const userInfoEl = document.getElementById("userInfo");
@@ -92,11 +99,10 @@ let apiBase = DEFAULT_API;
 
 // ─── Başlangıç ──────────────────────────────────────
 chrome.storage.local.get(
-  ["taktik_api_base", "taktik_token", "taktik_user", "taktik_lang"],
+  ["taktik_token", "taktik_user", "taktik_lang"],
   (r) => {
-    apiBase = r.taktik_api_base || DEFAULT_API;
+    apiBase = DEFAULT_API;
     lang = r.taktik_lang || detectLang();
-    apiUrlInput.value = apiBase;
     document.getElementById("langSelect").value = lang;
     applyLang();
     if (r.taktik_user) {
@@ -105,8 +111,93 @@ chrome.storage.local.get(
     }
     checkServer();
     checkVersion();
+    loadQuota();
   },
 );
+
+// ─── Kullanım Kotası ────────────────────────────────
+const FEATURE_LABELS = {
+  tts_chars: "featTts",
+  game_analysis: "featGame",
+  hint: "featHint",
+  quiz_play: "featQuiz",
+  coach_review: "featReview",
+};
+
+function loadQuota() {
+  const qs = document.getElementById("quotaSection");
+  if (!qs) return;
+  chrome.storage.local.get(["taktik_token"], (r) => {
+    if (!r.taktik_token) {
+      qs.style.display = "block";
+      document.getElementById("quotaList").innerHTML =
+        `<div style="color:var(--text-muted);text-align:center;padding:6px 0;">${t("loginForQuota")}</div>`;
+      return;
+    }
+    fetch(`${apiBase}/me/quota`, {
+      headers: { Authorization: `Bearer ${r.taktik_token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data || !data.ok) return;
+        renderQuota(data);
+      })
+      .catch(() => {
+        /* offline — silently skip */
+      });
+  });
+}
+
+function renderQuota(data) {
+  const qs = document.getElementById("quotaSection");
+  const list = document.getElementById("quotaList");
+  const upgrade = document.getElementById("quotaUpgrade");
+  if (!qs || !list) return;
+  qs.style.display = "block";
+  const isPremium = !!data.is_premium;
+  const features = data.features || {};
+  let html = "";
+  let anyFree = false;
+  Object.keys(FEATURE_LABELS).forEach((key) => {
+    const f = features[key];
+    if (!f) return;
+    const label = t(FEATURE_LABELS[key]);
+    let valueHtml;
+    if (f.limit === -1) {
+      valueHtml = `<span style="color:#4ade80;font-weight:600;">${t("unlimited")}</span>`;
+    } else if (f.limit === 0) {
+      valueHtml = `<span style="color:#f5c518;font-weight:600;">${t("premiumOnly")}</span>`;
+      anyFree = true;
+    } else {
+      const used = f.used || 0;
+      const limit = f.limit;
+      const pct = Math.min(100, Math.round((used / limit) * 100));
+      const color = pct >= 100 ? "#ef4444" : pct >= 80 ? "#f5c518" : "#4ade80";
+      valueHtml =
+        `<span style="color:${color};font-weight:600;font-variant-numeric:tabular-nums;">${used}/${limit}</span>` +
+        `<div style="width:100%;height:4px;background:#1f2937;border-radius:2px;margin-top:3px;overflow:hidden;">` +
+        `<div style="width:${pct}%;height:100%;background:${color};"></div></div>`;
+      anyFree = true;
+    }
+    html +=
+      `<div style="display:flex;flex-direction:column;gap:2px;">` +
+      `<div style="display:flex;justify-content:space-between;align-items:center;">` +
+      `<span style="color:var(--text-muted);">${label}</span>${valueHtml}` +
+      `</div></div>`;
+  });
+  list.innerHTML = html || `<div style="color:var(--text-muted);">—</div>`;
+  if (upgrade) {
+    if (!isPremium && anyFree) {
+      upgrade.style.display = "block";
+      upgrade.onclick = (e) => {
+        e.preventDefault();
+        chrome.tabs.create({ url: `${apiBase}/premium` });
+      };
+    } else {
+      upgrade.style.display = "none";
+    }
+  }
+}
 
 // ─── Dil Değiştir ───────────────────────────────────
 document.getElementById("langSelect").addEventListener("change", (e) => {
@@ -115,23 +206,6 @@ document.getElementById("langSelect").addEventListener("change", (e) => {
   applyLang();
   checkServer();
 });
-
-// ─── URL Kaydet ─────────────────────────────────────
-saveUrlBtn.onclick = () => {
-  let url = apiUrlInput.value.trim().replace(/\/+$/, "");
-  if (!url) url = DEFAULT_API;
-  if (!url.startsWith("https://")) {
-    statusEl.textContent = t("httpsOnly");
-    statusEl.className = "status error";
-    return;
-  }
-  apiBase = url;
-  chrome.storage.local.set({ taktik_api_base: url });
-  chrome.runtime.sendMessage({ type: "update_api_base", url });
-  statusEl.textContent = t("urlSaved");
-  statusEl.className = "status ok";
-  setTimeout(checkServer, 500);
-};
 
 // ─── Sunucu Kontrol ─────────────────────────────────
 function checkServer() {

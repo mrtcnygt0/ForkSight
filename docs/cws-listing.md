@@ -19,12 +19,14 @@ ForkSight is an unofficial Chess.com training companion designed for post-game i
 It helps players review games, practice puzzles, and track progress with account-based coaching tools. The extension focuses on learning workflows, not automation.
 
 What you can do with ForkSight:
+
 - Practice puzzle and quiz-style training flows
 - Use post-game coach review to understand mistakes and alternatives
 - Track profile-based progress and performance trends
 - Access optional Premium features for higher usage limits
 
 Key points:
+
 - Built for Chess.com training workflows
 - Works through your ForkSight account on https://forksight.net
 - Privacy policy available at https://forksight.net/privacy

@@ -5,6 +5,11 @@
 server.py
 server_old.py
 server_v2.py
+landing.html
+premium.html
+privacy.html
+tr_strings.txt
+lichess-extension/
 manage_users.py
 admin_panel.html
 companion.html

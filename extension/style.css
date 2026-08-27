@@ -123,6 +123,139 @@
     transform: translateY(-2px) scale(1.02, 0.98);
   }
 }
+
+/* Personality idle / walk micro-motions per selected coach */
+.forksight-avatar--coach-victoria.fs-idle .forksight-avatar__inner {
+  animation: fs-av-victoria-idle 4.8s ease-in-out infinite;
+}
+@keyframes fs-av-victoria-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-1.5px) rotate(1.2deg) scale(1.01, 0.99);
+  }
+}
+.forksight-avatar--coach-victoria.fs-walking .forksight-avatar__inner {
+  animation: fs-av-victoria-walk 0.7s ease-in-out infinite;
+}
+@keyframes fs-av-victoria-walk {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(1.5deg);
+  }
+}
+
+.forksight-avatar--coach-boris.fs-idle .forksight-avatar__inner {
+  animation: fs-av-boris-idle 4.2s ease-in-out infinite;
+}
+@keyframes fs-av-boris-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1, 1);
+  }
+  40% {
+    transform: translateY(-1px) rotate(-2deg) scale(1.015, 0.985);
+  }
+  70% {
+    transform: translateY(0) rotate(1.5deg) scale(0.99, 1.01);
+  }
+}
+.forksight-avatar--coach-boris.fs-walking .forksight-avatar__inner {
+  animation: fs-av-boris-walk 0.62s ease-in-out infinite;
+}
+@keyframes fs-av-boris-walk {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(4deg);
+  }
+}
+
+.forksight-avatar--coach-kai.fs-idle .forksight-avatar__inner {
+  animation: fs-av-kai-idle 2.8s steps(2, end) infinite;
+}
+@keyframes fs-av-kai-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-1px) rotate(0.8deg);
+  }
+}
+.forksight-avatar--coach-kai.fs-walking .forksight-avatar__inner {
+  animation: fs-av-kai-walk 0.36s linear infinite;
+}
+@keyframes fs-av-kai-walk {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+}
+
+.forksight-avatar--coach-lena.fs-idle .forksight-avatar__inner {
+  animation: fs-av-lena-idle 1.8s ease-in-out infinite;
+}
+@keyframes fs-av-lena-idle {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.04, 0.96) rotate(-2deg);
+  }
+}
+.forksight-avatar--coach-lena.fs-walking .forksight-avatar__inner {
+  animation: fs-av-lena-walk 0.38s ease-in-out infinite;
+}
+@keyframes fs-av-lena-walk {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(6deg);
+  }
+}
+
+.forksight-avatar--coach-sero.fs-idle .forksight-avatar__inner {
+  animation: fs-av-sero-idle 2.4s ease-in-out infinite;
+}
+@keyframes fs-av-sero-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1, 1);
+  }
+  35% {
+    transform: translateY(-3px) rotate(-3deg) scale(1.03, 0.97);
+  }
+  70% {
+    transform: translateY(-1px) rotate(2.5deg) scale(0.98, 1.02);
+  }
+}
+.forksight-avatar--coach-sero.fs-walking .forksight-avatar__inner {
+  animation: fs-av-sero-walk 0.42s ease-in-out infinite;
+}
+@keyframes fs-av-sero-walk {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-7deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(7deg);
+  }
+}
+
 .forksight-avatar.fs-hop .forksight-avatar__inner {
   animation: fs-av-hop 0.6s ease;
 }

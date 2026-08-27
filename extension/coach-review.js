@@ -631,6 +631,74 @@
       .replace(/'/g, "&#39;");
   }
 
+  // Mini-coach emotion sprites: avatars/{coach}/{emotion}.png
+  // Unknown coach → tilki. Missing folder at runtime still falls back via
+  // img onerror (bindCoachImgFallback) to root avatars/{emotion}.png.
+  const COACH_IDS = ["tilki", "victoria", "boris", "kai", "lena", "sero"];
+  let _selectedCoachId = "tilki";
+  try {
+    chrome.storage.local.get(["fs_selected_coach"], (r) => {
+      const id = r && r.fs_selected_coach;
+      if (id) _selectedCoachId = normalizeCoachId(id);
+    });
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== "local" || !changes.fs_selected_coach) return;
+      _selectedCoachId = normalizeCoachId(changes.fs_selected_coach.newValue);
+    });
+  } catch (_) {}
+
+  function normalizeCoachId(id) {
+    const s = String(id || "tilki").toLowerCase();
+    return COACH_IDS.includes(s) ? s : "tilki";
+  }
+
+  function resolveSelectedCoach() {
+    try {
+      if (
+        window.ForkSightAvatar &&
+        typeof window.ForkSightAvatar.getCoach === "function"
+      ) {
+        return normalizeCoachId(window.ForkSightAvatar.getCoach());
+      }
+    } catch (_) {}
+    return normalizeCoachId(_selectedCoachId);
+  }
+
+  function coachEmotionUrl(state) {
+    const st = state || "neutral";
+    const coach = resolveSelectedCoach();
+    try {
+      return chrome.runtime.getURL("avatars/" + coach + "/" + st + ".png");
+    } catch (_) {
+      return "avatars/" + coach + "/" + st + ".png";
+    }
+  }
+
+  function coachEmotionRootUrl(state) {
+    const st = state || "neutral";
+    try {
+      return chrome.runtime.getURL("avatars/" + st + ".png");
+    } catch (_) {
+      return "avatars/" + st + ".png";
+    }
+  }
+
+  function bindCoachImgFallback(img, state) {
+    if (!img) return;
+    const st = state || "neutral";
+    img.onerror = function () {
+      img.onerror = null;
+      img.src = coachEmotionRootUrl(st);
+    };
+  }
+
+  function setCoachImg(img, state) {
+    if (!img) return;
+    const st = state || "neutral";
+    img.src = coachEmotionUrl(st);
+    bindCoachImgFallback(img, st);
+  }
+
   function fmtDuration(sec) {
     if (!sec || sec < 0) return "—";
     const m = Math.floor(sec / 60);
@@ -1794,427 +1862,26 @@
     return svg;
   }
 
-  // ─── Rule-based narration ────────────────────────────────────────────
-  // Given the eval transition between two plies (from the perspective of the
-  // player who *just* moved), classify the move quality and pick a sentence
-  // template. We never tell the user which move was best — only how their
-  // current choice compared.
-  //
-  // Categories drive both the text AND the avatar emotion swap.
-  // IMPORTANT: every `emotion` here must match an existing PNG in
-  // extension/avatars/. Available files (May 2026): gameOver, happy,
-  // losing, mistake, neutral, opportunity, thinking, winning, worried.
-  // Referencing anything else (e.g. "confident", "confused") produces a
-  // 404 and the avatar bubble shows a broken image.
-  const NARRATION_CATEGORIES = {
-    blunder: {
-      emotion: "mistake",
-      lines: {
-        self: [
-          "Tüh, burası ağır bir hata.",
-          "Bu hamle pozisyonu ciddi şekilde bozdu.",
-          "Burada büyük bir fırsat kaçırdın — değerlendirme keskin düştü.",
-        ],
-        opp: [
-          "Rakibin burada ağır bir hata yaptı — değerlendirme senin lehine döndü.",
-          "Bu rakibin için büyük bir gaf; avantajı sana hediye etti.",
-          "Rakibinden affedilmez bir hamle geldi.",
-        ],
-        neutral: [
-          "Ciddi bir hata — pozisyon belirgin biçimde bozuldu.",
-          "Büyük bir gaf; değerlendirme keskin düştü.",
-          "Affedilmez bir kayıp; çok daha güçlü bir seçenek vardı.",
-        ],
-      },
-    },
-    mistake: {
-      emotion: "worried",
-      lines: {
-        self: [
-          "Burada bir hata var.",
-          "Bu hamle değerlendirmeni düşürdü.",
-          "Daha keskin bir hamle vardı.",
-        ],
-        opp: [
-          "Rakibinden zayıf bir hamle — değerlendirme sana döndü.",
-          "Rakibin burada bir hata yaptı.",
-          "Rakibin daha sağlam bir seçeneği kaçırdı.",
-        ],
-        neutral: [
-          "Hata; pozisyon kötüleşti.",
-          "Daha iyisi mümkündü.",
-          "İdeal değil; daha sağlam bir seçenek vardı.",
-        ],
-      },
-    },
-    inaccuracy: {
-      emotion: "neutral",
-      lines: {
-        self: [
-          "Küçük bir yanlışlık — büyük zarar yok ama daha keskini vardı.",
-          "Hafif konum kaybı; pozisyon hâlâ oynanabilir.",
-          "Ufak bir kayma; pozisyonu hâlâ kontrol edebilirsin.",
-        ],
-        opp: [
-          "Rakibinden ufak bir yanlışlık — sana küçük bir fırsat doğdu.",
-          "Rakibin hafif bir konum kaybetti.",
-          "Rakibin tam isabeti bulamadı.",
-        ],
-        neutral: [
-          "Küçük bir yanlışlık — büyük zarar yok.",
-          "Hafif konum kaybı; pozisyon hâlâ oynanabilir.",
-          "İdeal değil ama dengeyi bozmadı.",
-        ],
-      },
-    },
-    solid: {
-      emotion: "neutral",
-      lines: {
-        self: [
-          "Sağlam, makul bir hamle.",
-          "Pozisyonu koruyan iyi bir tercih.",
-          "Dengeyi sürdüren bir hamle.",
-        ],
-        opp: [
-          "Rakibinden sağlam bir hamle.",
-          "Rakibin pozisyonunu koruyan makul bir tercih.",
-          "Rakibin dengeyi sürdürüyor.",
-        ],
-        neutral: [
-          "Sağlam, makul bir hamle.",
-          "Pozisyonu koruyan bir tercih.",
-          "Dengeyi sürdüren bir hamle.",
-        ],
-      },
-    },
-    best: {
-      emotion: "neutral",
-      lines: {
-        self: [
-          "En iyi hamle — motorla aynı seçimi yaptın.",
-          "Tam isabet; bundan daha iyisi yoktu.",
-          "Doğru tercih, pozisyonu en iyi şekilde sürdürdün.",
-        ],
-        opp: [
-          "Rakibin en iyi hamleyi buldu — motorla aynı seçim.",
-          "Rakibinden tam isabet; bundan daha iyisi yoktu.",
-          "Rakibin doğru tercihi yaptı, pozisyonunu en iyi şekilde sürdürdü.",
-        ],
-        neutral: [
-          "En iyi hamle — motorla aynı seçim.",
-          "Tam isabet; bundan daha iyisi yoktu.",
-          "Doğru tercih, pozisyonu en iyi şekilde sürdürüyor.",
-        ],
-      },
-    },
-    good: {
-      emotion: "winning",
-      lines: {
-        self: [
-          "Güzel hamle — değerlendirme lehine döndü.",
-          "İyi seçim; küçük bir avantaj kazandın.",
-          "Etkili bir hamle; pozisyonun biraz daha rahatladı.",
-        ],
-        opp: [
-          "Rakibinden güzel bir hamle — değerlendirme onun lehine döndü.",
-          "Rakibin iyi seçim yaptı; küçük bir avantaj kazandı.",
-          "Etkili bir hamle; rakibinin pozisyonu biraz daha rahatladı.",
-        ],
-        neutral: [
-          "Güzel hamle — değerlendirme lehine döndü.",
-          "İyi seçim; küçük bir avantaj kazanıldı.",
-          "Etkili bir hamle; pozisyon biraz daha rahatladı.",
-        ],
-      },
-    },
-    great: {
-      emotion: "winning",
-      lines: {
-        self: [
-          "Çok iyi bir hamle — pozisyon belirgin biçimde lehine döndü.",
-          "Harika seçim, rakibine ciddi sorun çıkardın.",
-          "Güçlü bir tercih; avantajın gözle görülür şekilde büyüdü.",
-        ],
-        opp: [
-          "Rakibinden çok iyi bir hamle — pozisyon onun lehine döndü.",
-          "Rakibin harika bir seçim yaptı; sana ciddi sorun çıkardı.",
-          "Rakibinden güçlü bir tercih; avantajı gözle görülür şekilde büyüdü.",
-        ],
-        neutral: [
-          "Çok iyi bir hamle — pozisyon belirgin biçimde döndü.",
-          "Harika seçim; rakibe ciddi sorun çıkardı.",
-          "Güçlü bir tercih; avantaj gözle görülür şekilde büyüdü.",
-        ],
-      },
-    },
-    brilliant: {
-      emotion: "happy",
-      lines: {
-        self: [
-          "Mükemmel! Değerlendirme net biçimde lehine döndü.",
-          "Çok güçlü bir hamle yaptın — pozisyon büyük ölçüde kazanıyor.",
-          "Harika tercih; rakibine ciddi sorun bıraktın.",
-        ],
-        opp: [
-          "Rakibin mükemmel oynadı — değerlendirme onun lehine net biçimde döndü.",
-          "Rakibinden çok güçlü bir hamle; pozisyon onun için büyük ölçüde kazanıyor.",
-          "Rakibinin harika bir tercihi; sana ciddi bir sorun bıraktı.",
-        ],
-        neutral: [
-          "Mükemmel! Değerlendirme net biçimde döndü.",
-          "Çok güçlü bir hamle — pozisyon büyük ölçüde kazançlı.",
-          "Harika tercih; rakibe ciddi bir sorun bıraktı.",
-        ],
-      },
-    },
-    mateThreat: {
-      emotion: "opportunity",
-      lines: {
-        self: [
-          "Şah-mat tehdidi belirdi — fırsatı kollamalısın.",
-          "Burada mat ufukta; dikkatli oyna.",
-        ],
-        opp: [
-          "Rakibin mat tehdidi kuruyor — dikkatli olmalısın!",
-          "Rakibin mat hattını arıyor; uyanık ol.",
-        ],
-        neutral: ["Şah-mat tehdidi belirdi.", "Burada mat ufukta — dikkat!"],
-      },
-    },
-    book: {
-      emotion: "neutral",
-      lines: {
-        self: [
-          "Açılış teorisi — bilinen hatlardan birini oynadın.",
-          "Bilindik bir açılış hamlesi.",
-        ],
-        opp: [
-          "Rakibin açılış teorisinden oynadı — bilinen bir hat.",
-          "Bilindik bir açılış hamlesi rakibinden.",
-        ],
-        neutral: [
-          "Açılış teorisi — bilinen hatlardan biri.",
-          "Bilindik bir açılış hamlesi.",
-        ],
-      },
-    },
-  };
-
-  // İngilizce paralel anlatım sözlüğü. NARRATION_CATEGORIES ile aynı şema.
-  // Dil seçimi `window.ForkSightI18n.getLang()` ile çalışma zamanında yapılır.
-  const NARRATION_CATEGORIES_EN = {
-    blunder: {
-      emotion: "mistake",
-      lines: {
-        self: [
-          "That was a serious mistake — your position took a clear hit.",
-          "You blundered; the evaluation dropped sharply.",
-          "Unforgiveable loss here; a much stronger option was available.",
-        ],
-        opp: [
-          "Your opponent blundered — their position is clearly worse now.",
-          "A blunder from your opponent; the evaluation swung sharply in your favor.",
-          "An unforgiveable loss for your opponent — the advantage is yours.",
-        ],
-        neutral: [
-          "A serious mistake — the position deteriorated clearly.",
-          "A blunder; the evaluation dropped sharply.",
-          "An unforgiveable loss; a much stronger option was available.",
-        ],
-      },
-    },
-    mistake: {
-      emotion: "worried",
-      lines: {
-        self: [
-          "You made a mistake; your position got worse.",
-          "Better was possible — this move lowered your evaluation.",
-          "Not ideal; a more solid option was on the table.",
-        ],
-        opp: [
-          "Your opponent made a mistake; their position got worse.",
-          "A weak move from your opponent — the evaluation swung your way.",
-          "Not ideal for your opponent; they had a more solid option.",
-        ],
-        neutral: [
-          "A mistake; the position deteriorated.",
-          "Better was possible — this move lowered the evaluation.",
-          "Not ideal; a more solid option was available.",
-        ],
-      },
-    },
-    inaccuracy: {
-      emotion: "neutral",
-      lines: {
-        self: [
-          "A small inaccuracy — no big damage, but something sharper was there.",
-          "A slight loss of ground; the position is still playable.",
-          "Not ideal but you didn't disturb the balance.",
-        ],
-        opp: [
-          "A small inaccuracy from your opponent — no big damage, but a tiny chance opened up for you.",
-          "Your opponent lost a bit of ground; the position is still roughly balanced.",
-          "Your opponent's move wasn't ideal but didn't disturb the balance.",
-        ],
-        neutral: [
-          "A small inaccuracy — no big damage.",
-          "A slight loss of ground; the position is still playable.",
-          "Not ideal but balance was preserved.",
-        ],
-      },
-    },
-    solid: {
-      emotion: "neutral",
-      lines: {
-        self: [
-          "A solid, reasonable move.",
-          "A good choice that holds the position.",
-          "A move that keeps the balance.",
-        ],
-        opp: [
-          "A solid move from your opponent.",
-          "A reasonable choice that keeps your opponent's position together.",
-          "Your opponent holds the balance.",
-        ],
-        neutral: [
-          "A solid, reasonable move.",
-          "A choice that holds the position.",
-          "A move that keeps the balance.",
-        ],
-      },
-    },
-    best: {
-      emotion: "neutral",
-      lines: {
-        self: [
-          "Best move — you matched the engine's choice.",
-          "Spot on; nothing was better.",
-          "Right call — you handled the position optimally.",
-        ],
-        opp: [
-          "Your opponent found the best move — same as the engine.",
-          "Spot on from your opponent; nothing was better.",
-          "Your opponent made the right call and handled the position optimally.",
-        ],
-        neutral: [
-          "Best move — same as the engine.",
-          "Spot on; nothing was better.",
-          "The right call; the position is held optimally.",
-        ],
-      },
-    },
-    good: {
-      emotion: "winning",
-      lines: {
-        self: [
-          "Nice move — the evaluation swung your way.",
-          "Good choice; you picked up a small edge.",
-          "Effective move; your position eased up a bit.",
-        ],
-        opp: [
-          "Nice move from your opponent — the evaluation swung their way.",
-          "Your opponent picked a good move; they got a small edge.",
-          "An effective move; your opponent's position eased up a bit.",
-        ],
-        neutral: [
-          "Nice move — the evaluation shifted.",
-          "Good choice; a small edge was gained.",
-          "An effective move; the position eased up.",
-        ],
-      },
-    },
-    great: {
-      emotion: "winning",
-      lines: {
-        self: [
-          "Excellent move — the position clearly swung your way.",
-          "Great choice — you handed your opponent serious problems.",
-          "A strong call; your advantage grew visibly.",
-        ],
-        opp: [
-          "An excellent move from your opponent — the position swung their way.",
-          "A great choice from your opponent; they handed you serious problems.",
-          "A strong call from your opponent; their advantage grew visibly.",
-        ],
-        neutral: [
-          "An excellent move — the position clearly turned.",
-          "A great choice; serious problems for the opponent.",
-          "A strong call; the advantage grew visibly.",
-        ],
-      },
-    },
-    brilliant: {
-      emotion: "happy",
-      lines: {
-        self: [
-          "Brilliant! The evaluation clearly swung your way.",
-          "A very strong move — the position is largely winning.",
-          "A great choice; you've left your opponent in serious trouble.",
-        ],
-        opp: [
-          "Your opponent played brilliantly — the evaluation clearly swung their way.",
-          "A very strong move from your opponent; the position is largely winning for them.",
-          "A great choice from your opponent; they've left you in serious trouble.",
-        ],
-        neutral: [
-          "Brilliant! The evaluation clearly turned.",
-          "A very strong move — the position is largely winning.",
-          "A great choice; serious trouble for the other side.",
-        ],
-      },
-    },
-    mateThreat: {
-      emotion: "opportunity",
-      lines: {
-        self: [
-          "A mate threat appeared — watch for the chance.",
-          "Mate is on the horizon here; play carefully.",
-        ],
-        opp: [
-          "Your opponent is building a mate threat — be careful!",
-          "Your opponent is looking for a mating line; stay alert.",
-        ],
-        neutral: [
-          "A mate threat appeared.",
-          "Mate is on the horizon — careful!",
-        ],
-      },
-    },
-    book: {
-      emotion: "neutral",
-      lines: {
-        self: [
-          "Opening theory — you played one of the known lines.",
-          "A well-known opening move.",
-        ],
-        opp: [
-          "Your opponent played opening theory — a known line.",
-          "A well-known opening move from your opponent.",
-        ],
-        neutral: [
-          "Opening theory — one of the known lines.",
-          "A well-known opening move.",
-        ],
-      },
-    },
-  };
-
+  // ─── Rule-based narration (per-coach personality) ─────────────────
+  // Categories + lines live in coach-narration.js (ForkSightCoachNarration).
+  // Emotions must match avatars/{coach}/{emotion}.png.
   function _activeNarration() {
     const lang = window.ForkSightI18n ? window.ForkSightI18n.getLang() : "en";
-    return lang === "tr" ? NARRATION_CATEGORIES : NARRATION_CATEGORIES_EN;
-  }
-
-  /**
-   * Convert a pawn-unit eval into a 0..100 win probability for the side
-   * whose perspective the eval is in. Uses the standard logistic curve
-   * (k≈0.4) that Lichess/chess.com-style reviews use. Mates collapse to
-   * the asymptote so any mate-in-N counts as ~100%/0%.
-   */
-  function winProb(evalPawns) {
-    if (typeof evalPawns !== "number" || !isFinite(evalPawns)) return 50;
-    if (evalPawns >= 25) return 100;
-    if (evalPawns <= -25) return 0;
-    return 50 + 50 * (2 / (1 + Math.exp(-0.4 * evalPawns)) - 1);
+    const N = window.ForkSightCoachNarration;
+    if (N && typeof N.getCategories === "function") {
+      return N.getCategories(_selectedCoachId || "tilki", lang);
+    }
+    // Soft fallback if script failed to load — minimal Tilki-like pack.
+    return {
+      solid: {
+        emotion: "neutral",
+        lines: {
+          self: ["Sağlam bir hamle."],
+          opp: ["Rakibinden sağlam bir hamle."],
+          neutral: ["Sağlam bir hamle."],
+        },
+      },
+    };
   }
 
   /**
@@ -2337,69 +2004,34 @@
     const matGain = (curMat.diff - prevMat.diff) * moverSign;
     const isCapture = /x/.test(san);
 
-    const self = perspective === "self";
-    const opp = perspective === "opp";
     const isEN =
       window.ForkSightI18n && window.ForkSightI18n.getLang() === "en";
+    const _lang = isEN ? "en" : "tr";
+    const _hint = (kind) => {
+      const N = window.ForkSightCoachNarration;
+      if (N && typeof N.contextualHintLine === "function") {
+        return N.contextualHintLine(
+          _selectedCoachId || "tilki",
+          _lang,
+          kind,
+          perspective || "neutral",
+        );
+      }
+      return "";
+    };
 
     // Trade / capture commentary.
     if (isCapture) {
-      if (matGain >= 2) {
-        if (isEN) {
-          if (self) return "You won material with this move.";
-          if (opp) return "Your opponent won material with this move.";
-          return "Material was won on this move.";
-        }
-        if (self) return "Bu hamleyle malzeme kazandın.";
-        if (opp) return "Rakibin bu hamleyle malzeme kazandı.";
-        return "Bu hamleyle malzeme kazanıldı.";
-      }
-      if (matGain <= -2) {
-        if (isEN) {
-          if (self) return "An unequal trade — you gave up material.";
-          if (opp) return "A losing trade for your opponent.";
-          return "A losing trade.";
-        }
-        if (self) return "Eşit olmayan bir değişim — malzeme verdin.";
-        if (opp) return "Rakibin için kayıplı bir değişim oldu.";
-        return "Kayıplı bir değişim.";
-      }
-      // matGain === 0 → equal trade
-      if (isEN) {
-        if (self) return "A sensible, equal trade.";
-        if (opp) return "Your opponent made an equal trade.";
-        return "A sensible, equal trade.";
-      }
-      if (self) return "Mantıklı, denk bir taş değişimi yaptın.";
-      if (opp) return "Rakibin denk bir taş değişimi yaptı.";
-      return "Mantıklı, denk bir taş değişimi.";
+      if (matGain >= 2) return _hint("matWin");
+      if (matGain <= -2) return _hint("matLoss");
+      return _hint("matEqual");
     }
 
     // No capture but big eval drop for the mover → likely hung a piece.
     if (typeof prevEvalWhite === "number" && typeof curEvalWhite === "number") {
       const evalGainMover = (curEvalWhite - prevEvalWhite) * moverSign;
-      if (evalGainMover <= -2.5) {
-        if (isEN) {
-          if (self) return "After this move you left a piece hanging.";
-          if (opp) return "After this move your opponent left a piece hanging.";
-          return "A piece was left undefended after this move.";
-        }
-        if (self) return "Bu hamleden sonra bir taşını boşta bıraktın.";
-        if (opp) return "Rakibin bu hamleden sonra bir taşını boşta bıraktı.";
-        return "Bu hamleden sonra bir taş savunmasız kaldı.";
-      }
-      // Mover's eval got much better without capture → quiet improvement
-      if (evalGainMover >= 2.5) {
-        if (isEN) {
-          if (self)
-            return "You found a line that exploited your opponent's weakness.";
-          if (opp) return "Your opponent found a line where you stayed weak.";
-          return "A line exploiting a weakness was found.";
-        }
-        if (self) return "Rakibinin zayıf kaldığı bir hat buldun.";
-        if (opp) return "Rakibin zayıf kaldığın bir hat buldu.";
-        return "Pozisyondaki zayıf bir hat keşfedildi.";
-      }
+      if (evalGainMover <= -2.5) return _hint("hung");
+      if (evalGainMover >= 2.5) return _hint("exploit");
     }
 
     return "";
@@ -3353,8 +2985,7 @@
       </div>
     `);
     try {
-      modalEl.querySelector(".forksight-review-coach").src =
-        chrome.runtime.getURL("avatars/thinking.png");
+      setCoachImg(modalEl.querySelector(".forksight-review-coach"), "thinking");
     } catch (_) {}
     modalEl
       .querySelector(".forksight-review-close")
@@ -3397,8 +3028,7 @@
     `);
 
     try {
-      modalEl.querySelector(".forksight-review-coach").src =
-        chrome.runtime.getURL("avatars/thinking.png");
+      setCoachImg(modalEl.querySelector(".forksight-review-coach"), "thinking");
     } catch (_) {}
 
     const input = modalEl.querySelector(".forksight-review-input");
@@ -3468,8 +3098,7 @@
     `);
 
     try {
-      modalEl.querySelector(".forksight-review-coach").src =
-        chrome.runtime.getURL("avatars/thinking.png");
+      setCoachImg(modalEl.querySelector(".forksight-review-coach"), "thinking");
     } catch (_) {}
 
     const input = modalEl.querySelector(".forksight-review-input");
@@ -4328,7 +3957,7 @@
   // top of each other when the user clicks through moves quickly.
   let _ttsRequestSeq = 0;
   let _apiBaseCache = null;
-  const _audioCache = new Map(); // key "lang|text" → objectURL
+  const _audioCache = new Map(); // key "lang|coach|text" → objectURL
   const _AUDIO_CACHE_MAX = 64;
 
   function _getApiBase() {
@@ -4403,7 +4032,31 @@
   }
 
   async function _serverSpeak(text, lang, reqId) {
-    const cacheKey = lang + "|" + text;
+    // Selected coach voice (persisted by profile-panel).
+    let coachId = "tilki";
+    let voiceId = "";
+    try {
+      const stored = await new Promise((resolve) => {
+        try {
+          chrome.storage.local.get(["fs_selected_coach"], (r) =>
+            resolve((r && r.fs_selected_coach) || "tilki"),
+          );
+        } catch (_) {
+          resolve("tilki");
+        }
+      });
+      if (stored) coachId = String(stored).toLowerCase();
+    } catch (_) {}
+    const VOICE_BY_COACH = {
+      tilki: "vy8ll8abRxLjPlGMne1B",
+      victoria: "BIvP0GN1cAtSRTxNHnWS",
+      boris: "EkK5I93UQWFDigLMpZcX",
+      kai: "7b9mYhmnp0y2qSH1FnBL",
+      lena: "tnSpp4vdxKPjI9w0GnoV",
+      sero: "IXtQSoqIQFyzo05yKkE8",
+    };
+    voiceId = VOICE_BY_COACH[coachId] || VOICE_BY_COACH.tilki;
+    const cacheKey = lang + "|" + coachId + "|" + voiceId + "|" + text;
     let url = _audioCache.get(cacheKey);
     if (!url) {
       const base = await _getApiBase();
@@ -4413,17 +4066,14 @@
         base.replace(/\/+$/, "") +
         "/tts?lang=" +
         encodeURIComponent(lang) +
+        "&coach=" +
+        encodeURIComponent(coachId) +
+        "&voice=" +
+        encodeURIComponent(voiceId) +
         "&text=" +
         encodeURIComponent(text) +
-        // Cache-buster: tarayıcı, /tts cevaplarını 1 yıl boyunca
-        // immutable olarak cache'liyor. Eski sürümlerde ElevenLabs
-        // başarısız olduğunda edge-tts (Microsoft) mp3'ü dönüyordu ve
-        // o dosyalar hâlâ tarayıcı cache'inde duruyor. Kitap hamleleri
-        // gibi sık görülen metinler aynı olduğu için (örn. "Bilindik
-        // bir açılış hamlesi") her oyunda eski edge-tts ses dosyası
-        // okunmaya devam ediyordu. `v=` ile cache key'ini değiştirip
-        // sunucudan taze ElevenLabs sesini almaya zorluyoruz.
-        "&v=el2";
+        // Cache-buster: per-coach voices + ElevenLabs pipeline.
+        "&v=el4";
       // Token'ı background'dan al; sunucu kullanıcıyı tanıyıp quota
       // (Free = 500 char/gün, Premium = 100K char/gün) uygulayabilsin.
       let _authHeaders = {};
@@ -4581,44 +4231,31 @@
 
     const fmtAcc = (a) => (a == null ? "—" : a.toFixed(1));
 
-    // Pick an opening flavour line for the coach bubble.
+    // Pick an opening flavour line for the coach bubble (per-coach personality).
     let coachLine;
     const wAcc = stats.accuracy.w;
     const bAcc = stats.accuracy.b;
     const viewerSide = pre.viewerSide;
     const _isEN =
       window.ForkSightI18n && window.ForkSightI18n.getLang() === "en";
+    const _lang = _isEN ? "en" : "tr";
+    const _N = window.ForkSightCoachNarration;
+    const _sum = (tier, accStr) =>
+      _N && typeof _N.summaryIntro === "function"
+        ? _N.summaryIntro(_selectedCoachId || "tilki", _lang, tier, accStr)
+        : "";
     if (viewerSide && (wAcc != null || bAcc != null)) {
       const yourAcc = viewerSide === "w" ? wAcc : bAcc;
       const oppAcc = viewerSide === "w" ? bAcc : wAcc;
       if (yourAcc != null && oppAcc != null) {
-        if (yourAcc >= 90) {
-          coachLine = _isEN
-            ? "An outstanding game — your accuracy is " +
-              yourAcc.toFixed(1) +
-              "%. Let's look at the moves together."
-            : "Olağanüstü bir oyun çıkardın — doğruluğun %" +
-              yourAcc.toFixed(1) +
-              ". Hadi hamleleri birlikte inceleyelim.";
-        } else if (yourAcc >= 75) {
-          coachLine = _isEN
-            ? "Nice performance! Your accuracy is " +
-              yourAcc.toFixed(1) +
-              "%. Let's review a few critical moments together."
-            : "Güzel bir performans! Doğruluğun %" +
-              yourAcc.toFixed(1) +
-              ". Birkaç kritik anı birlikte gözden geçirelim.";
-        } else if (yourAcc >= oppAcc) {
-          coachLine = _isEN
-            ? "Good job — still, there's room to improve. Let's start the review."
-            : "İyi iş — yine de geliştirebileceğin yerler var. İncelemeyi başlatalım.";
-        } else {
-          coachLine = _isEN
-            ? "A few tough moments — but don't worry, every game teaches us. Let's look together."
-            : "Birkaç zorlu an olmuş; ama merak etme, her oyun öğretir. Beraber bakalım.";
-        }
+        const a = yourAcc.toFixed(1);
+        if (yourAcc >= 90) coachLine = _sum("outstanding", a);
+        else if (yourAcc >= 75) coachLine = _sum("strong", a);
+        else if (yourAcc >= oppAcc) coachLine = _sum("ok", a);
+        else coachLine = _sum("tough", a);
       }
     }
+    if (!coachLine) coachLine = _sum("fallback", "");
     if (!coachLine) {
       coachLine = _isEN
         ? "I've reviewed the game. When you're ready, hit 'Start Review'."
@@ -4676,11 +4313,6 @@
             <span class="forksight-summary-caret">▌</span>
           </div>
         </div>
-        <div class="forksight-learn-box" style="margin:12px 0;padding:12px 14px;border-radius:12px;background:rgba(245,197,66,0.08);border:1px solid rgba(245,197,66,0.28);font-size:13px;line-height:1.45;color:#d7dbe6">
-          <div style="font-weight:800;color:#f5c542;margin-bottom:4px">${_isEN ? "What happened?" : "Ne oldu?"}</div>
-          <div>${_isEN ? "We'll walk through the biggest mistake and what to learn — not just engine numbers." : "En büyük hatayı ve öğrenilecek dersi birlikte göreceğiz — sadece motor sayıları değil."}</div>
-          <div style="margin-top:8px;opacity:.9">${_isEN ? "💡 Tip: Look for the first clear drop in evaluation — that's usually the lesson." : "💡 İpucu: Değerlendirmedeki ilk net düşüşe bak — genelde ders oradadır."}</div>
-        </div>
 
         <div class="forksight-summary-graph ${flip ? "forksight-summary-graph--flip" : ""}">
           ${graphSVG}
@@ -4707,12 +4339,17 @@
         <button class="forksight-summary-start" id="forksight-summary-start">
           → ${T("İncelemeyi Başlat")}
         </button>
+
+        <div class="forksight-learn-box" style="margin:12px 0;padding:12px 14px;border-radius:12px;background:rgba(245,197,66,0.08);border:1px solid rgba(245,197,66,0.28);font-size:13px;line-height:1.45;color:#d7dbe6">
+          <div style="font-weight:800;color:#f5c542;margin-bottom:4px">${_isEN ? "What happened?" : "Ne oldu?"}</div>
+          <div>${_isEN ? "We'll walk through the biggest mistake and what to learn — not just engine numbers." : "En büyük hatayı ve öğrenilecek dersi birlikte göreceğiz — sadece motor sayıları değil."}</div>
+          <div style="margin-top:8px;opacity:.9">${_isEN ? "💡 Tip: Look for the first clear drop in evaluation — that's usually the lesson." : "💡 İpucu: Değerlendirmedeki ilk net düşüşe bak — genelde ders oradadır."}</div>
+        </div>
       </div>
     `);
 
     try {
-      modalEl.querySelector("#forksight-summary-av").src =
-        chrome.runtime.getURL("avatars/thinking.png");
+      setCoachImg(modalEl.querySelector("#forksight-summary-av"), "thinking");
     } catch (_) {}
 
     const textEl = modalEl.querySelector("#forksight-summary-text");
@@ -5001,14 +4638,7 @@
         : new Array(timeline.length).fill(null); // narration category
     let analyzeToken = 0; // bumps on every nav so stale responses are dropped
 
-    const avatarUrl = (state) => {
-      try {
-        return chrome.runtime.getURL("avatars/" + state + ".png");
-      } catch (_) {
-        return "";
-      }
-    };
-    narrAvEl.src = avatarUrl("neutral");
+    setCoachImg(narrAvEl, "neutral");
 
     function renderBoard() {
       const step = timeline[currentPly];
@@ -5159,7 +4789,7 @@
 
       // Narration: requires the previous ply's eval as a baseline.
       if (ply === 0) {
-        narrAvEl.src = avatarUrl("neutral");
+        setCoachImg(narrAvEl, "neutral");
         const startText = T(
           "Başlangıç pozisyonu. Sağdaki hamleye veya ileri/geri tuşlarına tıklayarak oyunu dolaş.",
         );
@@ -5294,7 +4924,7 @@
       const spokenText = parts.join(" ");
       const displayText = prefix + spokenText;
       typewriter(narrTextEl, displayText, 22);
-      narrAvEl.src = avatarUrl(picked.emotion);
+      setCoachImg(narrAvEl, picked.emotion);
       speak(spokenText);
     }
 
@@ -5381,8 +5011,10 @@
       </div>
     `);
     try {
-      modalEl.querySelector(".forksight-review-profile-av").src =
-        chrome.runtime.getURL("avatars/happy.png");
+      setCoachImg(
+        modalEl.querySelector(".forksight-review-profile-av"),
+        "happy",
+      );
     } catch (_) {}
     modalEl
       .querySelector(".forksight-review-close")

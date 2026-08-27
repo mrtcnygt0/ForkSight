@@ -4,6 +4,8 @@
  *   setState(state)   → switch expression. One of:
  *       'neutral' | 'happy' | 'winning' | 'thinking' | 'worried' |
  *       'losing'  | 'opportunity' | 'mistake' | 'gameOver'
+ *   setCoach(id)      → swap mini sprites for tilki|victoria|boris|kai|lena
+ *   getCoach()        → current coach id
  *   getState()        → current state string
  *   show() / hide()   → toggle visibility
  *   blink(on)         → toggle game-over blink/pulse animation
@@ -11,7 +13,8 @@
  *
  * Persistence: position is saved to chrome.storage.local (key
  * "forksight_avatar_pos") with a localStorage fallback so the user
- * only has to place it once per device.
+ * only has to place it once per device. Selected coach follows
+ * chrome.storage.local "fs_selected_coach".
  *
  * Step 1: this file only renders the avatar and handles dragging.
  * Eval → state mapping is wired up by content.js in a later step.
@@ -42,6 +45,8 @@
   // the board and would otherwise reset the avatar's mood).
   const SUMMARY_KEY = "forksight_avatar_last_summary";
   const GAMEOVER_KEY = "forksight_avatar_gameover";
+  const COACH_KEY = "fs_selected_coach";
+  const COACH_IDS = ["tilki", "victoria", "boris", "kai", "lena", "sero"];
   const STATES = [
     "neutral",
     "happy",
@@ -58,6 +63,7 @@
   let containerEl = null;
   let imgEl = null;
   let currentState = "neutral";
+  let selectedCoachId = "tilki";
   // Latest game summary delivered by content.js at game end. The avatar
   // becomes clickable in `gameOver` state and opens a recap modal.
   let lastSummary = null;
@@ -118,11 +124,88 @@
     return "losing";
   }
 
-  function imgUrl(state) {
+  function normalizeCoachId(id) {
+    const s = String(id || "tilki").toLowerCase();
+    return COACH_IDS.includes(s) ? s : "tilki";
+  }
+
+  function imgUrl(state, coachId) {
+    const st = STATES.includes(state) ? state : "neutral";
+    const coach = normalizeCoachId(coachId || selectedCoachId);
+    const path = "avatars/" + coach + "/" + st + ".png";
     try {
-      return chrome.runtime.getURL("avatars/" + state + ".png");
+      return chrome.runtime.getURL(path);
     } catch (e) {
-      return "avatars/" + state + ".png";
+      return path;
+    }
+  }
+
+  function rootImgUrl(state) {
+    const st = STATES.includes(state) ? state : "neutral";
+    const path = "avatars/" + st + ".png";
+    try {
+      return chrome.runtime.getURL(path);
+    } catch (e) {
+      return path;
+    }
+  }
+
+  function bindImgFallback(img, state) {
+    if (!img) return;
+    const st = STATES.includes(state) ? state : "neutral";
+    img.onerror = function () {
+      // Missing coach folder / emotion → root avatars/{state}.png (legacy).
+      img.onerror = function () {
+        img.onerror = null;
+        if (selectedCoachId !== "tilki") {
+          img.src = imgUrl(st, "tilki");
+        }
+      };
+      img.src = rootImgUrl(st);
+    };
+  }
+
+  function setImg(img, state, coachId) {
+    if (!img) return;
+    const st = STATES.includes(state) ? state : "neutral";
+    img.src = imgUrl(st, coachId);
+    bindImgFallback(img, st);
+  }
+
+  function applyCoachClass() {
+    if (!containerEl) return;
+    containerEl.dataset.coach = selectedCoachId;
+    COACH_IDS.forEach((id) => {
+      containerEl.classList.toggle("forksight-avatar--coach-" + id, id === selectedCoachId);
+    });
+  }
+
+  function setCoach(coachId, opts) {
+    const next = normalizeCoachId(coachId);
+    const silent = opts && opts.silent;
+    if (next === selectedCoachId && !(opts && opts.force)) {
+      applyCoachClass();
+      return selectedCoachId;
+    }
+    selectedCoachId = next;
+    applyCoachClass();
+    if (imgEl) setImg(imgEl, currentState);
+    if (!silent) hopOnce();
+    return selectedCoachId;
+  }
+
+  function loadSelectedCoach(cb) {
+    const done = (id) => {
+      selectedCoachId = normalizeCoachId(id);
+      applyCoachClass();
+      if (typeof cb === "function") cb(selectedCoachId);
+    };
+    try {
+      chrome.storage.local.get([COACH_KEY], (r) => {
+        done(r && r[COACH_KEY] ? r[COACH_KEY] : "tilki");
+      });
+    } catch (_) {
+      done("tilki");
     }
   }
 
@@ -282,7 +365,7 @@
   function setState(state) {
     if (!STATES.includes(state)) return;
     currentState = state;
-    if (imgEl) imgEl.src = imgUrl(state);
+    if (imgEl) setImg(imgEl, state);
     if (containerEl) containerEl.dataset.state = state;
   }
 
@@ -511,7 +594,7 @@
 
     // Wire image src after attach so chrome.runtime.getURL is safe.
     const av = modalEl.querySelector(".forksight-summary-avatar");
-    if (av) av.src = imgUrl(rl.mood);
+    if (av) setImg(av, rl.mood);
 
     const close = () => closeSummaryModal();
     modalEl
@@ -830,24 +913,77 @@
     return true;
   }
 
-  const ROAM_TIPS_TR = [
-    "Bir bulmaca çözelim mi? 🧩",
-    "Bugün formdayız! ✨",
-    "Beni istediğin yere sürükleyebilirsin 🐾",
-    "Oyun bitince sana özet çıkarırım 🏆",
-    "Takıldığında ipucu iste 💡",
-    "Seriyi bozma — her gün biraz pratik!",
-  ];
-  const ROAM_TIPS_EN = [
-    "Shall we solve a puzzle? 🧩",
-    "We're on form today! ✨",
-    "You can drag me anywhere 🐾",
-    "I'll recap your game when it ends 🏆",
-    "Ask for a hint when you're stuck 💡",
-    "Keep the streak — practice daily!",
-  ];
+  const ROAM_TIPS = {
+    tilki: {
+      tr: [
+        "Bir bulmaca çözelim mi? 🧩",
+        "Bugün formdayız! ✨",
+        "Beni istediğin yere sürükleyebilirsin 🐾",
+        "Oyun bitince sana özet çıkarırım 🏆",
+        "Takıldığında ipucu iste 💡",
+        "Seriyi bozma — her gün biraz pratik!",
+      ],
+      en: [
+        "Shall we solve a puzzle? 🧩",
+        "We're on form today! ✨",
+        "You can drag me anywhere 🐾",
+        "I'll recap your game when it ends 🏆",
+        "Ask for a hint when you're stuck 💡",
+        "Keep the streak — practice daily!",
+      ],
+    },
+    victoria: {
+      tr: [
+        "Planını net tut — acele etme.",
+        "Strateji: önce yapı, sonra taktik.",
+        "Sakin kal; iyi hamle sabır ister.",
+      ],
+      en: [
+        "Keep your plan clear — no rush.",
+        "Strategy first, tactics second.",
+        "Stay composed; good moves take patience.",
+      ],
+    },
+    boris: {
+      tr: [
+        "Doğruyu söyleyeceğim — o hamle zayıftı.",
+        "Hesabı bitirmeden bırakma.",
+        "Sert ama adil: tekrar dene.",
+      ],
+      en: [
+        "I'll be honest — that move was weak.",
+        "Don't stop mid-calculation.",
+        "Tough but fair: try again.",
+      ],
+    },
+    kai: {
+      tr: [
+        "Derinlik +1 — bir varyant daha.",
+        "Tahtayı parçalara ayır, say.",
+        "Kesin hesap: adım adım.",
+      ],
+      en: [
+        "Depth +1 — one more line.",
+        "Break the board into parts, count.",
+        "Precise calc: step by step.",
+      ],
+    },
+    lena: {
+      tr: [
+        "Hadi! Bu pozisyonu çevirebilirsin 💪",
+        "Enerji yüksek — devam!",
+        "Her gün biraz daha iyi!",
+      ],
+      en: [
+        "Come on! You can flip this position 💪",
+        "Energy high — keep going!",
+        "A little better every day!",
+      ],
+    },
+  };
   function roamPickTip() {
-    const arr = _isEN() ? ROAM_TIPS_EN : ROAM_TIPS_TR;
+    const pack = ROAM_TIPS[selectedCoachId] || ROAM_TIPS.tilki;
+    const arr = _isEN() ? pack.en : pack.tr;
     return arr[(Math.random() * arr.length) | 0];
   }
 
@@ -973,12 +1109,30 @@
     setTimeout(() => {
       if (!containerEl || containerEl.style.display === "none") return;
       if (roamActiveByGame() || roamHovering) return;
-      say(
-        _isEN()
-          ? "Hey! Ready to train? 🦊"
-          : "Selam! Antrenmana hazır mısın? 🦊",
-        4200,
-      );
+      const greet = {
+        tilki: {
+          tr: "Selam! Antrenmana hazır mısın? 🦊",
+          en: "Hey! Ready to train? 🦊",
+        },
+        victoria: {
+          tr: "Merhaba. Planlı oynayalım.",
+          en: "Hello. Let's play with a plan.",
+        },
+        boris: {
+          tr: "Hazır mısın? Yumuşak oynamayacağım.",
+          en: "Ready? I won't go easy.",
+        },
+        kai: {
+          tr: "Hesaba başlayalım.",
+          en: "Let's start calculating.",
+        },
+        lena: {
+          tr: "Hadi! Bugün formdayız! ✨",
+          en: "Let's go! We're on fire today! ✨",
+        },
+      };
+      const g = greet[selectedCoachId] || greet.tilki;
+      say(_isEN() ? g.en : g.tr, 4200);
     }, 1800);
   }
 
@@ -994,15 +1148,17 @@
     containerEl.id = "forksight-avatar";
     containerEl.className = "forksight-avatar";
     containerEl.dataset.state = "neutral";
+    containerEl.dataset.coach = selectedCoachId;
     containerEl.setAttribute("role", "img");
     containerEl.setAttribute("aria-label", "ForkSight Coach");
     containerEl.title = T("ForkSight Coach (sürükleyerek taşı)");
 
     imgEl = document.createElement("img");
     imgEl.className = "forksight-avatar__img";
-    imgEl.src = imgUrl("neutral");
+    setImg(imgEl, "neutral");
     imgEl.alt = "";
     imgEl.draggable = false;
+    applyCoachClass();
 
     // İç sarmalayıcı: yürüme/nefes/zıplama transform'ları burada yaşar,
     // container'ın hover/drag scale'i ile çakışmaz.
@@ -1083,19 +1239,31 @@
 
     // Yaşayan maskot motorunu başlat (boştayken gezinir; oyun/drag/hover'da durur).
     startRoaming();
+
+    // Koç değişince yüzen avatar anında güncellenir.
+    try {
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area !== "local" || !changes[COACH_KEY]) return;
+        setCoach(changes[COACH_KEY].newValue);
+      });
+    } catch (_) {}
   }
 
   function init() {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", build, { once: true });
-    } else {
-      build();
-    }
+    loadSelectedCoach(() => {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", build, { once: true });
+      } else {
+        build();
+      }
+    });
   }
 
   window.ForkSightAvatar = {
     setState,
     getState: () => currentState,
+    setCoach,
+    getCoach: () => selectedCoachId,
     update,
     resetGame,
     blink,

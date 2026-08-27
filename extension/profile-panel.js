@@ -91,7 +91,8 @@
   let shadow = null;
   let panelEl = null;
   let activeTab = "home";
-  let coachSubTab = "plan"; // plan | games | weaknesses | suggestions
+  let coachSubTab = "all"; // all | mine
+  let selectedCoachId = "tilki";
   let langUnsub = null;
 
   // In-memory cache (panel kapanırken silinir)
@@ -581,9 +582,10 @@
         text-align: left;
         min-width: 0;
       }
-      .fs-tab > span:last-child {
+      .fs-tab > span:nth-child(2) {
         min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
       }
+      .fs-tab .fs-tab-new { flex: 0 0 auto; }
       .fs-tab .fs-tab-ico {
         width: 20px; height: 20px; display: grid; place-items: center;
         flex: 0 0 auto;
@@ -625,7 +627,20 @@
         width: 18px; height: 18px; object-fit: contain;
         position: absolute; right: 10px; bottom: 10px;
       }
-      .fs-pro-card-sub { display: none; }
+      .fs-pro-go {
+        display: none; margin-top: 8px; width: 100%; text-align: center;
+        border-radius: 8px; padding: 7px 8px; font-size: 11px; font-weight: 800;
+        background: linear-gradient(135deg, #f5c542, #e0a820); color: #1a1408;
+      }
+      .fs-panel[data-tab="coach"] .fs-pro-go { display: block; }
+      .fs-pro-card-sub {
+        display: none; font-size: 11px; color: var(--fs-text-dim); margin-top: 6px; line-height: 1.35;
+      }
+      .fs-panel[data-tab="coach"] .fs-pro-card-sub { display: block; }
+      .fs-tab-new {
+        margin-left: auto; font-size: 9px; font-weight: 900; letter-spacing: 0.04em;
+        padding: 2px 6px; border-radius: 999px; background: #f5c542; color: #1a1408;
+      }
       .fs-panel[data-tab="profile"] .fs-lang-btn,
       .fs-panel[data-tab="arena"] .fs-lang-btn { display: none; }
       .fs-premium-pill { display: none; }
@@ -647,6 +662,17 @@
         font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
         color: var(--fs-text);
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .fs-panel[data-tab="coach"] .fs-greet-title {
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        font-size: 22px; font-weight: 900; letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .fs-panel[data-tab="coach"] .fs-greet-sub { color: #d4b45a; }
+      .fs-panel[data-tab="coach"] .fs-lang-btn { display: none; }
+      .fs-panel[data-tab="coach"] .fs-body {
+        padding-top: 8px;
+        overflow: auto;
       }
       .fs-v3-title {
         font-family: Georgia, "Times New Roman", serif;
@@ -1398,6 +1424,464 @@
       }
       .fs-coach-tab.fs-on {
         background: var(--fs-accent); color: #12141d; border-color: var(--fs-accent);
+      }
+
+      /* ── Coach picker (v3.0 coachpage) ── */
+      .fs-cpick { position: relative; min-height: 100%; }
+      .fs-cpick-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; margin: 0 0 12px; flex-wrap: wrap;
+      }
+      .fs-cpick-head .fs-cpick-nav { margin: 0; }
+      .fs-cpick-info {
+        display: flex; align-items: center; gap: 8px;
+        margin: 0; padding: 8px 12px; border-radius: 10px;
+        max-width: 340px;
+        background: rgba(61,214,140,0.08);
+        border: 1px solid rgba(61,214,140,0.28);
+        font-size: 11px; line-height: 1.4; color: #c8f0d8;
+      }
+      .fs-cpick-info .fs-chip {
+        flex: 0 0 auto; width: 22px; height: 22px; border-radius: 6px;
+        display: grid; place-items: center; font-size: 12px;
+        background: rgba(61,214,140,0.18); color: #3dd68c;
+      }
+      .fs-cpick-nav {
+        display: flex; gap: 8px; align-items: center;
+        margin: 0 0 14px;
+      }
+      .fs-cpick-nav button {
+        appearance: none; cursor: pointer;
+        border-radius: 999px; padding: 8px 14px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.04);
+        color: var(--fs-text-dim); font-size: 11px; font-weight: 800;
+        letter-spacing: 0.06em; text-transform: uppercase;
+      }
+      .fs-cpick-nav button.fs-on {
+        color: #1a1408; background: linear-gradient(135deg, #f5c542, #e0a820);
+        border-color: transparent;
+        box-shadow: 0 6px 16px rgba(245,197,66,0.28);
+      }
+      .fs-cpick-grid {
+        display: flex; flex-wrap: nowrap; gap: 14px;
+        margin: 0 -4px 16px; padding: 6px 4px 14px;
+        overflow-x: auto; overflow-y: visible;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: 4px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(245,197,66,0.45) rgba(255,255,255,0.06);
+        cursor: grab;
+        user-select: none;
+        touch-action: pan-y;
+      }
+      .fs-cpick-grid.fs-dragging {
+        cursor: grabbing;
+        scroll-snap-type: none;
+      }
+      .fs-cpick-grid.fs-dragging .fs-ccard,
+      .fs-cpick-grid.fs-dragging .fs-ccard-btn {
+        pointer-events: none;
+      }
+      .fs-cpick-scroll {
+        position: relative; margin-bottom: 14px;
+      }
+      .fs-cpick-scroll::before,
+      .fs-cpick-scroll::after {
+        content: ""; position: absolute; top: 0; bottom: 18px; width: 28px; z-index: 2;
+        pointer-events: none;
+      }
+      .fs-cpick-scroll::before {
+        left: 0;
+        background: linear-gradient(90deg, rgba(18,20,29,0.95), transparent);
+      }
+      .fs-cpick-scroll::after {
+        right: 0;
+        background: linear-gradient(270deg, rgba(18,20,29,0.95), transparent);
+      }
+      .fs-cpick-scroll .fs-cpick-grid { margin-bottom: 0; }
+      .fs-cpick-arrow {
+        position: absolute; top: 42%; transform: translateY(-50%);
+        z-index: 3; width: 34px; height: 34px; border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(18,20,29,0.88);
+        color: #f5c542; cursor: pointer;
+        display: grid; place-items: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+      }
+      .fs-cpick-arrow:hover { border-color: rgba(245,197,66,0.45); }
+      .fs-cpick-arrow.prev { left: 2px; }
+      .fs-cpick-arrow.next { right: 2px; }
+      .fs-cpick-arrow svg { width: 16px; height: 16px; display: block; }
+      .fs-cpick-grid::-webkit-scrollbar { height: 8px; }
+      .fs-cpick-grid::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.05); border-radius: 999px;
+      }
+      .fs-cpick-grid::-webkit-scrollbar-thumb {
+        background: linear-gradient(90deg, rgba(245,197,66,0.55), rgba(61,214,140,0.45));
+        border-radius: 999px;
+      }
+      .fs-ccard {
+        position: relative; display: flex; flex-direction: column;
+        flex: 0 0 248px; width: 248px; max-width: 248px;
+        scroll-snap-align: start;
+        border-radius: 18px; overflow: hidden;
+        background: #0e1016;
+        border: 1px solid color-mix(in srgb, var(--cc) 42%, rgba(255,255,255,0.08));
+        box-shadow:
+          0 16px 34px rgba(0,0,0,0.48),
+          0 0 0 1px color-mix(in srgb, var(--cc) 18%, transparent),
+          0 0 28px color-mix(in srgb, var(--cc) 14%, transparent),
+          inset 0 1px 0 rgba(255,255,255,0.05);
+        height: 508px;
+        min-height: 508px;
+        transition: border-color .2s, box-shadow .2s, transform .15s;
+      }
+      .fs-ccard:hover { transform: translateY(-2px); }
+      .fs-ccard[data-theme="green"] { --cc: #3dd68c; --cc-dim: rgba(61,214,140,0.28); }
+      .fs-ccard[data-theme="gold"] { --cc: #f5c542; --cc-dim: rgba(245,197,66,0.28); }
+      .fs-ccard[data-theme="purple"] { --cc: #a78bfa; --cc-dim: rgba(167,139,250,0.28); }
+      .fs-ccard[data-theme="blue"] { --cc: #4c8dff; --cc-dim: rgba(76,141,255,0.28); }
+      .fs-ccard[data-theme="red"] { --cc: #ff6b6b; --cc-dim: rgba(255,107,107,0.28); }
+      .fs-ccard[data-theme="orange"] { --cc: #ff8a3d; --cc-dim: rgba(255,138,61,0.30); }
+      .fs-ccard.is-soon .fs-ccard-bg {
+        filter: brightness(0.42) saturate(0.55) contrast(1.05);
+      }
+      .fs-ccard.is-soon .fs-ccard-scrim {
+        background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.72) 55%, rgba(8,6,4,0.88) 100%);
+      }
+      .fs-ccard.is-soon .fs-ccard-name,
+      .fs-ccard.is-soon .fs-ccard-rating { opacity: 0.78; }
+      .fs-cooksoon {
+        margin-top: 10px;
+        padding: 10px 10px 8px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,138,61,0.28);
+        background: linear-gradient(165deg, rgba(255,138,61,0.10), rgba(0,0,0,0.35));
+        text-align: center;
+      }
+      .fs-cooksoon-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #1a1208;
+        background: linear-gradient(135deg, #ffb35a, #ff8a3d);
+        box-shadow: 0 0 16px rgba(255,138,61,0.35);
+      }
+      .fs-cooksoon-oven {
+        position: relative;
+        height: 36px;
+        margin: 8px auto 4px;
+        width: 100%;
+        max-width: 160px;
+        overflow: hidden;
+      }
+      .fs-cooksoon-oven .st,
+      .fs-cooksoon-oven .ln,
+      .fs-cooksoon-oven .sp {
+        position: absolute;
+        pointer-events: none;
+      }
+      .fs-cooksoon-oven .st {
+        width: 6px; height: 6px;
+        background: #ffd59a;
+        clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        animation: fs-cook-star 1.8s ease-in-out infinite;
+        opacity: 0.85;
+      }
+      .fs-cooksoon-oven .st.s1 { left: 12%; top: 8px; animation-delay: 0s; }
+      .fs-cooksoon-oven .st.s2 { left: 46%; top: 2px; animation-delay: 0.35s; }
+      .fs-cooksoon-oven .st.s3 { left: 72%; top: 10px; animation-delay: 0.7s; }
+      .fs-cooksoon-oven .st.s4 { left: 30%; top: 18px; animation-delay: 1.05s; width: 4px; height: 4px; }
+      .fs-cooksoon-oven .ln {
+        height: 1px;
+        width: 28px;
+        background: linear-gradient(90deg, transparent, rgba(255,200,120,0.9), transparent);
+        animation: fs-cook-line 1.6s linear infinite;
+        opacity: 0.7;
+      }
+      .fs-cooksoon-oven .ln.l1 { left: 8%; top: 22px; animation-delay: 0s; }
+      .fs-cooksoon-oven .ln.l2 { left: 38%; top: 26px; width: 36px; animation-delay: 0.4s; }
+      .fs-cooksoon-oven .ln.l3 { left: 62%; top: 20px; animation-delay: 0.85s; }
+      .fs-cooksoon-oven .sp {
+        width: 3px; height: 3px; border-radius: 50%;
+        background: #ffc878;
+        box-shadow: 0 0 6px rgba(255,180,80,0.8);
+        animation: fs-cook-spark 1.4s ease-out infinite;
+      }
+      .fs-cooksoon-oven .sp.p1 { left: 22%; bottom: 2px; animation-delay: 0.1s; }
+      .fs-cooksoon-oven .sp.p2 { left: 50%; bottom: 0; animation-delay: 0.55s; }
+      .fs-cooksoon-oven .sp.p3 { left: 78%; bottom: 3px; animation-delay: 0.95s; }
+      @keyframes fs-cook-star {
+        0%, 100% { transform: scale(0.7) rotate(0deg); opacity: 0.35; }
+        50% { transform: scale(1.2) rotate(20deg); opacity: 1; }
+      }
+      @keyframes fs-cook-line {
+        0% { transform: translateX(-12px); opacity: 0; }
+        30% { opacity: 0.85; }
+        100% { transform: translateX(28px); opacity: 0; }
+      }
+      @keyframes fs-cook-spark {
+        0% { transform: translateY(6px) scale(0.6); opacity: 0; }
+        25% { opacity: 1; }
+        100% { transform: translateY(-18px) scale(1); opacity: 0; }
+      }
+      .fs-cooksoon-cap {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: rgba(255,210,160,0.88);
+      }
+      .fs-ccard-btn.fs-soon-btn {
+        opacity: 0.85;
+        cursor: default;
+        pointer-events: none;
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,220,180,0.75);
+        border: 1px dashed rgba(255,138,61,0.35);
+      }
+      .fs-ccard.fs-active {
+        border-color: color-mix(in srgb, var(--cc) 85%, #fff);
+        box-shadow:
+          0 0 0 1px color-mix(in srgb, var(--cc) 65%, transparent),
+          0 0 36px color-mix(in srgb, var(--cc) 34%, transparent),
+          0 18px 36px rgba(0,0,0,0.5),
+          inset 0 1px 0 rgba(255,255,255,0.06);
+      }
+      .fs-ccard-media {
+        position: absolute; inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        isolation: isolate;
+      }
+      .fs-ccard-bg {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover; object-position: top center;
+        display: block;
+        filter: saturate(1.06) contrast(1.06);
+      }
+      .fs-ccard-scrim {
+        position: absolute; inset: 0; pointer-events: none; z-index: 1;
+        background:
+          linear-gradient(180deg, rgba(8,10,14,0.22) 0%, transparent 22%),
+          linear-gradient(180deg, transparent 28%, rgba(10,12,18,0.45) 48%, rgba(10,12,18,0.88) 68%, rgba(10,12,18,0.97) 100%),
+          radial-gradient(ellipse at 50% 42%, var(--cc-dim), transparent 58%);
+      }
+      .fs-ccard-ribbon {
+        position: absolute; top: 14px; left: 0; z-index: 5;
+        background: var(--cc); color: #0b1210; font-size: 9px; font-weight: 900;
+        letter-spacing: 0.08em; padding: 4px 12px 4px 10px;
+        clip-path: polygon(0 0, 100% 0, 90% 100%, 0 100%);
+        box-shadow: 0 4px 12px var(--cc-dim);
+      }
+      .fs-ccard-pro {
+        position: absolute; top: 12px; right: 12px; z-index: 5;
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 9px; border-radius: 6px;
+        background: linear-gradient(135deg, #f5c542, #e0a820);
+        color: #1a1408; font-size: 9px; font-weight: 900; letter-spacing: 0.06em;
+        box-shadow: 0 4px 14px rgba(245,197,66,0.35);
+      }
+      .fs-ccard-top {
+        position: absolute; top: 14px; left: 12px; z-index: 4;
+        pointer-events: none;
+      }
+      .fs-ccard.fs-active .fs-ccard-top { top: 40px; }
+      .fs-ccard-rating {
+        font-size: 34px; font-weight: 900; line-height: 0.95; color: #fff;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.55), 0 0 18px var(--cc-dim);
+      }
+      .fs-ccard-role {
+        margin-top: 3px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em;
+        color: var(--cc); text-transform: uppercase;
+        text-shadow: 0 1px 8px rgba(0,0,0,0.55);
+      }
+      .fs-ccard-id {
+        position: absolute; left: 12px; right: 12px; top: 44%; z-index: 4;
+        pointer-events: none;
+      }
+      .fs-ccard-name {
+        font-family: "Segoe Script", "Brush Script MT", "Palatino Linotype", Georgia, cursive;
+        font-size: 30px; font-weight: 600; color: var(--cc); line-height: 1;
+        text-shadow: 0 2px 14px rgba(0,0,0,0.65), 0 0 18px var(--cc-dim);
+      }
+      .fs-ccard-title {
+        margin-top: 4px; font-size: 12px; font-weight: 800; color: #f2f4f8;
+        display: flex; align-items: center; gap: 6px;
+        text-shadow: 0 1px 8px rgba(0,0,0,0.65);
+      }
+      .fs-ccard-title .pc { color: var(--cc); font-size: 13px; }
+      .fs-ccard-glass {
+        position: relative; z-index: 3;
+        margin-top: auto;
+        display: flex; flex-direction: column;
+        padding: 10px 12px 12px;
+        background:
+          linear-gradient(180deg, rgba(12,14,20,0.55), rgba(10,12,18,0.92));
+        backdrop-filter: blur(12px) saturate(1.1);
+        -webkit-backdrop-filter: blur(12px) saturate(1.1);
+        border-top: 1px solid color-mix(in srgb, var(--cc) 18%, rgba(255,255,255,0.06));
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+      }
+      .fs-ccard-desc {
+        font-size: 10px; line-height: 1.4; color: var(--fs-text-dim);
+        min-height: 28px;
+      }
+      .fs-ccard-skills { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+      .fs-ccard-skill {
+        display: grid; grid-template-columns: 72px 1fr 22px; gap: 6px; align-items: center;
+        font-size: 9px; font-weight: 700; color: var(--fs-text-dim);
+      }
+      .fs-ccard-skill strong { color: var(--fs-text); font-size: 10px; text-align: right; }
+      .fs-ccard-seg {
+        display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; height: 6px;
+      }
+      .fs-ccard-seg i {
+        display: block; border-radius: 2px; background: rgba(255,255,255,0.08);
+      }
+      .fs-ccard-seg i.on { background: var(--cc); box-shadow: 0 0 6px var(--cc-dim); }
+      .fs-ccard-meta {
+        margin-top: 8px; font-size: 9px; color: var(--fs-text-dim); line-height: 1.35;
+      }
+      .fs-ccard-meta b { color: #cfd3dc; font-weight: 700; }
+      .fs-ccard-btn {
+        margin-top: auto; width: 100%; appearance: none; cursor: pointer;
+        border-radius: 10px; padding: 10px 12px;
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        font-size: 12px; font-weight: 800; letter-spacing: 0.01em;
+        position: relative; z-index: 2;
+        background: color-mix(in srgb, var(--cc) 28%, #161922);
+        color: #eef2f8; border: 1px solid color-mix(in srgb, var(--cc) 55%, transparent);
+      }
+      .fs-ccard[data-theme="gold"] .fs-ccard-btn:not(.fs-locked) {
+        background: linear-gradient(135deg, rgba(245,197,66,0.96), rgba(224,168,32,0.96));
+        color: #1a1408; border-color: transparent;
+      }
+      .fs-ccard.fs-active .fs-ccard-btn {
+        background: var(--cc); color: #0b1210;
+        box-shadow: 0 8px 18px var(--cc-dim);
+      }
+      .fs-ccard-btn.fs-locked {
+        opacity: 0.95;
+        background: color-mix(in srgb, var(--cc) 14%, #141821);
+        border: 1px solid color-mix(in srgb, var(--cc) 35%, rgba(255,255,255,0.12));
+        color: #d7dbe6;
+      }
+      .fs-ccard-btn svg { width: 14px; height: 14px; display: block; flex: 0 0 auto; }
+      .fs-cpick-bottom {
+        display: grid; grid-template-columns: 1.15fr 0.85fr 1.35fr 0.9fr;
+        gap: 10px; align-items: stretch;
+      }
+      .fs-cpick-box {
+        border-radius: 14px; padding: 12px;
+        background: rgba(255,255,255,0.035);
+        border: 1px solid rgba(255,255,255,0.08);
+        position: relative; overflow: hidden;
+      }
+      .fs-cpick-box .fs-k {
+        font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+        color: var(--fs-text-dim); margin-bottom: 8px;
+      }
+      .fs-free-coach {
+        display: flex; gap: 10px; align-items: center;
+      }
+      .fs-free-coach img {
+        width: 56px; height: 56px; object-fit: contain; flex: 0 0 auto;
+        filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
+      }
+      .fs-free-coach .nm { font-size: 14px; font-weight: 800; color: var(--fs-text); }
+      .fs-free-coach .sub { font-size: 11px; color: var(--fs-accent); font-weight: 700; }
+      .fs-free-coach .desc { font-size: 10px; color: var(--fs-text-dim); margin-top: 2px; line-height: 1.35; }
+      .fs-free-coach .fs-mini-btn {
+        margin-top: 8px; appearance: none; cursor: pointer;
+        border-radius: 8px; border: 1px solid rgba(61,214,140,0.4);
+        background: rgba(61,214,140,0.15); color: #b8f5d4;
+        font-size: 11px; font-weight: 800; padding: 6px 10px;
+      }
+      .fs-compare-art {
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        min-height: 72px; margin: 4px 0 8px;
+      }
+      .fs-compare-art .pc {
+        width: 42px; height: 54px; border-radius: 10px;
+        display: grid; place-items: center; font-size: 26px;
+        background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08);
+      }
+      .fs-compare-art .pc.g { color: #3dd68c; box-shadow: 0 0 16px rgba(61,214,140,0.25); }
+      .fs-compare-art .pc.r { color: #ff6b6b; box-shadow: 0 0 16px rgba(255,107,107,0.25); }
+      .fs-compare-art .vs { font-size: 11px; font-weight: 900; color: var(--fs-text-dim); }
+      .fs-skills-leg { display: flex; flex-direction: column; gap: 6px; }
+      .fs-skills-leg .row {
+        display: grid; grid-template-columns: 18px 78px 1fr; gap: 8px; align-items: start;
+        font-size: 10px; line-height: 1.35;
+      }
+      .fs-skills-leg .row .ico { font-size: 13px; line-height: 1; }
+      .fs-skills-leg .row b { color: var(--fs-text); font-size: 10px; }
+      .fs-skills-leg .row span { color: var(--fs-text-dim); }
+      .fs-cpick-knight {
+        border: 0; background:
+          radial-gradient(ellipse at 50% 70%, rgba(61,214,140,0.18), transparent 60%),
+          rgba(255,255,255,0.02);
+        padding: 0; display: grid; place-items: center;
+      }
+      .fs-cpick-knight img {
+        width: 100%; height: 100%; max-height: 140px; object-fit: cover;
+        border-radius: 14px; opacity: 0.95;
+      }
+      .fs-cmine {
+        display: grid; grid-template-columns: 300px 1fr; gap: 14px;
+      }
+      .fs-cmine-hero {
+        border-radius: 16px; overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: #101218; position: relative;
+        display: flex; flex-direction: column;
+        min-height: 420px;
+      }
+      .fs-cmine-media {
+        position: relative; flex: 0 0 280px; height: 280px;
+        overflow: hidden; background: #0c0e14;
+      }
+      .fs-cmine-bg {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover; object-position: top center;
+        display: block;
+      }
+      .fs-cmine-scrim {
+        position: absolute; inset: 0; pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(8,10,14,0.15) 0%, transparent 30%),
+          linear-gradient(180deg, transparent 45%, rgba(10,12,18,0.92) 100%);
+      }
+      .fs-cmine-id {
+        position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2;
+      }
+      .fs-cmine-id .nm {
+        font-family: "Segoe Script", "Brush Script MT", Georgia, cursive;
+        font-size: 32px; color: #f3d27a; line-height: 1;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.55);
+      }
+      .fs-cmine-id .sub {
+        margin-top: 4px; font-size: 13px; font-weight: 800; color: #eceef4;
+      }
+      .fs-cmine-hero .pad { padding: 14px; flex: 1 1 auto; }
+      .fs-cmine-hero .pad .nm { display: none; }
+      .fs-voice-note {
+        margin-top: 10px; padding: 8px 10px; border-radius: 10px;
+        background: rgba(245,197,66,0.08); border: 1px solid rgba(245,197,66,0.22);
+        font-size: 11px; color: #e8d7a0; line-height: 1.4;
+      }
+      @media (max-width: 980px) {
+        .fs-ccard { flex-basis: 228px; width: 228px; max-width: 228px; height: 488px; min-height: 488px; }
+        .fs-cpick-bottom { grid-template-columns: 1fr 1fr; }
+        .fs-cmine { grid-template-columns: 1fr; }
       }
       .fs-learn-box {
         margin-top: 10px; padding: 10px 12px; border-radius: 10px;
@@ -3216,6 +3700,419 @@
     }
   }
 
+  function coachAsset(name) {
+    return v3Url("coaches/" + name);
+  }
+
+  function foxAvatarUrl() {
+    try {
+      return chrome.runtime.getURL("v3/coaches/tilki.png");
+    } catch (_) {
+      try {
+        return chrome.runtime.getURL("avatars/neutral.png");
+      } catch (__) {
+        return coachAsset("tilki.png");
+      }
+    }
+  }
+
+  function isUserPremium() {
+    const q = cache.quota;
+    if (!q) return false;
+    if (q.is_premium) return true;
+    const t = String(q.tier || "").toLowerCase();
+    return t === "gold" || t === "diamond" || t === "pro";
+  }
+
+  function coachRoster() {
+    const fox = foxAvatarUrl();
+    return [
+      {
+        id: "tilki",
+        name: "Tilki",
+        title: T("The Fox"),
+        role: T("TACTICIAN"),
+        rating: 87,
+        theme: "green",
+        piece: "♞",
+        pro: false,
+        portrait: coachAsset("tilki.png") || fox,
+        fox: true,
+        voiceId: "vy8ll8abRxLjPlGMne1B",
+        desc: T("Focuses on tactics, calculation and pattern recognition."),
+        voice: T("Warm & Calm"),
+        lang: "TR / EN",
+        hasVoice: true,
+        skills: [
+          { id: "tactics", lab: T("Tactics"), n: 92 },
+          { id: "calculation", lab: T("Calculation"), n: 88 },
+          { id: "strategy", lab: T("Strategy"), n: 70 },
+          { id: "endgame", lab: T("Endgame"), n: 68 },
+          { id: "motivation", lab: T("Motivation"), n: 85 },
+        ],
+      },
+      {
+        id: "victoria",
+        name: "Victoria",
+        title: T("The Strategist"),
+        role: T("STRATEGIST"),
+        rating: 82,
+        theme: "gold",
+        piece: "♛",
+        pro: true,
+        portrait: coachAsset("victoria.png"),
+        voiceId: "BIvP0GN1cAtSRTxNHnWS",
+        desc: T("Helps you build strong plans and outplay your opponent."),
+        voice: T("Confident & Smart"),
+        lang: "TR / EN",
+        hasVoice: true,
+        skills: [
+          { id: "tactics", lab: T("Tactics"), n: 74 },
+          { id: "calculation", lab: T("Calculation"), n: 78 },
+          { id: "strategy", lab: T("Strategy"), n: 93 },
+          { id: "endgame", lab: T("Endgame"), n: 80 },
+          { id: "motivation", lab: T("Motivation"), n: 80 },
+        ],
+      },
+      {
+        id: "boris",
+        name: "Boris",
+        title: T("The Mentor"),
+        role: T("MENTOR"),
+        rating: 80,
+        theme: "purple",
+        piece: "♚",
+        pro: true,
+        portrait: coachAsset("boris.png"),
+        voiceId: "EkK5I93UQWFDigLMpZcX",
+        desc: T("Sharp, honest feedback to help you eliminate your weaknesses."),
+        voice: T("Direct & Honest"),
+        lang: "TR / EN",
+        hasVoice: true,
+        skills: [
+          { id: "tactics", lab: T("Tactics"), n: 78 },
+          { id: "calculation", lab: T("Calculation"), n: 86 },
+          { id: "strategy", lab: T("Strategy"), n: 82 },
+          { id: "endgame", lab: T("Endgame"), n: 80 },
+          { id: "motivation", lab: T("Motivation"), n: 72 },
+        ],
+      },
+      {
+        id: "kai",
+        name: "Kai",
+        title: T("The Calculator"),
+        role: T("CALCULATOR"),
+        rating: 78,
+        theme: "blue",
+        piece: "♝",
+        pro: true,
+        portrait: coachAsset("kai.png"),
+        voiceId: "7b9mYhmnp0y2qSH1FnBL",
+        desc: T("Improves your calculation depth and decision quality."),
+        voice: T("Analytical & Calm"),
+        lang: "TR / EN",
+        hasVoice: true,
+        skills: [
+          { id: "tactics", lab: T("Tactics"), n: 80 },
+          { id: "calculation", lab: T("Calculation"), n: 92 },
+          { id: "strategy", lab: T("Strategy"), n: 76 },
+          { id: "endgame", lab: T("Endgame"), n: 74 },
+          { id: "motivation", lab: T("Motivation"), n: 70 },
+        ],
+      },
+      {
+        id: "lena",
+        name: "Lena",
+        title: T("The Motivator"),
+        role: T("MOTIVATOR"),
+        rating: 76,
+        theme: "red",
+        piece: "♜",
+        pro: true,
+        portrait: coachAsset("lena.png"),
+        voiceId: "tnSpp4vdxKPjI9w0GnoV",
+        desc: T("Keeps you motivated and helps you build winning habits."),
+        voice: T("Energetic & Positive"),
+        lang: "TR / EN",
+        hasVoice: true,
+        skills: [
+          { id: "tactics", lab: T("Tactics"), n: 72 },
+          { id: "calculation", lab: T("Calculation"), n: 70 },
+          { id: "strategy", lab: T("Strategy"), n: 74 },
+          { id: "endgame", lab: T("Endgame"), n: 68 },
+          { id: "motivation", lab: T("Motivation"), n: 95 },
+        ],
+      },
+      {
+        id: "sero",
+        name: "Şero",
+        title: T("Sokak Kedisi"),
+        role: T("SOKAK KEDİSİ"),
+        rating: 84,
+        theme: "orange",
+        piece: "♞",
+        pro: true,
+        portrait: coachAsset("sero.png"),
+        voiceId: "IXtQSoqIQFyzo05yKkE8",
+        desc: T(
+          "Sokak zekâsı ve sert dürüstlük: hatalarını saklamaz, peşini bırakmaz.",
+        ),
+        voice: T("Sert ve sokak zekâsı"),
+        lang: "TR / EN",
+        hasVoice: false,
+        comingSoon: true,
+        skills: [
+          { id: "tactics", lab: T("Tactics"), n: 88 },
+          { id: "calculation", lab: T("Calculation"), n: 76 },
+          { id: "strategy", lab: T("Strategy"), n: 72 },
+          { id: "endgame", lab: T("Endgame"), n: 70 },
+          { id: "motivation", lab: T("Motivation"), n: 90 },
+        ],
+      },
+    ];
+  }
+
+  // Prewritten coach intros (TR source + EN via T / parallel map).
+  const COACH_GREETINGS = {
+    tilki: {
+      tr: "Merhaba! Ben Tilki, senin taktik koçun. Birlikte desenleri yakalayıp hesabını keskinleştireceğiz. Hazır mısın?",
+      en: "Hi! I'm Tilki, your tactics coach. Together we'll spot patterns and sharpen your calculation. Ready?",
+    },
+    victoria: {
+      tr: "Merhaba, ben Victoria. Strateji ve plan kurma konusunda yanındayım. Rakibini geride bırakacak sağlam planlar inşa edelim.",
+      en: "Hello, I'm Victoria. I'm here for strategy and planning. Let's build solid plans that outplay your opponents.",
+    },
+    boris: {
+      tr: "Selam. Ben Boris. Zayıf noktalarını dürüstçe göstereceğim — çünkü gerçek gelişim oradan başlar.",
+      en: "Hello. I'm Boris. I'll give you honest feedback on your weaknesses — that's where real improvement starts.",
+    },
+    kai: {
+      tr: "Merhaba, ben Kai. Hesap derinliğini ve karar kaliteni yükseltmek için buradayım. Hamleyi doğru satıra kadar hesaplayalım.",
+      en: "Hi, I'm Kai. I'm here to deepen your calculation and decision quality. Let's think every move through to the right line.",
+    },
+    lena: {
+      tr: "Hey! Ben Lena. Motivasyonunu yüksek tutup kazanma alışkanlıkları kurmana yardımcı olacağım. Haydi başlayalım!",
+      en: "Hey! I'm Lena. I'll keep you motivated and help you build winning habits. Let's go!",
+    },
+    sero: {
+      tr: "Selam. Ben Şero. Yumuşak konuşmam — hatalarını net söylerim, ama düzeltene kadar peşini bırakmam. Hazır mısın?",
+      en: "Hey. I'm Şero. I won't sugarcoat your mistakes — but I won't quit until you fix them. Ready?",
+    },
+  };
+
+  function coachGreetingText(coachId) {
+    const id = String(coachId || "tilki").toLowerCase();
+    const pack = COACH_GREETINGS[id] || COACH_GREETINGS.tilki;
+    const lang =
+      window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
+        ? "en"
+        : "tr";
+    return pack[lang] || pack.tr;
+  }
+
+  function speakCoachGreeting(coachId) {
+    const id = String(coachId || selectedCoachId || "tilki").toLowerCase();
+    const line = coachGreetingText(id);
+    if (!line) return;
+    speakCoach(line, { coachId: id });
+  }
+
+  function getSelectedCoach() {
+    const list = coachRoster();
+    return list.find((c) => c.id === selectedCoachId) || list[0];
+  }
+
+  function coachSkillSegHTML(n, themeVar) {
+    const on = Math.max(0, Math.min(10, Math.round(Number(n) / 10)));
+    return `<div class="fs-ccard-seg">${Array.from({ length: 10 }, (_, i) =>
+      `<i class="${i < on ? "on" : ""}"></i>`,
+    ).join("")}</div>`;
+  }
+
+  function cookSoonHTML() {
+    return `<div class="fs-cooksoon" aria-hidden="true">
+      <div class="fs-cooksoon-badge">${T("Yakında")}</div>
+      <div class="fs-cooksoon-oven">
+        <i class="st s1"></i><i class="st s2"></i><i class="st s3"></i><i class="st s4"></i>
+        <i class="ln l1"></i><i class="ln l2"></i><i class="ln l3"></i>
+        <i class="sp p1"></i><i class="sp p2"></i><i class="sp p3"></i>
+      </div>
+      <div class="fs-cooksoon-cap">${T("Pişiriliyor…")}</div>
+    </div>`;
+  }
+
+  function coachCardHTML(c) {
+    const active = selectedCoachId === c.id;
+    const prem = isUserPremium();
+    const soon = !!c.comingSoon;
+    const locked = !soon && !!c.pro && !prem && !active;
+    // Mock: Victoria shows gold Select (no lock); other PRO cards show lock.
+    const featuredUnlock = locked && c.id === "victoria";
+    let btn;
+    if (soon) {
+      btn = `<button class="fs-ccard-btn fs-soon-btn" type="button" disabled>${T("Yakında")}</button>`;
+    } else if (active) {
+      btn = `<button class="fs-ccard-btn" data-act="coach-active" type="button">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ${T("Active Coach")}
+      </button>`;
+    } else if (featuredUnlock) {
+      btn = `<button class="fs-ccard-btn" data-act="coach-lock" data-coach="${esc(c.id)}" type="button">${T("Select Coach")}</button>`;
+    } else if (locked) {
+      btn = `<button class="fs-ccard-btn fs-locked" data-act="coach-lock" data-coach="${esc(c.id)}" type="button">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        ${T("Select Coach")}
+      </button>`;
+    } else {
+      btn = `<button class="fs-ccard-btn" data-act="coach-select" data-coach="${esc(c.id)}" type="button">${T("Select Coach")}</button>`;
+    }
+    const skills = (c.skills || [])
+      .map(
+        (s) => `<div class="fs-ccard-skill">
+          <span>${esc(s.lab)}</span>
+          ${coachSkillSegHTML(s.n)}
+          <strong>${esc(String(s.n))}</strong>
+        </div>`,
+      )
+      .join("");
+    return `<article class="fs-ccard ${active ? "fs-active" : ""} ${soon ? "is-soon" : ""}" data-theme="${esc(c.theme)}" data-coach="${esc(c.id)}">
+      <div class="fs-ccard-media">
+        <img class="fs-ccard-bg" src="${esc(c.portrait)}" alt="${esc(c.name)}" />
+        <div class="fs-ccard-scrim" aria-hidden="true"></div>
+        ${active && !soon ? `<div class="fs-ccard-ribbon">${T("CURRENT")}</div>` : ""}
+        ${soon ? `<div class="fs-ccard-pro" style="background:linear-gradient(135deg,#ffb35a,#ff8a3d)">${T("Yakında")}</div>` : c.pro ? `<div class="fs-ccard-pro">PRO</div>` : ""}
+        <div class="fs-ccard-top">
+          <div class="fs-ccard-rating">${esc(String(c.rating))}</div>
+          <div class="fs-ccard-role">${esc(c.role)}</div>
+        </div>
+        <div class="fs-ccard-id">
+          <div class="fs-ccard-name">${esc(c.name)}</div>
+          <div class="fs-ccard-title"><span class="pc">${esc(c.piece || "♟")}</span>${esc(c.title)}</div>
+        </div>
+      </div>
+      <div class="fs-ccard-glass">
+        <div class="fs-ccard-desc">${esc(c.desc)}</div>
+        ${soon ? cookSoonHTML() : `<div class="fs-ccard-skills">${skills}</div>
+        <div class="fs-ccard-meta"><b>${T("Voice")}:</b> ${esc(c.voice)} &nbsp;|&nbsp; <b>${T("Language")}:</b> ${esc(c.lang)}</div>`}
+        ${btn}
+      </div>
+    </article>`;
+  }
+
+  function renderCoachMine() {
+    const c = getSelectedCoach();
+    const weak = cache.weakness && cache.weakness.report;
+    const issue =
+      (weak && (weak.top_issue || weak.summary)) ||
+      T("Son oyunlarında açılış sonrası plan oluşturmak en büyük fırsatın.");
+    const voiceNote = c.hasVoice
+      ? T("Bu koçun kendi AI sesi var. Seçince seni kendi tarzında karşılar.")
+      : T("Bu koç için özel ses yakında.");
+    return `<div class="fs-cmine">
+      <div class="fs-cmine-hero">
+        <div class="fs-cmine-media">
+          <img class="fs-cmine-bg" src="${esc(c.portrait)}" alt="${esc(c.name)}" />
+          <div class="fs-cmine-scrim" aria-hidden="true"></div>
+          <div class="fs-cmine-id">
+            <div class="nm">${esc(c.name)}</div>
+            <div class="sub">${esc(c.title)}</div>
+          </div>
+        </div>
+        <div class="pad">
+          <div class="fs-ccard-desc" style="margin:0">${esc(c.desc)}</div>
+          <div class="fs-voice-note">${esc(voiceNote)}</div>
+          <button class="fs-btn-gold" data-act="go-training" style="margin-top:12px;width:100%">${T("Çalışmaya Başla →")}</button>
+        </div>
+      </div>
+      <div>
+        <div class="fs-v3-card" style="margin:0">
+          <div class="fs-v3-kicker" style="color:#c4b5fd">${T("KOÇ DİYOR Kİ")}</div>
+          <div class="fs-v3-title" style="font-size:18px">${esc(issue)}</div>
+          <div class="fs-v3-sub" style="margin-top:6px">${T("Analiz değil — gelişim. Bir sonraki oyunda bunu düzeltmeye odaklan.")}</div>
+        </div>
+        <div class="fs-v3-card" style="margin-top:12px">
+          <div class="fs-v3-kicker">${T("COACH SKILLS")}</div>
+          <div class="fs-ccard-skills" style="margin-top:8px">${(c.skills || [])
+            .map(
+              (s) => `<div class="fs-ccard-skill">
+                <span>${esc(s.lab)}</span>
+                ${coachSkillSegHTML(s.n)}
+                <strong>${esc(String(s.n))}</strong>
+              </div>`,
+            )
+            .join("")}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderCoachTab() {
+    const nav = `<div class="fs-cpick-nav">
+      <button type="button" class="${coachSubTab === "all" ? "fs-on" : ""}" data-act="coach-tab" data-tab="all">${T("ALL COACHES")}</button>
+      <button type="button" class="${coachSubTab === "mine" ? "fs-on" : ""}" data-act="coach-tab" data-tab="mine">${T("MY COACH")}</button>
+    </div>`;
+    const info = `<div class="fs-cpick-info">
+      <span class="fs-chip">◎</span>
+      <span>${T("AI Coaches analyze your games, adapt to your style, and help you grow.")}</span>
+    </div>`;
+    const head = `<div class="fs-cpick-head">${nav}${info}</div>`;
+
+    if (coachSubTab === "mine") {
+      return `<div class="fs-cpick">${head}${renderCoachMine()}</div>`;
+    }
+
+    const cards = coachRoster().map(coachCardHTML).join("");
+    const tilki = coachRoster()[0];
+    const bottom = `<div class="fs-cpick-bottom">
+      <div class="fs-cpick-box">
+        <div class="fs-k">${T("FREE COACHES")}</div>
+        <div class="fs-free-coach">
+          <img src="${esc(tilki.portrait)}" alt="Tilki" />
+          <div>
+            <div class="nm">Tilki</div>
+            <div class="sub">${esc(tilki.title)}</div>
+            <div class="desc">${T("Your starting coach. Perfect for building habits.")}</div>
+            <button class="fs-mini-btn" data-act="coach-select" data-coach="tilki" type="button">${T("Select")}</button>
+          </div>
+        </div>
+      </div>
+      <div class="fs-cpick-box">
+        <div class="fs-k">${T("COMPARE COACHES")}</div>
+        <div class="fs-compare-art">
+          <div class="pc g">♟</div>
+          <div class="vs">VS</div>
+          <div class="pc r">♜</div>
+        </div>
+        <button class="fs-btn-outline" data-act="coach-compare" type="button" style="width:100%">${T("Compare")}</button>
+      </div>
+      <div class="fs-cpick-box">
+        <div class="fs-k">${T("COACH SKILLS EXPLAINED")}</div>
+        <div class="fs-skills-leg">
+          <div class="row"><div class="ico">◎</div><b>${T("Tactics")}</b><span>${T("Spot patterns and tactical opportunities.")}</span></div>
+          <div class="row"><div class="ico">⚙</div><b>${T("Calculation")}</b><span>${T("Calculate variations and best moves.")}</span></div>
+          <div class="row"><div class="ico">♛</div><b>${T("Strategy")}</b><span>${T("Build plans and positional understanding.")}</span></div>
+          <div class="row"><div class="ico">♜</div><b>${T("Endgame")}</b><span>${T("Convert advantages and endgames.")}</span></div>
+          <div class="row"><div class="ico">❀</div><b>${T("Motivation")}</b><span>${T("Stay focused and improve consistently.")}</span></div>
+        </div>
+      </div>
+      <div class="fs-cpick-box fs-cpick-knight">
+        <img src="${esc(coachAsset("knight-decor.png"))}" alt="" />
+      </div>
+    </div>`;
+
+    return `<div class="fs-cpick">${head}
+      <div class="fs-cpick-scroll">
+        <button type="button" class="fs-cpick-arrow prev" data-act="coach-scroll" data-dir="-1" aria-label="${T("Previous")}">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="fs-cpick-grid">${cards}</div>
+        <button type="button" class="fs-cpick-arrow next" data-act="coach-scroll" data-dir="1" aria-label="${T("Next")}">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      ${bottom}</div>`;
+  }
+
   function greetingLine(user) {
     const name = (user && (user.username || user.chess_com_username)) || "player";
     const h = new Date().getHours();
@@ -3733,6 +4630,8 @@
       .join("");
     const heroUrl = v3Url("hero-training-target.png");
     const coachAv =
+      (getSelectedCoach() && getSelectedCoach().portrait) ||
+      foxAvatarUrl() ||
       v3Url("coach-portrait-cut.png") ||
       v3Url("coach-sheet-nobg.png");
     const parts = recent ? gameParticipants(recent, u) : null;
@@ -3927,75 +4826,6 @@
       </div>
     `;
   }
-
-  function renderCoachTab() {
-    const tabs = [
-      { id: "plan", lab: T("Bugünün Planı") },
-      { id: "games", lab: T("Oyun Koçluğu") },
-      { id: "weaknesses", lab: T("Zayıf Noktalarım") },
-      { id: "suggestions", lab: T("Öneriler") },
-    ];
-    const tabBar = `<div class="fs-coach-tabs">${tabs
-      .map(
-        (t) =>
-          `<button class="fs-coach-tab ${coachSubTab === t.id ? "fs-on" : ""}" data-coach-sub="${t.id}">${esc(t.lab)}</button>`,
-      )
-      .join("")}</div>`;
-
-    if (coachSubTab === "weaknesses" || coachSubTab === "games") {
-      return tabBar + renderWeaknessTab();
-    }
-
-    const weak = cache.weakness && cache.weakness.report;
-    const issue =
-      (weak && (weak.top_issue || weak.summary)) ||
-      T("Son oyunlarında açılış sonrası plan oluşturmak en büyük fırsatın.");
-    const skills = skillHeuristic(
-      (cache.profile && cache.profile.stats) || {},
-      (cache.profile && cache.profile.user) || {},
-    );
-
-    if (coachSubTab === "suggestions") {
-      return (
-        tabBar +
-        `<div class="fs-v3-card">
-          <div class="fs-v3-kicker">${T("ÖNERİLER")}</div>
-          <div class="fs-v3-title">${T("Bu hafta odak")}</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
-            <span class="fs-pill" style="border-color:var(--fs-tactics);color:var(--fs-tactics)">🟢 ${T("Taktik")}</span>
-            <span class="fs-pill" style="border-color:var(--fs-opening);color:var(--fs-opening)">🟡 ${T("Açılış")}</span>
-            <span class="fs-pill" style="border-color:var(--fs-endgame);color:var(--fs-endgame)">🔴 ${T("Oyunsonu")}</span>
-          </div>
-          <button class="fs-btn" data-act="go-training">${T("Çalışmaya Başla →")}</button>
-        </div>`
-      );
-    }
-
-    return (
-      tabBar +
-      `<div class="fs-v3-card fs-v3-coach-card" style="min-height:auto;padding:18px">
-        <img class="fs-v3-coach-av-lg" src="${esc(v3Url("coach-portrait-cut.png") || v3Url("coach-sheet-nobg.png"))}" alt="" />
-        <div class="fs-v3-coach-body">
-          <div class="fs-v3-kicker" style="color:#c4b5fd">${T("KOÇ DİYOR Kİ")}</div>
-          <div class="fs-v3-title" style="font-size:18px">${esc(issue)}</div>
-          <div class="fs-v3-sub" style="margin-top:6px">${T("Analiz değil — gelişim. Bir sonraki oyunda bunu düzeltmeye odaklan.")}</div>
-          <button class="fs-btn-gold" data-act="go-training" style="margin-top:14px">${T("Çalışmaya Başla →")}</button>
-        </div>
-        <div class="fs-v3-coach-side">
-          <div class="fs-coach-delta">+8%</div>
-          ${coachSparkHTML()}
-        </div>
-      </div>
-      <div class="fs-v3-card" style="margin-top:12px">
-        <div class="fs-section-head">
-          <div class="fs-v3-kicker">${T("HAFTALIK ODAK")}</div>
-          <button class="fs-link-gold" data-act="go-progress">${T("Detaylı gelişim →")}</button>
-        </div>
-        ${renderSkillIcons(skills.slice(0, 5))}
-      </div>`
-    );
-  }
-
 
   function leagueFromRating(rating) {
     const r = Number(rating) || 0;
@@ -4379,7 +5209,11 @@
     const ccUser = u.chess_com_username || u.username || "";
     const avUrl = u.chess_com_avatar || "";
     const knight = v3Url("cat-tactics-knight-cut.png") || v3Url("logo-knight-gold-cut.png");
-    const coachAv = v3Url("coach-portrait-cut.png") || v3Url("coach-sheet-nobg.png");
+    const coachAv =
+      (getSelectedCoach() && getSelectedCoach().portrait) ||
+      foxAvatarUrl() ||
+      v3Url("coach-portrait-cut.png") ||
+      v3Url("coach-sheet-nobg.png");
     const journey = journeyMilestones(p);
     const ach = (cache.achievements && cache.achievements !== "loading" && cache.achievements.items) || [];
     const achFallback = [
@@ -5283,11 +6117,33 @@
   }
 
   function _avatarUrl(mood) {
+    const allowed = ["tilki", "victoria", "boris", "kai", "lena", "sero"];
+    const raw = String(selectedCoachId || "tilki").toLowerCase();
+    const coach = allowed.includes(raw) ? raw : "tilki";
+    const path = "avatars/" + coach + "/" + (mood || "neutral") + ".png";
     try {
-      return chrome.runtime.getURL("avatars/" + mood + ".png");
+      return chrome.runtime.getURL(path);
     } catch (_) {
-      return "avatars/" + mood + ".png";
+      return path;
     }
+  }
+
+  function _avatarRootUrl(mood) {
+    const path = "avatars/" + (mood || "neutral") + ".png";
+    try {
+      return chrome.runtime.getURL(path);
+    } catch (_) {
+      return path;
+    }
+  }
+
+  function _bindQuizCoachFallback(img, mood) {
+    if (!img) return;
+    const m = mood || "neutral";
+    img.onerror = function () {
+      img.onerror = null;
+      img.src = _avatarRootUrl(m);
+    };
   }
 
   function renderPuzzlesSolving() {
@@ -5375,7 +6231,7 @@
           <div class="fs-quizv2-board" data-quiz-board></div>
           <aside class="fs-quizv2-side">
             <div class="fs-quizv2-coach">
-              <img class="fs-quizv2-coach-av" src="${_avatarUrl(coachMood)}" alt="" />
+              <img class="fs-quizv2-coach-av" src="${_avatarUrl(coachMood)}" alt="" onerror="this.onerror=null;this.src='${_avatarRootUrl(coachMood)}'" />
               <div class="fs-quizv2-coach-bubble">
                 <div class="fs-quizv2-coach-title">${T("Bulmaca")}</div>
                 <div class="fs-quizv2-coach-text">${esc(coachText)}</div>
@@ -5465,7 +6321,7 @@
           </div>
           <aside class="fs-quizv2-side">
             <div class="fs-quizv2-coach">
-              <img class="fs-quizv2-coach-av" src="${_avatarUrl(mood)}" alt="" />
+              <img class="fs-quizv2-coach-av" src="${_avatarUrl(mood)}" alt="" onerror="this.onerror=null;this.src='${_avatarRootUrl(mood)}'" />
               <div class="fs-quizv2-coach-bubble">
                 <div class="fs-quizv2-coach-title">${T("Bulmaca")}</div>
                 <div class="fs-quizv2-coach-text">${esc(headline)}</div>
@@ -6128,6 +6984,87 @@
     updateHeaderGreeting();
     bindBody();
     if (activeTab === "training") mountQuizBoard();
+    if (activeTab === "coach") {
+      const grid = panelEl.querySelector(".fs-cpick-grid");
+      if (grid) bindCoachCarousel(grid);
+    }
+  }
+
+  function bindCoachCarousel(grid) {
+    if (!grid || grid.dataset.carouselBound === "1") return;
+    grid.dataset.carouselBound = "1";
+
+    grid.addEventListener(
+      "wheel",
+      (ev) => {
+        // Vertical wheel scrolls the page. Only hijack for intentional horizontal
+        // (trackpad sideways or Shift+wheel).
+        const horizontalIntent =
+          Math.abs(ev.deltaX) > Math.abs(ev.deltaY) || ev.shiftKey;
+        if (!horizontalIntent) return;
+        if (grid.scrollWidth <= grid.clientWidth + 2) return;
+        const delta = Math.abs(ev.deltaX) > Math.abs(ev.deltaY) ? ev.deltaX : ev.deltaY;
+        ev.preventDefault();
+        grid.scrollLeft += delta;
+      },
+      { passive: false },
+    );
+
+    let dragging = false;
+    let moved = false;
+    let startX = 0;
+    let startScroll = 0;
+    let pointerId = null;
+
+    const onMove = (ev) => {
+      if (!dragging || (pointerId != null && ev.pointerId !== pointerId)) return;
+      const dx = ev.clientX - startX;
+      if (!moved && Math.abs(dx) > 4) {
+        moved = true;
+        grid.classList.add("fs-dragging");
+        try {
+          if (pointerId != null) grid.setPointerCapture(pointerId);
+        } catch (_) {}
+      }
+      if (!moved) return;
+      grid.scrollLeft = startScroll - dx;
+      ev.preventDefault();
+    };
+
+    const onUp = (ev) => {
+      if (!dragging || (pointerId != null && ev.pointerId !== pointerId)) return;
+      dragging = false;
+      grid.classList.remove("fs-dragging");
+      try {
+        if (pointerId != null && grid.hasPointerCapture(pointerId)) {
+          grid.releasePointerCapture(pointerId);
+        }
+      } catch (_) {}
+      pointerId = null;
+      if (moved) {
+        const swallow = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          grid.removeEventListener("click", swallow, true);
+        };
+        grid.addEventListener("click", swallow, true);
+        setTimeout(() => grid.removeEventListener("click", swallow, true), 0);
+      }
+    };
+
+    grid.addEventListener("pointerdown", (ev) => {
+      if (ev.button != null && ev.button !== 0) return;
+      if (ev.target.closest && ev.target.closest(".fs-cpick-arrow")) return;
+      if (grid.scrollWidth <= grid.clientWidth + 2) return;
+      dragging = true;
+      moved = false;
+      startX = ev.clientX;
+      startScroll = grid.scrollLeft;
+      pointerId = ev.pointerId;
+    });
+    grid.addEventListener("pointermove", onMove);
+    grid.addEventListener("pointerup", onUp);
+    grid.addEventListener("pointercancel", onUp);
   }
 
   // ─── Veri yükleme ─────────────────────────────────────
@@ -6372,7 +7309,11 @@
       const coachText = panelEl.querySelector(".fs-quizv2-coach-text");
       if (coachText) coachText.textContent = phrase;
       const coachAv = panelEl.querySelector(".fs-quizv2-coach-av");
-      if (coachAv) coachAv.src = _avatarUrl(o.correct ? "happy" : "worried");
+      if (coachAv) {
+        const mood = o.correct ? "happy" : "worried";
+        coachAv.src = _avatarUrl(mood);
+        _bindQuizCoachFallback(coachAv, mood);
+      }
     }
     syncQuizHintButtons();
 
@@ -6513,7 +7454,7 @@
   // Kullanıcı sessize alabilir: cache.puzzles.ttsMuted (varsayılan: false).
   let _coachAudio = null;
   let _coachReqSeq = 0;
-  const _coachAudioCache = new Map(); // text → object URL
+  const _coachAudioCache = new Map(); // key "lang|coach|text" → object URL
   const _COACH_CACHE_MAX = 40;
   let _coachApiBase = null;
   async function _coachGetBase() {
@@ -6538,34 +7479,54 @@
       if (window.speechSynthesis) window.speechSynthesis.cancel();
     } catch (_) {}
   }
-  async function speakCoach(text) {
+  async function speakCoach(text, opts) {
     if (!text) return;
     if (cache.puzzles && cache.puzzles.ttsMuted) return;
     const reqId = ++_coachReqSeq;
     _coachStopAudio();
     const t = String(text).trim();
     if (!t) return;
+    const coachId = String(
+      (opts && opts.coachId) || selectedCoachId || "tilki",
+    ).toLowerCase();
+    const roster = coachRoster();
+    const coachRow = roster.find((c) => c.id === coachId) || roster[0];
+    const voiceId = String(
+      (opts && opts.voiceId) || (coachRow && coachRow.voiceId) || "",
+    ).trim();
     // TTS dili UI diliyle eşleşmeli (EN seçiliyse İngilizce seslendirme).
     const ttsLang =
       window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
         ? "en"
         : "tr";
     try {
-      // Cache anahtarı dile özgü olmalı; yoksa TR ses EN'de tekrar çalınır.
-      const cacheKey = ttsLang + "|" + t;
+      // Cache anahtarı dil + koç + voice id'ye özgü olmalı.
+      const cacheKey = ttsLang + "|" + coachId + "|" + voiceId + "|" + t;
       let url = _coachAudioCache.get(cacheKey);
       if (!url) {
         const base = await _coachGetBase();
         if (reqId !== _coachReqSeq) return;
         if (!base) return;
-        const endpoint =
+        let endpoint =
           base +
           "/tts?lang=" +
           ttsLang +
+          "&coach=" +
+          encodeURIComponent(coachId) +
           "&text=" +
           encodeURIComponent(t) +
-          "&v=el2";
-        const res = await fetch(endpoint, { method: "GET" });
+          "&v=el4";
+        if (voiceId) endpoint += "&voice=" + encodeURIComponent(voiceId);
+        let authHeaders = {};
+        try {
+          const tk = await send("get_token");
+          if (tk && tk.token)
+            authHeaders.Authorization = "Bearer " + tk.token;
+        } catch (_) {}
+        const res = await fetch(endpoint, {
+          method: "GET",
+          headers: authHeaders,
+        });
         if (reqId !== _coachReqSeq) return;
         if (!res.ok) throw new Error("tts http " + res.status);
         const blob = await res.blob();
@@ -6638,12 +7599,34 @@
         break;
       }
     }
+    const N = window.ForkSightCoachNarration;
+    const lang =
+      window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
+        ? "en"
+        : "tr";
+    const coach =
+      (typeof selectedCoachId !== "undefined" && selectedCoachId) || "tilki";
+    if (N && typeof N.quizPhrase === "function") {
+      if (lbl) return N.quizPhrase(coach, lang, "correctTheme", lbl);
+      return N.quizPhrase(coach, lang, "correct");
+    }
     if (lbl) {
       return T("Aferin! Bu güzel bir {lbl} hamlesiydi.").replace("{lbl}", lbl);
     }
     return T("Aferin, doğru hamle!");
   }
   function _coachPhraseForWrong(expectedSan) {
+    const N = window.ForkSightCoachNarration;
+    const lang =
+      window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
+        ? "en"
+        : "tr";
+    const coach =
+      (typeof selectedCoachId !== "undefined" && selectedCoachId) || "tilki";
+    if (N && typeof N.quizPhrase === "function") {
+      if (expectedSan) return N.quizPhrase(coach, lang, "wrongSan", expectedSan);
+      return N.quizPhrase(coach, lang, "wrong");
+    }
     if (expectedSan) {
       return T("Yanlış. Doğru hamle {san} idi.").replace("{san}", expectedSan);
     }
@@ -7472,8 +8455,10 @@
       ensureProfile();
     else if (id === "games") {
       if (!cache.games.items.length) loadGames(true);
-    } else if (id === "coach") ensureWeakness();
-    else if (id === "arena") {
+    } else if (id === "coach") {
+      ensureProfile();
+      ensureWeakness();
+    } else if (id === "arena") {
       ensureProfile();
       loadLeaderboard(cache.leaderboard.metric || "points");
     }
@@ -7584,16 +8569,67 @@
           }
         } else if (a === "lang-toggle") {
           if (window.ForkSightI18n) window.ForkSightI18n.toggleLang();
+        } else if (a === "coach-tab") {
+          coachSubTab = act.dataset.tab === "mine" ? "mine" : "all";
+          renderActive();
+        } else if (a === "coach-select") {
+          const id = act.dataset.coach || "tilki";
+          const coach = coachRoster().find((x) => x.id === id);
+          if (coach && coach.comingSoon) return;
+          if (coach && coach.pro && !isUserPremium()) {
+            openPremiumPage();
+            return;
+          }
+          selectedCoachId = id;
+          try {
+            chrome.storage.local.set({ fs_selected_coach: id });
+          } catch (_) {}
+          try {
+            if (
+              window.ForkSightAvatar &&
+              typeof window.ForkSightAvatar.setCoach === "function"
+            ) {
+              window.ForkSightAvatar.setCoach(id);
+            }
+          } catch (_) {}
+          renderActive();
+          speakCoachGreeting(id);
+        } else if (a === "coach-lock") {
+          openPremiumPage();
+        } else if (a === "coach-active") {
+          coachSubTab = "mine";
+          renderActive();
+          speakCoachGreeting(selectedCoachId);
+        } else if (a === "coach-scroll") {
+          const grid = panelEl.querySelector(".fs-cpick-grid");
+          if (grid) {
+            const dir = Number(act.dataset.dir) || 1;
+            const step = 250;
+            grid.scrollBy({ left: dir * step, behavior: "smooth" });
+          }
+        } else if (a === "coach-compare") {
+          const body = panelEl.querySelector(".fs-body");
+          if (body) {
+            let tip = body.querySelector(".fs-coach-compare-tip");
+            if (tip) tip.remove();
+            else {
+              tip = document.createElement("div");
+              tip.className = "fs-v3-card fs-coach-compare-tip";
+              tip.style.cssText = "margin:0 0 12px;border-color:rgba(61,214,140,0.35)";
+              const rows = coachRoster()
+                .map((c) => {
+                  const top = (c.skills || []).slice().sort((a, b) => b.n - a.n)[0];
+                  return `<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+                    <span><b style="color:#f3d27a">${esc(c.name)}</b> · ${esc(c.title)}</span>
+                    <span style="color:var(--fs-text-dim)">${esc(top ? top.lab : "")} ${esc(String(top ? top.n : ""))}</span>
+                  </div>`;
+                })
+                .join("");
+              tip.innerHTML = `<div class="fs-v3-kicker">${T("COMPARE COACHES")}</div>${rows}`;
+              body.insertBefore(tip, body.firstChild);
+            }
+          }
         }
-        return;
-      }
-      const coachSub = e.target.closest("[data-coach-sub]");
-      if (coachSub) {
-        coachSubTab = coachSub.dataset.coachSub || "plan";
-        if (coachSubTab === "weaknesses" || coachSubTab === "games") {
-          ensureWeakness();
-        }
-        renderActive();
         return;
       }
       // Leaderboard metric tab tıklaması
@@ -7882,6 +8918,8 @@
     const g = greetingLine(u);
     if (activeTab === "home") {
       left.innerHTML = `<div class="fs-greet-title">${esc(g.title)}</div><div class="fs-greet-sub">${esc(g.sub)}</div>`;
+    } else if (activeTab === "coach") {
+      left.innerHTML = `<div class="fs-greet-title">${T("CHOOSE YOUR AI COACH")}</div><div class="fs-greet-sub">${T("Every great player has the right coach.")}</div>`;
     } else if (activeTab === "training") {
       left.innerHTML = `<div class="fs-greet-title">${T("Antrenman")}</div><div class="fs-greet-sub">${T("Alışkanlıklarını güçlendir, pozisyon pozisyon.")}</div>`;
     } else if (activeTab === "profile") {
@@ -7902,7 +8940,7 @@
       const av = `<div class="fs-header-av-wrap">${avInner}</div>`;
       if (activeTab === "home") {
         pills.innerHTML = av;
-      } else if (activeTab === "training" || activeTab === "arena") {
+      } else if (activeTab === "training" || activeTab === "arena" || activeTab === "coach") {
         pills.innerHTML = `
           <div class="fs-train-stats">
             <div class="fs-train-streak">
@@ -7976,7 +9014,7 @@
     const secondary = TABS.filter((t) => t.group === "secondary");
     const utility = TABS.filter((t) => t.group === "utility");
     const tabBtn = (t, secondaryCls) =>
-      `<button class="fs-tab ${secondaryCls || ""}" data-tab="${t.id}"><span class="fs-tab-ico">${t.icon}</span><span>${esc(T(t.trLabel))}</span></button>`;
+      `<button class="fs-tab ${secondaryCls || ""}" data-tab="${t.id}"><span class="fs-tab-ico">${t.icon}</span><span>${esc(T(t.trLabel))}</span>${t.id === "coach" ? `<span class="fs-tab-new">New</span>` : ""}</button>`;
     panelEl.innerHTML = `
       <aside class="fs-sidebar">
         ${atmos ? `<img class="fs-sidebar-atmos" src="${esc(atmos)}" alt="" />` : ""}
@@ -7995,7 +9033,8 @@
             <span class="fs-pro-name">ForkSight</span>
             <span class="fs-pro-pro">PRO</span>
           </div>
-          <div class="fs-pro-card-sub">${T("Tam potansiyelini aç — sınırsız koç ve antrenman.")}</div>
+          <div class="fs-pro-card-sub">${T("Unlock all coaches")}</div>
+          <div class="fs-pro-go">${T("Go Premium")}</div>
         </button>
         <button class="fs-premium-pill" data-act="premium" hidden>⭐ ${T("Premium")}</button>
       </aside>
@@ -8084,11 +9123,26 @@
     updateHeaderGreeting();
     ensureNotifications(false).then(() => updateNotifBell());
     try {
-      chrome.storage.local.get(["fs_arena_chest_opened", "fs_onboard_done"], (r) => {
+      chrome.storage.local.get(
+        ["fs_arena_chest_opened", "fs_onboard_done", "fs_selected_coach"],
+        (r) => {
         if (r && r.fs_arena_chest_opened) cache.arenaChest.opened = true;
         if (r && r.fs_onboard_done) {
           cache.onboard.dismissed = true;
           cache.onboard.step = 3;
+        }
+        if (r && r.fs_selected_coach) {
+          const raw = String(r.fs_selected_coach);
+          const row = coachRoster().find((x) => x.id === raw);
+          if (row && row.comingSoon) {
+            selectedCoachId = "tilki";
+            try {
+              chrome.storage.local.set({ fs_selected_coach: "tilki" });
+            } catch (_) {}
+          } else {
+            selectedCoachId = raw;
+          }
+          if (activeTab === "coach") renderActive();
         }
       });
     } catch (_) {}

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ForkSight — Chess Training & Coaching",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Unofficial Chess.com training companion with puzzles, post-game coach review, and stats. Not affiliated with Chess.com.",
   "permissions": ["storage", "notifications", "alarms"],
   "host_permissions": ["https://forksight.net/*"],
@@ -17,6 +17,7 @@
         "i18n.js",
         "content.js",
         "avatar.js",
+        "coach-narration.js",
         "coach-review.js",
         "quiz-board.js",
         "profile-panel.js"
@@ -38,6 +39,7 @@
       "resources": [
         "icon.png",
         "avatars/*.png",
+        "avatars/*/*.png",
         "pieces/*.png",
         "analysis_icons/*.png",
         "gifs/*.gif",

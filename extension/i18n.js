@@ -480,6 +480,84 @@
     "tamamlandı": "completed",
     "Antrenmana Devam": "Continue Training",
     "KOÇ ÖNERİSİ": "COACH INSIGHT",
+    "CHOOSE YOUR AI COACH": "CHOOSE YOUR AI COACH",
+    "Every great player has the right coach.":
+      "Every great player has the right coach.",
+    "ALL COACHES": "ALL COACHES",
+    "MY COACH": "MY COACH",
+    "Active Coach": "Active Coach",
+    "Select Coach": "Select Coach",
+    CURRENT: "CURRENT",
+    "The Fox": "The Fox",
+    "The Strategist": "The Strategist",
+    "The Mentor": "The Mentor",
+    "The Calculator": "The Calculator",
+    "The Motivator": "The Motivator",
+    Yakında: "Coming soon",
+    "Pişiriliyor…": "Cooking…",
+    "Sokak Kedisi": "The Street Cat",
+    TACTICIAN: "TACTICIAN",
+    STRATEGIST: "STRATEGIST",
+    MENTOR: "MENTOR",
+    CALCULATOR: "CALCULATOR",
+    MOTIVATOR: "MOTIVATOR",
+    "SOKAK KEDİSİ": "STREET CAT",
+    "Focuses on tactics, calculation and pattern recognition.":
+      "Focuses on tactics, calculation and pattern recognition.",
+    "Helps you build strong plans and outplay your opponent.":
+      "Helps you build strong plans and outplay your opponent.",
+    "Sharp, honest feedback to help you eliminate your weaknesses.":
+      "Sharp, honest feedback to help you eliminate your weaknesses.",
+    "Improves your calculation depth and decision quality.":
+      "Improves your calculation depth and decision quality.",
+    "Keeps you motivated and helps you build winning habits.":
+      "Keeps you motivated and helps you build winning habits.",
+    "Sokak zekâsı ve sert dürüstlük: hatalarını saklamaz, peşini bırakmaz.":
+      "Street smarts and tough honesty: he won't hide your mistakes, and he won't quit on you.",
+    "Warm & Calm": "Warm & Calm",
+    "Warm & Playful": "Warm & Playful",
+    "Confident & Smart": "Confident & Smart",
+    "Direct & Honest": "Direct & Honest",
+    "Analytical & Calm": "Analytical & Calm",
+    "Energetic & Positive": "Energetic & Positive",
+    "Sert ve sokak zekâsı": "Tough & Street-smart",
+    Voice: "Voice",
+    Language: "Language",
+    Tactics: "Tactics",
+    Calculation: "Calculation",
+    Strategy: "Strategy",
+    Endgame: "Endgame",
+    Motivation: "Motivation",
+    "FREE COACHES": "FREE COACHES",
+    "COMPARE COACHES": "COMPARE COACHES",
+    "COACH SKILLS EXPLAINED": "COACH SKILLS EXPLAINED",
+    "COACH SKILLS": "COACH SKILLS",
+    Compare: "Compare",
+    Select: "Select",
+    "Your starting coach. Perfect for building habits.":
+      "Your starting coach. Perfect for building habits.",
+    "Spot patterns and tactical opportunities.":
+      "Spot patterns and tactical opportunities.",
+    "Calculate variations and best moves.":
+      "Calculate variations and best moves.",
+    "Build plans and positional understanding.":
+      "Build plans and positional understanding.",
+    "Convert advantages and endgames.": "Convert advantages and endgames.",
+    "Stay focused and improve consistently.":
+      "Stay focused and improve consistently.",
+    "AI Coaches analyze your games, adapt to your style, and help you grow.":
+      "AI Coaches analyze your games, adapt to your style, and help you grow.",
+    "AI koç sesi şu an yalnızca Tilki için aktif. Diğer koç sesleri yakında.":
+      "AI coach voice is currently available only for Tilki. More coach voices coming soon.",
+    "Bu koç için özel ses yakında. Şimdilik Tilki sesi kullanılıyor.":
+      "Custom voice for this coach is coming soon. Tilki's voice is used for now.",
+    "Bu koçun kendi AI sesi var. Seçince seni kendi tarzında karşılar.":
+      "This coach has their own AI voice. When selected, they'll greet you in their style.",
+    "Bu koç için özel ses yakında.": "Custom voice for this coach is coming soon.",
+    "Unlock all coaches": "Unlock all coaches",
+    "Go Premium": "Go Premium",
+    Previous: "Previous",
+    Next: "Next",
     "Öneriyi gör →": "View Coach Insight →",
     "SON OYUN": "RECENT GAME",
     "Tüm oyunlar →": "See all games →",

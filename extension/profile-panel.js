@@ -5,10 +5,11 @@
  *   window.ForkSightProfile.open({ anchorRect })
  *   window.ForkSightProfile.close()
  *
- * Açılış: avatar konumundan (anchorRect) dairesel/scale animasyon ile
- * 400×620 sabit panel olarak ekranın merkezine doğru açılır.
+ * Açılış: avatar konumundan (anchorRect) scale animasyon ile
+ * V3 dashboard paneli olarak ekranın merkezine doğru açılır.
  *
- * Tablar: Profil, Oyunlar, Analiz, Ayarlar
+ * Tablar (V3): Ana Sayfa, Koç, Antrenman, Oyunlarım, İlerleme,
+ * Başarılar, Arena, Profil, Ayarlar (+ sidebar PRO).
  *
  * Tüm DOM'u kendi Shadow DOM'unda tutar — sayfa stillerinden etkilenmez.
  */
@@ -23,25 +24,74 @@
 
   // ─── Sabitler ─────────────────────────────────────────
   const HOST_ID = "forksight-profile-panel-host";
-  const PANEL_W = 720;
-  const PANEL_H = 500;
+  const PANEL_W = 1080;
+  const PANEL_H = 720;
 
-  // Tab tanımları — etiketler render anında T() ile çevrilir.
+  // V3 nav — primary / secondary / utility grupları.
+  // Cache alan adları (weakness/puzzles/leaderboard) korunur; tab id'ler yeni.
   const TABS = [
-    { id: "profile", trLabel: "Profil", icon: "👤" },
-    { id: "games", trLabel: "Oyunlar", icon: "♟" },
-    { id: "weakness", trLabel: "Analiz", icon: "🎯" },
-    { id: "puzzles", trLabel: "Bulmacalar", icon: "🧩" },
-    { id: "achievements", trLabel: "Başarımlar", icon: "🏆" },
-    { id: "leaderboard", trLabel: "Liderlik", icon: "📊" },
-    { id: "settings", trLabel: "Ayarlar", icon: "⚙" },
+    {
+      id: "home",
+      trLabel: "Ana Sayfa",
+      icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"/></svg>`,
+      group: "primary",
+    },
+    {
+      id: "coach",
+      trLabel: "Koç",
+      icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5.2 19c1.5-3.1 3.9-4.7 6.8-4.7S17.3 15.9 18.8 19"/></svg>`,
+      group: "primary",
+    },
+    {
+      id: "training",
+      trLabel: "Antrenman",
+      icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 4v2.2M12 17.8V20M4 12h2.2M17.8 12H20"/><path d="m16.9 6.3 1.9-2.3"/><path d="m18 5.1-.9 2.3"/></svg>`,
+      group: "primary",
+    },
+    {
+      id: "games",
+      trLabel: "Oyunlarım",
+      icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h10"/><path d="M8 21V12h8v9"/><path d="M8 12h8"/><path d="M9 12V8h1.2V5.5h1.3V8H12.5V5.5h1.3V8H15V12"/><path d="M9.5 15h5M9.5 18h5"/><path d="M11.2 18.2v1.2h1.6v-1.2"/></svg>`,
+      group: "primary",
+    },
+    {
+      id: "progress",
+      trLabel: "İlerleme",
+      icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V12M11 20V8M17 20v-5"/><path d="m4 14 5.5-4.5 3.5 2.5L20 6"/><path d="M16.5 6H20v3.5"/></svg>`,
+      group: "primary",
+    },
+    {
+      id: "achievements",
+      trLabel: "Başarılar",
+      icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v3a4 4 0 0 1-4 4 4 4 0 0 1-4-4V4z"/><path d="M8 5H5a2.5 2.5 0 0 0 2.5 3.5M16 5h3a2.5 2.5 0 0 1-2.5 3.5"/><path d="M10 14h4v2h-4zM9.5 20h5"/><path d="M10.5 16h3v2.5h-3z"/></svg>`,
+      group: "secondary",
+    },
+    {
+      id: "arena",
+      trLabel: "Arena",
+      icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.8h13v4.5c0 4.6-2.8 7.9-6.5 9.6-3.7-1.7-6.5-5-6.5-9.6V4.8z"/><path d="m13.2 7.2-3.4 5.2h2.4L10.8 16.8l3.6-5.4h-2.4z" fill="currentColor" stroke="none"/></svg>`,
+      group: "secondary",
+    },
+    {
+      id: "profile",
+      trLabel: "Profil",
+      icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5.2 19c1.5-3.1 3.9-4.7 6.8-4.7S17.3 15.9 18.8 19"/></svg>`,
+      group: "secondary",
+    },
+    {
+      id: "settings",
+      trLabel: "Ayarlar",
+      icon: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.2M12 19v2.2M2.8 12h2.2M19 12h2.2M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M5.1 18.9l1.6-1.6M17.3 6.7l1.6-1.6"/><path d="M12 6.2a5.8 5.8 0 1 1 0 11.6 5.8 5.8 0 0 1 0-11.6z"/></svg>`,
+      group: "secondary",
+    },
   ];
 
   // ─── Durum ────────────────────────────────────────────
   let hostEl = null;
   let shadow = null;
   let panelEl = null;
-  let activeTab = "profile";
+  let activeTab = "home";
+  let coachSubTab = "plan"; // plan | games | weaknesses | suggestions
   let langUnsub = null;
 
   // In-memory cache (panel kapanırken silinir)
@@ -75,17 +125,43 @@
       submitting: false,
       hintFromSq: null,
       flash: { kind: "", msg: "" },
+      result: null, // { correct, userUci, expectedUci, expectedSan, pointsDelta, rating, phrase }
       themeFilter: "", // Faz 2.6: aktif tema filtresi (örn. "pin")
       themeFilterLabel: "", // UI gösterim etiketi
       themeRemaining: 0, // o temadan toplam puzzle adedi
     },
     achievements: null, // {items, earned_count, total_count} | "loading"
     quota: null, // /me/quota cevabı: {is_premium, premium_until, features:{...}}
+    notifications: {
+      open: false,
+      loading: false,
+      items: [],
+      unread: 0,
+      readIds: {},
+    },
+    arenaChest: { opening: false, opened: false },
     leaderboard: {
       data: null, // {top, me, metric} | null
-      metric: "rating", // rating | solved | day_streak | weekly_solved | points
+      metric: "points", // points | rating | solved | day_streak | weekly_solved
       loading: false,
     },
+    sync: {
+      active: false,
+      progress: 0,
+      phase: "",
+      message: "",
+      gamesTotal: 0,
+      inserted: 0,
+      error: null,
+      pollId: null,
+    },
+    onboard: {
+      step: 0, // 0 welcome | 1 link | 2 sync | 3 done
+      dismissed: false,
+      linking: false,
+    },
+    verifyCode: null,
+    verifyCodeLoading: false,
   };
 
   // ─── Yardımcılar ──────────────────────────────────────
@@ -113,6 +189,82 @@
     });
   }
 
+  function chessLinkErrorMessage(resp) {
+    if (!resp) return T("Bağlanılamadı.");
+    if (resp.status === 404) return T("Chess.com kullanıcısı bulunamadı.");
+    if (resp.status === 409) {
+      return (
+        (typeof resp.detail === "string" && resp.detail) ||
+        resp.message ||
+        T("Bu chess.com hesabı başka bir ForkSight kullanıcısına bağlı.")
+      );
+    }
+    if (
+      resp.code === "VERIFY_CODE_MISSING" ||
+      (resp.verify_code && resp.message)
+    ) {
+      return (
+        resp.message ||
+        T(
+          "Doğrulama kodu chess.com profilinde bulunamadı. Kodu Konum, Ad Soyad veya Hakkında alanına ekle.",
+        )
+      );
+    }
+    if (typeof resp.detail === "string" && resp.detail) return resp.detail;
+    if (resp.detail && typeof resp.detail === "object" && resp.detail.message) {
+      return resp.detail.message;
+    }
+    if (resp.error) return resp.error;
+    return T("Bağlanılamadı.");
+  }
+
+  async function ensureVerifyCode(force) {
+    if (cache.verifyCode && !force) return cache.verifyCode;
+    if (cache.verifyCodeLoading) return cache.verifyCode;
+    cache.verifyCodeLoading = true;
+    try {
+      const resp = await send("chess_com_verify_code");
+      if (resp && resp.ok && resp.verify_code) {
+        cache.verifyCode = String(resp.verify_code);
+        return cache.verifyCode;
+      }
+    } catch (_) {
+      /* ignore */
+    } finally {
+      cache.verifyCodeLoading = false;
+    }
+    return cache.verifyCode;
+  }
+
+  function renderVerifyCodeBox(opts) {
+    const o = opts || {};
+    const code = cache.verifyCode || "";
+    const compact = !!o.compact;
+    if (!code && !cache.verifyCodeLoading) {
+      ensureVerifyCode().then((c) => {
+        if (c && panelEl) renderActive();
+      });
+    }
+    const codeHtml = code
+      ? `<code class="fs-verify-code" data-verify-code>${esc(code)}</code>
+         <button type="button" class="fs-btn fs-ghost fs-verify-copy" data-act="copy-verify-code">${T("Kopyala")}</button>`
+      : `<span class="fs-v3-sub">${
+          cache.verifyCodeLoading
+            ? T("Kod yükleniyor…")
+            : T("Kod alınamadı — paneli yenile.")
+        }</span>`;
+    return `
+      <div class="fs-verify-box" ${compact ? 'style="margin-top:8px"' : ""}>
+        <div class="fs-verify-lab">${T("Doğrulama kodun")}</div>
+        <div class="fs-verify-row">${codeHtml}</div>
+        <div class="fs-onboard-tip" style="margin-top:8px">
+          ${T(
+            "Bu kodu Chess.com → Ayarlar → Profil’de <b>Konum</b>, <b>Ad Soyad</b> veya <b>Hakkında</b> alanlarından birine yapıştır ve kaydet. Sonra kullanıcı adını yazıp Bağla’ya bas.",
+          )}
+        </div>
+      </div>`;
+  }
+
   function fmtDate(ts) {
     if (!ts) return "—";
     try {
@@ -137,41 +289,129 @@
     if (streak === 1) return T("Güzel bir başlangıç! 🚀");
     const tpl =
       streak < 7
-        ? window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
-          ? "{n} days here — keep going!"
-          : `${streak} gündür buradasın — devam et!`
+        ? T("{n} gündür buradasın — devam et!")
         : streak < 30
-          ? window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
-            ? "{n}-day streak — impressive!"
-            : `${streak} günlük seri — etkileyici!`
-          : window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
-            ? "{n} days! You're a legend 🔥"
-            : `${streak} gün! Sen bir efsanesin 🔥`;
+          ? T("{n} günlük seri — etkileyici!")
+          : T("{n} gün! Sen bir efsanesin 🔥");
     return tpl.replace("{n}", String(streak));
   }
 
-  function gameThumbHTML(g) {
-    // Mini tahta (final_fen) — coach-review modülündeki buildBoardSVG'yi kullan.
-    // ÖNEMLİ: buildBoardSVG `step.pos.board[idx]` parse edilmiş Position bekler,
-    // sadece FEN string yetmez. Bu yüzden _fenToPosition ile önce parse et.
-    let svg = "";
+  function isUserBlack(color) {
+    const c = String(color || "").toLowerCase();
+    return c === "b" || c === "black";
+  }
+
+  function isUserWhite(color) {
+    const c = String(color || "").toLowerCase();
+    return c === "w" || c === "white";
+  }
+
+  /** Oyun satırında "ben" = chess.com tarafı, rakip = diğer taraf. */
+  function gameParticipants(g, profileUser) {
+    const black = isUserBlack(g && g.user_color);
+    const meName =
+      (black ? g && g.black_username : g && g.white_username) ||
+      (profileUser && profileUser.chess_com_username) ||
+      (profileUser && profileUser.username) ||
+      "Sen";
+    const oppName =
+      (black ? g && g.white_username : g && g.black_username) ||
+      (g && (g.opponent || g.opponent_username)) ||
+      "?";
+    const meRating = black
+      ? g && g.black_rating
+      : g && g.white_rating;
+    const oppRating = black
+      ? g && g.white_rating
+      : g && g.black_rating;
+    const meAv =
+      (profileUser && profileUser.chess_com_avatar) ||
+      (black ? g && g.black_avatar : g && g.white_avatar) ||
+      "";
+    const oppAv =
+      (g && (g.opponent_avatar || (black ? g.white_avatar : g.black_avatar))) ||
+      "";
+    return { meName, oppName, meRating, oppRating, meAv, oppAv, black };
+  }
+
+  function boardSvgHTML(g) {
     try {
       const R = window.ForkSightReview;
       if (
         R &&
         typeof R._buildBoardSVG === "function" &&
         typeof R._fenToPosition === "function" &&
+        g &&
         g.final_fen
       ) {
         const pos = R._fenToPosition(g.final_fen);
         if (pos && pos.board) {
-          svg = R._buildBoardSVG(
+          return R._buildBoardSVG(
             { pos, fen: g.final_fen, from: null, to: null },
-            g.user_color === "black",
+            isUserBlack(g.user_color),
           );
         }
       }
     } catch (_) {}
+    return simpleBoardSvg(g && g.final_fen, isUserBlack(g && g.user_color));
+  }
+
+  /** Lightweight mini-board when coach-review helpers aren't loaded. */
+  function simpleBoardSvg(fen, flip) {
+    const glyphs = {
+      K: "♔",
+      Q: "♕",
+      R: "♖",
+      B: "♗",
+      N: "♘",
+      P: "♙",
+      k: "♚",
+      q: "♛",
+      r: "♜",
+      b: "♝",
+      n: "♞",
+      p: "♟",
+    };
+    const start =
+      fen ||
+      "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+    const rows = String(start).split(/\s+/)[0].split("/");
+    if (rows.length !== 8) return "";
+    const light = "#eeeed2";
+    const dark = "#769656";
+    let cells = "";
+    for (let r = 0; r < 8; r++) {
+      const rowStr = flip ? rows[7 - r] : rows[r];
+      const expanded = [];
+      for (const ch of rowStr) {
+        if (/\d/.test(ch)) {
+          for (let i = 0; i < Number(ch); i++) expanded.push("");
+        } else expanded.push(ch);
+      }
+      while (expanded.length < 8) expanded.push("");
+      for (let f = 0; f < 8; f++) {
+        const piece = flip ? expanded[7 - f] : expanded[f];
+        const x = f * 20;
+        const y = r * 20;
+        const isDark = (r + f) % 2 === 1;
+        cells += `<rect x="${x}" y="${y}" width="20" height="20" fill="${isDark ? dark : light}"/>`;
+        if (piece) {
+          const g = glyphs[piece] || "";
+          const fill = piece === piece.toUpperCase() ? "#f5f5f5" : "#1a1a1a";
+          cells += `<text x="${x + 10}" y="${y + 15}" text-anchor="middle" font-size="13" font-family="Segoe UI Symbol, Noto Sans Symbols, sans-serif" fill="${fill}">${g}</text>`;
+        }
+      }
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="100%" height="100%" style="display:block">${cells}</svg>`;
+  }
+
+  function miniBoardHTML(g) {
+    const svg = boardSvgHTML(g) || simpleBoardSvg(null, false);
+    return `<div class="fs-mini-board">${svg}</div>`;
+  }
+
+  function gameThumbHTML(g) {
+    const svg = boardSvgHTML(g);
     const resultClass =
       g.result === "win" ? "win" : g.result === "loss" ? "loss" : "draw";
     const resultLabel =
@@ -180,10 +420,8 @@
         : g.result === "loss"
           ? T("Kaybetti")
           : T("Beraberlik");
-    const opp =
-      g.user_color === "white"
-        ? `${esc(g.black_username || "?")} (${g.black_rating || "?"})`
-        : `${esc(g.white_username || "?")} (${g.white_rating || "?"})`;
+    const parts = gameParticipants(g, cache.profile && cache.profile.user);
+    const opp = `${esc(parts.oppName || "?")} (${parts.oppRating || "?"})`;
     return `
       <button class="fs-game-card" data-game-id="${g.id}" type="button">
         <div class="fs-game-board">${svg || '<div class="fs-game-board-fallback"></div>'}</div>
@@ -224,31 +462,31 @@
     return `
       :host {
         all: initial;
-        --fs-bg: #1a1d24;
-        --fs-bg-elev: #242832;
-        --fs-bg-soft: #2d323e;
-        --fs-accent: #f5c518;
-        --fs-accent-dim: rgba(245,197,24,0.18);
-        --fs-text: #ececec;
-        --fs-text-dim: #9ba0aa;
-        --fs-good: #6fcf6f;
-        --fs-bad: #ff6b6b;
-        --fs-warn: #f5c518;
-        --fs-border: rgba(255,255,255,0.06);
-        --fs-radius: 10px;
-        --fs-radius-lg: 18px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: var(--fs-text);
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        color: #eceef4;
       }
-      .fs-overlay {
-        position: fixed; inset: 0;
-        background: rgba(0,0,0,0.55);
-        z-index: 2147483646;
-        opacity: 0;
-        transition: opacity .25s ease;
-      }
-      .fs-overlay.fs-show { opacity: 1; }
       .fs-panel {
+        --fs-bg: #12141d;
+        --fs-bg-elev: #181b26;
+        --fs-bg-soft: #222633;
+        --fs-card: rgba(255,255,255,0.04);
+        --fs-accent: #f5c542;
+        --fs-accent-dim: rgba(245,197,66,0.18);
+        --fs-text: #eceef4;
+        --fs-text-dim: #9ba0aa;
+        --fs-good: #3dd68c;
+        --fs-bad: #ff6b6b;
+        --fs-warn: #f5c542;
+        --fs-tactics: #3dd68c;
+        --fs-opening: #4c8dff;
+        --fs-calc: #a78bfa;
+        --fs-endgame: #f0a020;
+        --fs-consist: #2dd4bf;
+        --fs-border: rgba(255,255,255,0.07);
+        --fs-radius: 12px;
+        --fs-radius-lg: 18px;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        color: var(--fs-text);
         position: fixed;
         width: min(${PANEL_W}px, 96vw); height: min(${PANEL_H}px, 92vh);
         background: var(--fs-bg);
@@ -262,6 +500,14 @@
         opacity: 0;
         transition: transform .42s cubic-bezier(.18,.89,.32,1.28), opacity .25s ease;
       }
+      .fs-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 2147483646;
+        opacity: 0;
+        transition: opacity .25s ease;
+      }
+      .fs-overlay.fs-show { opacity: 1; }
       .fs-panel.fs-show {
         transform: scale(1) rotate(0deg);
         opacity: 1;
@@ -272,71 +518,979 @@
         height: min(640px, 96vh);
       }
 
-      /* ── Sol sidebar (mockup'taki dikey tab kolonu) ── */
+      /* ── Sol sidebar (V3) ── */
       .fs-sidebar {
-        flex: 0 0 168px;
-        background: var(--fs-bg-elev);
+        flex: 0 0 200px;
+        background: linear-gradient(180deg, #161924 0%, #101218 72%);
         border-right: 1px solid var(--fs-border);
         display: flex; flex-direction: column;
-        padding: 16px 12px;
-        gap: 6px;
+        padding: 14px 10px 12px;
+        gap: 4px;
+        position: relative;
+        overflow: hidden;
+      }
+      .fs-sidebar::before {
+        content: "";
+        position: absolute; left: 0; right: 0; bottom: 0; height: 160px;
+        background:
+          linear-gradient(0deg, rgba(18,20,29,0.2), transparent),
+          repeating-conic-gradient(#1a1d28 0% 25%, #12141d 0% 50%) 0 0 / 18px 18px;
+        opacity: 0.35; pointer-events: none; z-index: 0;
+        mask-image: linear-gradient(180deg, transparent, #000 40%);
+        -webkit-mask-image: linear-gradient(180deg, transparent, #000 40%);
+      }
+      .fs-sidebar::after {
+        content: "";
+        position: absolute; left: -40px; bottom: -20px;
+        width: 180px; height: 180px;
+        background: radial-gradient(circle, rgba(245,197,66,0.14), transparent 70%);
+        pointer-events: none; z-index: 0;
       }
       .fs-brand {
-        display: flex; align-items: center; gap: 8px;
-        font-weight: 800; font-size: 13px; letter-spacing: 1.2px;
-        color: var(--fs-text);
+        display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 700; font-size: 12px; letter-spacing: 1.8px;
+        color: #f5c542;
         text-transform: uppercase;
         padding: 4px 8px 14px 8px;
+        position: relative; z-index: 1;
       }
       .fs-brand-ico {
-        width: 26px; height: 26px; border-radius: 50%;
-        object-fit: cover;
-        background: var(--fs-bg-soft);
+        width: 52px; height: 52px; border-radius: 0;
+        object-fit: contain;
+        background: transparent;
         flex: 0 0 auto;
+        filter: drop-shadow(0 2px 12px rgba(245,197,66,0.45));
       }
       .fs-tabs {
-        display: flex; flex-direction: column; gap: 4px;
+        display: flex; flex-direction: column; gap: 2px;
         flex: 1;
+        position: relative; z-index: 1;
+        overflow-y: auto;
+      }
+      .fs-nav-sep {
+        height: 1px; margin: 8px 6px;
+        background: var(--fs-border);
       }
       .fs-tab {
         display: flex; align-items: center; gap: 10px;
-        padding: 10px 14px; border-radius: 10px;
+        padding: 9px 12px; border-radius: 10px;
         background: transparent; border: 0; color: var(--fs-text-dim);
-        font-size: 13px; font-weight: 600; cursor: pointer;
+        font-size: 12.5px; font-weight: 600; cursor: pointer;
         transition: background .15s ease, color .15s ease;
         text-align: left;
+        min-width: 0;
       }
-      .fs-tab .fs-tab-ico { font-size: 15px; width: 18px; text-align: center; }
+      .fs-tab > span:last-child {
+        min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .fs-tab .fs-tab-ico {
+        width: 20px; height: 20px; display: grid; place-items: center;
+        flex: 0 0 auto;
+      }
+      .fs-tab .fs-tab-ico svg { display: block; width: 18px; height: 18px; }
+      .fs-tab.fs-active .fs-tab-ico { color: #f5c542; }
       .fs-tab:hover { color: var(--fs-text); background: rgba(255,255,255,0.04); }
       .fs-tab.fs-active {
-        background: var(--fs-accent); color: #1a1d24;
-        box-shadow: 0 4px 14px rgba(245,197,24,0.28);
+        background: rgba(58, 50, 36, 0.92);
+        color: #f5c542;
+        border-radius: 12px;
+        opacity: 1;
+        box-shadow:
+          0 0 0 1px rgba(245,197,66,0.28),
+          0 0 18px rgba(245,197,66,0.12),
+          inset 0 1px 0 rgba(245,197,66,0.08);
+        font-weight: 700;
       }
-      .fs-premium-pill {
-        display: flex; align-items: center; justify-content: center; gap: 6px;
-        padding: 8px 14px; border-radius: 10px;
-        background: transparent; border: 1px solid var(--fs-accent);
-        color: var(--fs-accent); font-size: 12px; font-weight: 700;
-        cursor: pointer;
+      .fs-tab.fs-tab-secondary { opacity: 0.92; font-weight: 500; }
+      .fs-tab.fs-tab-secondary.fs-active { opacity: 1; font-weight: 700; }
+      .fs-pro-card {
+        display: flex; flex-direction: column; gap: 2px;
+        padding: 12px 40px 12px 12px; border-radius: 14px;
+        background: rgba(245,197,66,0.05);
+        border: 1px solid rgba(245,197,66,0.32);
+        cursor: pointer; position: relative; z-index: 1;
+        text-align: left; color: var(--fs-text);
+        box-shadow: 0 0 18px rgba(245,197,66,0.08);
+        margin-top: auto;
       }
-      .fs-premium-pill:hover { background: var(--fs-accent-dim); }
-      .fs-premium-pill.fs-pill-gold {
-        border-color: #f5c518; color: #f5c518;
-        background: rgba(245,197,24,0.10);
+      .fs-pro-card:hover { border-color: rgba(245,197,66,0.5); }
+      .fs-pro-card-title {
+        display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+        font-size: 11px; font-weight: 700; color: var(--fs-accent); line-height: 1.15;
       }
-      .fs-premium-pill.fs-pill-diamond {
-        border-color: #b9a8ff; color: #cabfff;
-        background: rgba(185,168,255,0.12);
+      .fs-pro-card-title .fs-pro-name { font-size: 11px; font-weight: 700; }
+      .fs-pro-card-title .fs-pro-pro { font-size: 17px; font-weight: 800; letter-spacing: 0.06em; }
+      .fs-pro-card-title img {
+        width: 18px; height: 18px; object-fit: contain;
+        position: absolute; right: 10px; bottom: 10px;
       }
+      .fs-pro-card-sub { display: none; }
+      .fs-panel[data-tab="profile"] .fs-lang-btn,
+      .fs-panel[data-tab="arena"] .fs-lang-btn { display: none; }
+      .fs-premium-pill { display: none; }
 
       /* ── Sağ ana alan ── */
       .fs-main {
         flex: 1 1 auto; min-width: 0;
         display: flex; flex-direction: column;
+        background: var(--fs-bg);
       }
       .fs-header {
-        display: flex; align-items: center; justify-content: flex-end;
-        padding: 10px 14px 0 14px; gap: 4px;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px 16px 0 16px; gap: 8px;
+      }
+      .fs-header-left { min-width: 0; flex: 1; }
+      .fs-header-right { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+      .fs-greet-title {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
+        color: var(--fs-text);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .fs-v3-title {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 24px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em;
+        color: var(--fs-text);
+      }
+      .fs-header-av {
+        width: 36px; height: 36px; border-radius: 50%;
+        object-fit: cover; flex: 0 0 auto;
+        border: 1.5px solid rgba(255,255,255,0.18);
+        box-shadow: 0 0 0 2px rgba(18,20,29,0.9);
+        position: relative;
+      }
+      .fs-header-av-wrap {
+        position: relative; width: 36px; height: 36px; flex: 0 0 auto;
+      }
+      .fs-header-av-wrap::after {
+        content: ""; position: absolute; top: -1px; right: -1px;
+        width: 10px; height: 10px; border-radius: 50%;
+        background: #3dd68c; border: 2px solid #12141d;
+      }
+      .fs-train-stats {
+        display: flex; align-items: center; gap: 12px;
+      }
+      .fs-train-level {
+        display: flex; align-items: center; gap: 8px; min-width: 148px;
+      }
+      .fs-train-level .fs-hs-ico { font-size: 26px; filter: drop-shadow(0 2px 8px rgba(245,197,66,0.45)); }
+      .fs-train-level .fs-hs-txt { flex: 1; min-width: 0; }
+      .fs-train-level .fs-hs-lab { font-size: 12px; font-weight: 700; color: var(--fs-text); }
+      .fs-train-level .fs-hs-lab strong { font-size: 15px; }
+      .fs-train-level .fs-skill-bar {
+        margin-top: 5px; width: 100%; height: 5px;
+        background: rgba(255,255,255,0.08);
+      }
+      .fs-train-level .fs-skill-bar > i {
+        background: linear-gradient(90deg, #ffd45a, #f5c542);
+        box-shadow: 0 0 8px rgba(245,197,66,0.4);
+      }
+      .fs-train-level .fs-xp-lab {
+        margin-top: 3px; font-size: 10px; font-weight: 600; color: var(--fs-text-dim);
+      }
+      .fs-train-streak {
+        display: flex; align-items: center; gap: 8px;
+        padding-right: 12px;
+        border-right: 1px solid rgba(255,255,255,0.12);
+      }
+      .fs-train-streak .fs-hs-ico { font-size: 22px; }
+      .fs-train-streak .fs-hs-val { font-size: 18px; font-weight: 800; color: var(--fs-text); line-height: 1; }
+      .fs-train-streak .fs-hs-lab { font-size: 11px; font-weight: 600; color: var(--fs-text-dim); }
+      .fs-panel[data-tab="arena"] .fs-train-level .fs-skill-bar > i,
+      .fs-panel[data-tab="training"] .fs-train-level .fs-skill-bar > i {
+        background: linear-gradient(90deg, #f59e0b, #f5c542 55%, #e8b020);
+      }
+      .fs-greet-sub { font-size: 14px; color: var(--fs-text-dim); margin-top: 6px; }
+      .fs-home-stats {
+        display: flex; align-items: stretch; gap: 0;
+        margin: 4px 0 16px; padding: 16px 10px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.035);
+        border: 1px solid rgba(255,255,255,0.07);
+      }
+      .fs-home-stats .fs-hs {
+        flex: 1; display: flex; align-items: center; gap: 10px;
+        padding: 0 14px; min-width: 0;
+      }
+      .fs-home-stats .fs-hs-ico {
+        width: 38px; height: 38px; flex: 0 0 auto;
+        display: grid; place-items: center;
+        font-size: 22px; line-height: 1;
+        filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));
+      }
+      .fs-home-stats .fs-hs-ico.level { color: #f5c542; filter: drop-shadow(0 0 10px rgba(245,197,66,0.35)); }
+      .fs-home-stats .fs-hs-ico.rating { color: #cfd3dc; }
+      .fs-home-stats .fs-hs-ico.streak { color: #ff8a3d; filter: drop-shadow(0 0 10px rgba(255,138,61,0.35)); }
+      .fs-home-stats .fs-hs-txt { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+      .fs-home-stats .fs-hs-lab {
+        font-size: 11px; font-weight: 600; color: var(--fs-text-dim);
+        letter-spacing: 0.02em;
+      }
+      .fs-home-stats .fs-hs-val {
+        font-size: 20px; font-weight: 800; color: var(--fs-text);
+        letter-spacing: -0.02em; line-height: 1.1;
+      }
+      .fs-home-stats .fs-hs.fs-xp-block {
+        flex: 1.55; flex-direction: column; align-items: stretch; gap: 8px;
+        justify-content: center;
+      }
+      .fs-home-stats .fs-xp-top {
+        display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+        font-size: 11px; font-weight: 600; color: var(--fs-text-dim);
+      }
+      .fs-home-stats .fs-xp-top strong { color: var(--fs-text); font-weight: 800; }
+      .fs-home-stats .fs-xp-block .fs-skill-bar {
+        width: 100%; height: 10px; border-radius: 999px;
+        background: rgba(255,255,255,0.08); overflow: hidden;
+      }
+      .fs-home-stats .fs-xp-block .fs-skill-bar > i {
+        background: linear-gradient(90deg, #7dd3fc, #a855f7 55%, #c084fc);
+        box-shadow: 0 0 12px rgba(168,85,247,0.4);
+      }
+      .fs-stat-sep {
+        width: 1px; align-self: stretch; margin: 4px 0;
+        background: rgba(255,255,255,0.08); flex: 0 0 auto;
+      }
+      .fs-stat-pills {
+        display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      }
+      .fs-pill {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 8px; border-radius: 999px;
+        background: var(--fs-card); border: 1px solid var(--fs-border);
+        font-size: 11px; font-weight: 700; color: var(--fs-text-dim);
+      }
+      .fs-pill strong { color: var(--fs-text); font-weight: 800; }
+      .fs-v3-grid {
+        display: grid; gap: 14px;
+      }
+      .fs-v3-grid-2 { grid-template-columns: 1.35fr 1fr; }
+      .fs-home-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        align-items: stretch;
+      }
+      @media (max-width: 900px) {
+        .fs-v3-grid-2 { grid-template-columns: 1fr; }
+      }
+      .fs-v3-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 16px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      }
+      .fs-v3-card.fs-v3-coach-card { overflow: visible; }
+      .fs-v3-card.fs-recent-wrap {
+        overflow: visible;
+        padding: 18px 20px 20px;
+      }
+      .fs-v3-card.fs-hero-train {
+        min-height: 248px;
+        display: flex; flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 24px 28px;
+        border-color: rgba(61,214,140,0.22);
+        max-width: 100%;
+      }
+      .fs-v3-card.fs-hero-train::before {
+        content: "";
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(ellipse at 82% 45%, rgba(61,214,140,0.24), transparent 48%),
+          linear-gradient(100deg, rgba(10,18,16,0.98) 0%, rgba(12,22,18,0.88) 36%, rgba(12,20,18,0.35) 56%, rgba(12,20,18,0.05) 74%, transparent 100%),
+          var(--fs-hero-url) 102% 52% / min(420px, 48%) auto no-repeat;
+        z-index: 0;
+      }
+      .fs-v3-card.fs-hero-train > * { position: relative; z-index: 1; max-width: 46%; }
+      .fs-v3-card.fs-hero-train .fs-v3-title {
+        font-size: 30px; font-weight: 700; margin-bottom: 6px;
+      }
+      .fs-v3-kicker {
+        font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--fs-text-dim); margin-bottom: 6px;
+        line-height: 1.3; overflow-wrap: anywhere;
+      }
+      .fs-v3-sub { font-size: 12.5px; color: var(--fs-text-dim); line-height: 1.45; overflow-wrap: anywhere; }
+      .fs-btn, .fs-btn-outline, .fs-btn-gold, .fs-btn-sm, .fs-link-gold {
+        max-width: 100%; white-space: normal; line-height: 1.25; text-align: center;
+      }
+      .fs-link-gold { text-align: right; }
+      .fs-greet-title { overflow-wrap: anywhere; }
+      .fs-greet-sub { overflow-wrap: anywhere; line-height: 1.35; }
+      .fs-mission-pct { color: var(--fs-tactics); font-weight: 800; font-size: 15px; }
+      .fs-mission-pct-rest { color: var(--fs-text-dim); font-weight: 600; font-size: 13px; }
+      .fs-v3-coach-card {
+        display: grid; grid-template-columns: auto 1fr auto;
+        gap: 10px 16px; align-items: center;
+        min-height: 188px;
+        padding: 12px 20px 0 0;
+        overflow: visible;
+        background:
+          radial-gradient(ellipse at 12% 40%, rgba(124,58,237,0.5), transparent 55%),
+          linear-gradient(155deg, rgba(76,29,149,0.48), rgba(18,20,29,0.12));
+        border-color: rgba(167,139,250,0.32);
+      }
+      .fs-v3-coach-av {
+        width: 148px; height: 188px; border-radius: 0;
+        object-fit: contain; object-position: center bottom;
+        flex: 0 0 auto; background: transparent;
+        margin-left: -6px; margin-bottom: 0;
+        box-shadow: none; border: 0;
+      }
+      .fs-coach-av-wrap {
+        position: relative; flex: 0 0 auto; align-self: end;
+        margin-bottom: -2px;
+      }
+      .fs-coach-av-wrap .fs-coach-quote {
+        position: absolute; top: 18px; left: 8px;
+        width: 36px; height: 36px; border-radius: 50%;
+        display: grid; place-items: center;
+        background: rgba(76,29,149,0.78);
+        border: 1px solid rgba(196,181,253,0.4);
+        font-size: 20px; line-height: 1; color: #c4b5fd;
+        font-family: Georgia, serif; pointer-events: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+      }
+      .fs-v3-coach-body { text-align: left; min-width: 0; position: relative; }
+      .fs-v3-coach-body .fs-v3-title {
+        font-size: 18px; font-family: Georgia, "Times New Roman", serif;
+        font-weight: 700; line-height: 1.3; margin-bottom: 6px;
+      }
+      .fs-v3-coach-body .fs-v3-sub { font-size: 13px; line-height: 1.45; }
+      .fs-coach-hl { color: #c4b5fd; font-weight: 800; }
+      .fs-v3-coach-side { text-align: center; min-width: 96px; position: relative; }
+      .fs-coach-side-top {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        margin-bottom: 6px;
+      }
+      .fs-coach-delta {
+        width: 58px; height: 58px; border-radius: 50%;
+        display: grid; place-items: center;
+        background: radial-gradient(circle, rgba(167,139,250,0.5), rgba(76,29,149,0.12));
+        border: 1px solid rgba(196,181,253,0.45);
+        font-size: 22px; font-weight: 800; color: #c4b5fd;
+        box-shadow: 0 0 22px rgba(167,139,250,0.35);
+      }
+      .fs-coach-pct {
+        font-size: 20px; font-weight: 800; color: #3dd68c;
+        letter-spacing: -0.02em;
+      }
+      .fs-coach-spark {
+        display: flex; align-items: flex-end; gap: 4px; height: 48px;
+        justify-content: center; margin: 10px 0 12px;
+      }
+      .fs-coach-spark i {
+        width: 9px; border-radius: 3px 3px 0 0;
+        background: linear-gradient(180deg, #ddd6fe, #7c3aed);
+      }
+      .fs-coach-trend {
+        display: inline-flex; align-items: center; gap: 4px;
+        margin-top: 2px; font-size: 11px; font-weight: 800; color: #3dd68c;
+      }
+      .fs-seg-bar {
+        display: flex; gap: 6px; margin: 10px 0 16px;
+        width: min(300px, 100%);
+      }
+      .fs-seg-bar i {
+        flex: 1; height: 10px; border-radius: 5px;
+        background: rgba(255,255,255,0.08);
+      }
+      .fs-seg-bar i.on { background: #3dd68c; box-shadow: 0 0 10px rgba(61,214,140,0.35); }
+      .fs-btn-gold {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        background: linear-gradient(180deg, #ffd45a, #f5c542 55%, #e8b020);
+        color: #12141d; border: 0; border-radius: 12px;
+        padding: 12px 20px; font-weight: 800; font-size: 13px; cursor: pointer;
+        box-shadow: 0 6px 18px rgba(245,197,66,0.28);
+        align-self: flex-start;
+        width: auto; max-width: 100%;
+      }
+      .fs-v3-card.fs-hero-train .fs-btn-gold { margin-top: 2px; }
+      .fs-btn-gold:hover { filter: brightness(1.05); }
+      .fs-btn-gold svg { flex: 0 0 auto; }
+      .fs-btn-outline {
+        display: inline-flex; align-items: center; justify-content: center;
+        background: transparent; color: var(--fs-text);
+        border: 1px solid rgba(255,255,255,0.18); border-radius: 12px;
+        padding: 10px 14px; font-weight: 700; font-size: 12px; cursor: pointer;
+      }
+      .fs-recent-card {
+        display: grid;
+        grid-template-columns: minmax(148px, 170px) minmax(0, 1fr) 124px;
+        grid-template-rows: auto auto;
+        column-gap: 18px;
+        row-gap: 12px;
+        align-items: center;
+      }
+      .fs-recent-outcome {
+        grid-column: 1; grid-row: 1;
+        display: flex; flex-direction: column; gap: 5px;
+        align-items: flex-start; min-width: 0;
+      }
+      .fs-recent-players {
+        grid-column: 2; grid-row: 1;
+        display: flex; align-items: center; justify-content: center;
+        gap: 12px; min-width: 0;
+      }
+      .fs-recent-metrics {
+        grid-column: 2; grid-row: 2;
+        display: flex; flex-direction: row; align-items: flex-start;
+        justify-content: center; gap: 28px; min-width: 0;
+      }
+      .fs-recent-board-wrap {
+        grid-column: 3; grid-row: 1 / span 2;
+        width: 124px; height: 124px; border-radius: 8px; overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        background: #769656; justify-self: end; align-self: center;
+      }
+      .fs-recent-card > .fs-btn-review {
+        grid-column: 1; grid-row: 2;
+        justify-self: start; align-self: center;
+      }
+      .fs-recent-main, .fs-recent-foot { display: contents; }
+      .fs-recent-outcome .fs-recent-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        width: fit-content; padding: 0; border-radius: 0; background: transparent;
+        font-size: 16px; font-weight: 800; letter-spacing: 0.01em;
+        color: var(--fs-good);
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      .fs-recent-outcome .fs-recent-badge .fs-rb-ico {
+        width: 22px; height: 22px; border-radius: 50%;
+        display: grid; place-items: center; font-size: 11px; line-height: 1; font-weight: 900;
+        background: var(--fs-good); color: #0c1210;
+        box-shadow: 0 0 12px rgba(61,214,140,0.4);
+      }
+      .fs-recent-outcome .fs-recent-badge.loss { color: var(--fs-bad); }
+      .fs-recent-outcome .fs-recent-badge.loss .fs-rb-ico {
+        background: var(--fs-bad); color: #1a0c0c;
+        box-shadow: 0 0 10px rgba(255,107,107,0.28);
+      }
+      .fs-recent-outcome .fs-recent-badge.draw { color: var(--fs-text); }
+      .fs-recent-outcome .fs-recent-badge.draw .fs-rb-ico {
+        background: rgba(255,255,255,0.14); color: var(--fs-text-dim); box-shadow: none;
+      }
+      .fs-recent-outcome .fs-recent-tc {
+        font-size: 13px; font-weight: 600; color: var(--fs-text); line-height: 1.2;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      .fs-recent-player {
+        display: flex; align-items: center; gap: 8px; min-width: 0;
+      }
+      .fs-recent-player .fs-rp-meta { min-width: 0; }
+      .fs-recent-player .fs-rp-name {
+        font-size: 14px; font-weight: 700; color: var(--fs-text);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        line-height: 1.2;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      .fs-recent-player .fs-rp-rating {
+        font-size: 12px; font-weight: 600; color: var(--fs-text-dim); margin-top: 2px;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      .fs-recent-av {
+        width: 44px; height: 44px; border-radius: 50%;
+        object-fit: cover; background: var(--fs-bg-elev);
+        border: 2px solid rgba(255,255,255,0.16);
+        box-shadow: none;
+        flex: 0 0 auto;
+      }
+      .fs-recent-av.me {
+        border-color: var(--fs-accent);
+        box-shadow: 0 0 0 1px rgba(245,197,66,0.3);
+      }
+      .fs-recent-av.placeholder {
+        display: grid; place-items: center; font-size: 14px; font-weight: 800;
+        color: var(--fs-text-dim);
+      }
+      .fs-recent-vs {
+        font-size: 11px; color: var(--fs-text-dim); font-weight: 700;
+        flex: 0 0 auto; padding: 0 2px; letter-spacing: 0.04em;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      .fs-recent-metric { text-align: center; min-width: 0; }
+      .fs-recent-metric .fs-rm-val {
+        font-size: 24px; font-weight: 800; line-height: 1.15; color: var(--fs-text);
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      .fs-recent-metric.fs-rm-rating {
+        padding: 8px 16px 6px;
+        border-radius: 10px;
+        border: 1px solid rgba(61,214,140,0.4);
+        background: rgba(61,214,140,0.06);
+      }
+      .fs-recent-metric.fs-rm-rating.is-dn {
+        border-color: rgba(255,107,107,0.4);
+        background: rgba(255,107,107,0.06);
+      }
+      .fs-recent-metric .fs-rm-val.up,
+      .fs-recent-metric .fs-rm-val.dn {
+        display: block; padding: 0; border: 0; background: transparent;
+        box-shadow: none; min-width: 0; border-radius: 0;
+      }
+      .fs-recent-metric .fs-rm-val.up { color: var(--fs-good); }
+      .fs-recent-metric .fs-rm-val.dn { color: var(--fs-bad); }
+      .fs-recent-metric .fs-rm-lab {
+        margin-top: 2px; font-size: 11px; font-weight: 600; color: var(--fs-text-dim);
+        white-space: nowrap;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      .fs-btn-review {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 9px 14px; border-radius: 10px;
+        border: 1px solid rgba(245,197,66,0.55);
+        background: transparent;
+        color: var(--fs-text); font-size: 12.5px; font-weight: 700;
+        cursor: pointer;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      .fs-btn-review:hover { background: rgba(245,197,66,0.1); border-color: rgba(245,197,66,0.8); }
+      .fs-btn-review svg { flex: 0 0 auto; color: var(--fs-accent); }
+      .fs-recent-board-wrap .fs-mini-board,
+      .fs-recent-board-wrap svg,
+      .fs-mini-board svg {
+        width: 100% !important; height: 100% !important;
+        display: block;
+      }
+      .fs-section-head {
+        display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+      }
+      .fs-section-head .fs-v3-kicker { margin-bottom: 0; flex: 0 0 auto; color: var(--fs-text-dim); }
+      .fs-section-head .fs-sec-line {
+        flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.08);
+        min-width: 12px;
+      }
+      .fs-section-head .fs-link-gold { flex: 0 0 auto; margin-left: auto; }
+      .fs-link-gold {
+        background: none; border: 0; color: var(--fs-accent);
+        font-size: 12px; font-weight: 700; cursor: pointer; padding: 0;
+        max-width: 100%; white-space: normal; line-height: 1.25; text-align: right;
+      }
+      .fs-stat-bar {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 12px; border-radius: 12px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+      }
+      .fs-stat-bar .fs-pill {
+        background: transparent; border: 0; padding: 0;
+        font-size: 12px;
+      }
+      .fs-skill-icons {
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+        margin-top: 2px;
+      }
+      .fs-skill-ico {
+        text-align: center; padding: 10px 8px 8px;
+        border-radius: 0; border: 0; background: transparent;
+      }
+      .fs-skill-ico + .fs-skill-ico {
+        border-left: 1px solid rgba(255,255,255,0.06);
+      }
+      .fs-skill-ico .fs-si {
+        width: 56px; height: 56px; margin: 0 auto 10px;
+        display: grid; place-items: center;
+        font-size: 22px; line-height: 1;
+        filter: drop-shadow(0 0 14px currentColor);
+      }
+      .fs-skill-ico .fs-si img {
+        width: 44px !important; height: 44px !important; display: block;
+        filter: drop-shadow(0 0 12px currentColor);
+      }
+      .fs-skill-ico .fs-si-lab {
+        font-size: 12px; font-weight: 700; color: #eef1f8 !important; margin-bottom: 8px;
+      }
+      .fs-skill-ico .fs-si-bar {
+        height: 7px; border-radius: 999px; margin: 0 auto 10px; width: 72%;
+        background: rgba(255,255,255,0.08); overflow: hidden;
+      }
+      .fs-skill-ico .fs-si-bar > i { display: block; height: 100%; border-radius: 999px; }
+      .fs-skill-ico .fs-si-score {
+        font-size: 22px; font-weight: 800; line-height: 1.1; margin: 0;
+      }
+      .fs-skill-ico .fs-si-tone {
+        display: block; margin-top: 3px;
+        font-size: 11px; font-weight: 700; opacity: 0.95;
+      }
+      .fs-quiz-lobby-slim {
+        margin-top: 8px; padding: 10px 12px; border-radius: 12px;
+        border: 1px dashed rgba(255,255,255,0.1);
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        font-size: 12px; color: var(--fs-text-dim);
+      }
+      .fs-quote-banner {
+        margin-top: 14px; border-radius: 16px; overflow: hidden;
+        position: relative; min-height: 96px;
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+      .fs-quote-banner img {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: cover; object-position: center 40%; opacity: 0.92;
+      }
+      .fs-quote-banner .fs-quote-txt {
+        position: relative; z-index: 1;
+        padding: 26px 24px 20px;
+        font-family: Georgia, serif; font-style: italic;
+        font-size: 18px; color: #f3f4f8;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.65);
+        background: linear-gradient(90deg, rgba(12,14,20,0.82), rgba(12,14,20,0.18) 70%, transparent);
+      }
+      .fs-quote-banner .fs-quote-txt em { font-style: italic; font-weight: 700; color: #f5c542; }
+      .fs-quote-sig {
+        display: block; margin-top: 8px; font-family: Georgia, "Palatino Linotype", serif;
+        font-style: italic; font-size: 13px; color: var(--fs-accent); font-weight: 600;
+      }
+      .fs-reward-cell {
+        text-align: center; padding: 10px 8px;
+        border-right: 1px solid rgba(255,255,255,0.08);
+      }
+      .fs-reward-cell:last-child { border-right: 0; }
+      .fs-reward-cell .fs-comp-ico { font-size: 22px; margin-bottom: 6px; }
+      .fs-reward-cell strong {
+        display: block; font-size: 12px; font-weight: 800; color: var(--fs-text);
+      }
+      .fs-reward-cell.gold strong { color: var(--fs-accent); }
+      .fs-reward-cell span {
+        display: block; margin-top: 4px; font-size: 10px; line-height: 1.35;
+        color: var(--fs-text-dim); font-weight: 500;
+      }
+      .fs-mini-board-fallback {
+        width: 100%; height: 100%;
+        background:
+          repeating-conic-gradient(#769656 0% 25%, #eeeed2 0% 50%) 0 0 / 25% 25%;
+      }
+      .fs-header-bell {
+        width: 34px; height: 34px; border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.04);
+        display: grid; place-items: center; color: var(--fs-text-dim);
+        cursor: pointer; position: relative;
+      }
+      .fs-header-bell::after { display: none; }
+      .fs-quote-sig {
+        display: block; margin-top: 6px;
+        font-size: 12px; font-style: normal; letter-spacing: 0.08em;
+        color: rgba(245,197,66,0.85); font-family: Georgia, serif;
+      }
+      .fs-mission-card {
+        --fs-mission-url: none;
+        padding: 0; overflow: hidden; min-height: 248px;
+        border-color: rgba(61,214,140,0.2);
+      }
+      .fs-mission-card::before {
+        content: "";
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(ellipse at 82% 50%, rgba(61,214,140,0.16), transparent 48%),
+          linear-gradient(100deg, rgba(14,16,22,0.98) 0%, rgba(14,16,22,0.94) 36%, rgba(14,16,22,0.5) 55%, rgba(14,16,22,0.12) 72%, transparent 100%),
+          var(--fs-mission-url) 98% 55% / 48% auto no-repeat;
+        z-index: 0;
+      }
+      .fs-mission-hero {
+        position: relative; z-index: 1;
+        display: grid; grid-template-columns: 1.2fr auto 1fr;
+        gap: 18px; align-items: center;
+        min-height: 248px; padding: 22px 24px;
+      }
+      .fs-mission-hero .fs-mission-art { display: none; }
+      .fs-mission-mid {
+        display: flex; flex-direction: column; align-items: center; gap: 14px;
+      }
+      .fs-ring {
+        width: 138px; height: 138px; border-radius: 50%;
+        display: grid; place-items: center;
+        background:
+          radial-gradient(circle at center, #12141d 48%, transparent 49%),
+          conic-gradient(var(--fs-tactics) var(--fs-ring-pct, 40%), rgba(255,255,255,0.08) 0);
+        box-shadow:
+          0 0 0 1px rgba(61,214,140,0.3),
+          0 0 32px rgba(61,214,140,0.28),
+          0 10px 28px rgba(0,0,0,0.35);
+      }
+      .fs-ring span { text-align: center; font-size: 12px; font-weight: 700; line-height: 1.25; color: var(--fs-text-dim); }
+      .fs-ring span b { display: block; font-size: 24px; letter-spacing: -0.02em; color: var(--fs-text); font-weight: 800; }
+      .fs-cat-grid {
+        display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;
+      }
+      .fs-cat-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(0,0,0,0.35));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px; padding: 12px 10px 10px; cursor: pointer;
+        text-align: left; color: var(--fs-text);
+        min-height: 278px;
+        display: flex; flex-direction: column;
+        position: relative; overflow: hidden;
+      }
+      .fs-cat-card:nth-child(1) {
+        background:
+          radial-gradient(ellipse at 50% 42%, rgba(61,214,140,0.14), transparent 55%),
+          linear-gradient(180deg, #14181f, #0a0c10);
+      }
+      .fs-cat-card:nth-child(2) {
+        background:
+          radial-gradient(ellipse at 50% 42%, rgba(76,141,255,0.16), transparent 55%),
+          linear-gradient(180deg, #12161f, #090b10);
+      }
+      .fs-cat-card:nth-child(3) {
+        background:
+          radial-gradient(ellipse at 50% 42%, rgba(167,139,250,0.16), transparent 55%),
+          linear-gradient(180deg, #15121f, #0a0910);
+      }
+      .fs-cat-card:nth-child(4) {
+        background:
+          radial-gradient(ellipse at 50% 42%, rgba(245,197,66,0.12), transparent 55%),
+          linear-gradient(180deg, #18160f, #0c0a08);
+      }
+      .fs-cat-card:nth-child(5) {
+        background:
+          radial-gradient(ellipse at 50% 42%, rgba(34,211,238,0.14), transparent 55%),
+          linear-gradient(180deg, #10181c, #080c0e);
+      }
+      .fs-cat-card::after {
+        content: ""; position: absolute; left: 6%; right: 6%; bottom: 78px;
+        height: 44px; border-radius: 50%; filter: blur(14px); opacity: 0.65;
+        background: rgba(255,255,255,0.12); pointer-events: none;
+      }
+      .fs-cat-card:nth-child(1)::after { background: rgba(61,214,140,0.55); }
+      .fs-cat-card:nth-child(2)::after { background: rgba(76,141,255,0.55); }
+      .fs-cat-card:nth-child(3)::after { background: rgba(167,139,250,0.55); }
+      .fs-cat-card:nth-child(4)::after { background: rgba(245,197,66,0.5); }
+      .fs-cat-card:nth-child(5)::after { background: rgba(34,211,238,0.5); }
+      .fs-cat-card:nth-child(1) { border-color: rgba(61,214,140,0.22); }
+      .fs-cat-card:nth-child(2) { border-color: rgba(76,141,255,0.22); }
+      .fs-cat-card:nth-child(3) { border-color: rgba(167,139,250,0.22); }
+      .fs-cat-card:nth-child(4) { border-color: rgba(245,197,66,0.22); }
+      .fs-cat-card:nth-child(5) { border-color: rgba(34,211,238,0.28); box-shadow: 0 0 22px rgba(34,211,238,0.12); }
+      .fs-cat-card:hover { border-color: rgba(255,255,255,0.18); transform: translateY(-1px); }
+      .fs-cat-card img {
+        width: 128%; max-width: none; height: 152px; object-fit: contain; object-position: center bottom;
+        margin: 2px -14% 0; background: transparent !important;
+        filter: drop-shadow(0 14px 22px rgba(0,0,0,0.55));
+        position: relative; z-index: 1; flex: 1 1 auto;
+      }
+      .fs-cat-bar {
+        height: 5px; border-radius: 999px; margin: 8px 0 6px;
+        background: rgba(255,255,255,0.06); overflow: hidden;
+      }
+      .fs-cat-bar > i { display: block; height: 100%; border-radius: 999px; }
+      .fs-cat-card .fs-cat-name {
+        font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
+        text-transform: uppercase; position: relative; z-index: 1;
+        display: flex; align-items: center; gap: 6px;
+      }
+      .fs-cat-card .fs-cat-name img {
+        width: 16px; height: 16px; margin: 0; filter: none;
+        flex: 0 0 auto; object-fit: contain;
+      }
+      .fs-cat-card .fs-cat-meta { font-size: 11px; color: var(--fs-text-dim); margin-top: 2px; position: relative; z-index: 1; }
+      .fs-cat-card .fs-cat-cta {
+        margin-top: 8px; font-size: 11px; font-weight: 800; color: var(--fs-text);
+        position: relative; z-index: 1;
+        display: flex; align-items: center; justify-content: center;
+        padding: 7px 8px; border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(0,0,0,0.22);
+      }
+      .fs-cat-ico-row {
+        display: flex; align-items: center; gap: 6px;
+        position: relative; z-index: 1;
+      }
+      .fs-cat-score {
+        font-size: 20px; font-weight: 800; letter-spacing: -0.02em;
+        position: relative; z-index: 1;
+        display: flex; align-items: center; gap: 8px;
+        color: var(--fs-text);
+      }
+      .fs-cat-tone {
+        display: inline-flex; align-items: center;
+        font-size: 10px; font-weight: 800; letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 3px 8px; border-radius: 999px;
+        border: 1px solid currentColor;
+        background: rgba(255,255,255,0.06);
+      }
+      .fs-mission-card { margin-bottom: 10px !important; }
+      .fs-cat-grid { margin-top: 0; }
+      .fs-lang-btn, .fs-header .fs-icon-btn[data-act="close"] {
+        opacity: 0.45; transform: scale(0.92);
+      }
+      .fs-lang-btn:hover, .fs-header .fs-icon-btn[data-act="close"]:hover { opacity: 0.9; }
+      .fs-mission-ico {
+        width: 28px; height: 28px; border-radius: 0;
+        display: inline-grid; place-items: center; flex: 0 0 auto;
+        background: transparent !important;
+        filter: drop-shadow(0 0 10px currentColor);
+      }
+      .fs-mission-ico svg { width: 22px; height: 22px; display: block; }
+      .fs-mission-list { list-style: none; padding: 0; margin: 10px 0 0; }
+      .fs-mission-list li {
+        display: flex; align-items: center; gap: 12px;
+        font-size: 13px; padding: 8px 0; color: var(--fs-text);
+        font-weight: 700;
+      }
+      .fs-mission-list li.done { color: var(--fs-text); }
+      .fs-mission-list li.done .fs-mission-ico { color: var(--fs-tactics); }
+      .fs-quiz-lobby-slim { display: none !important; }
+      .fs-sidebar-atmos {
+        position: absolute; left: -40px; bottom: 20px;
+        width: 280px; height: 320px; object-fit: contain; object-position: left bottom;
+        opacity: 0.72; pointer-events: none;
+        filter: blur(1.5px) saturate(1.1);
+        z-index: 0;
+        mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 85%, transparent 100%);
+        -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 85%, transparent 100%);
+      }
+      .fs-pro-card-title img {
+        width: 22px; height: 22px; object-fit: contain; background: transparent;
+      }
+      .fs-xp-inline {
+        display: flex; align-items: center; gap: 8px;
+        min-width: 140px;
+      }
+      .fs-xp-inline .fs-skill-bar { width: 88px; height: 6px; }
+      .fs-xp-inline .fs-skill-bar > i { background: linear-gradient(90deg, #a78bfa, #60a5fa); }
+      .fs-pill {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 6px 10px; border-radius: 999px;
+        background: rgba(255,255,255,0.04); border: 1px solid var(--fs-border);
+        font-size: 12px; font-weight: 700; color: var(--fs-text-dim);
+      }
+      .fs-pill strong { color: var(--fs-text); font-weight: 800; font-size: 12px; }
+      .fs-v3-coach-av-lg {
+        width: 128px; height: 128px; border-radius: 50%;
+        object-fit: cover; object-position: center top;
+        border: 2px solid rgba(196,181,253,0.5);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+        background: transparent;
+        margin-left: -22px;
+      }
+      .fs-skill-row {
+        display: grid; grid-template-columns: 88px 1fr 36px; gap: 8px;
+        align-items: center; margin: 6px 0;
+        font-size: 12px;
+      }
+      .fs-skill-bar {
+        height: 7px; border-radius: 999px; background: rgba(255,255,255,0.06);
+        overflow: hidden;
+      }
+      .fs-skill-bar > i {
+        display: block; height: 100%; border-radius: 999px;
+      }
+      .fs-mission-list li.done { color: var(--fs-good); }
+      .fs-xp-track {
+        display: flex; align-items: center; gap: 12px; margin-top: 12px;
+      }
+      .fs-xp-track img { width: 42px; height: 42px; object-fit: contain; background: transparent; }
+      .fs-coach-tabs {
+        display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+      }
+      .fs-coach-tab {
+        padding: 7px 12px; border-radius: 999px; border: 1px solid var(--fs-border);
+        background: transparent; color: var(--fs-text-dim); font-size: 11px;
+        font-weight: 700; cursor: pointer;
+      }
+      .fs-coach-tab.fs-on {
+        background: var(--fs-accent); color: #12141d; border-color: var(--fs-accent);
+      }
+      .fs-learn-box {
+        margin-top: 10px; padding: 10px 12px; border-radius: 10px;
+        background: rgba(76,141,255,0.08); border: 1px solid rgba(76,141,255,0.22);
+        font-size: 12px; line-height: 1.45;
+      }
+      .fs-mini-board {
+        width: 56px; height: 56px; border-radius: 8px; overflow: hidden;
+        flex: 0 0 56px; background: #b58863;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+      }
+      .fs-mini-board svg { display: block; width: 100%; height: 100%; }
+      .fs-mini-board-fallback {
+        width: 100%; height: 100%;
+        background: linear-gradient(135deg, #769656, #eeeed2);
+      }
+      .fs-revisit-row, .fs-reco-row {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+        min-height: 64px;
+      }
+      .fs-revisit-row .fs-mini-board {
+        flex: 0 0 56px; width: 56px; height: 56px;
+      }
+      .fs-revisit-row:last-child, .fs-reco-row:last-child { border-bottom: 0; }
+      .fs-revisit-meta { flex: 1; min-width: 0; }
+      .fs-revisit-meta strong { display: block; font-size: 12px; }
+      .fs-revisit-meta span { font-size: 11px; color: var(--fs-text-dim); }
+      .fs-tag {
+        display: inline-block; font-size: 10px; font-weight: 800;
+        padding: 2px 6px; border-radius: 6px; margin-left: 4px;
+      }
+      .fs-tag-bad { background: rgba(255,107,107,0.18); color: #ff8e8e; }
+      .fs-tag-warn { background: rgba(240,160,32,0.18); color: #f0a020; }
+      .fs-tag-ok { background: rgba(61,214,140,0.15); color: #3dd68c; }
+      .fs-reco-ico {
+        width: 36px; height: 36px; border-radius: 50%;
+        display: grid; place-items: center; font-size: 16px; flex: 0 0 auto;
+      }
+      .fs-footer-xp {
+        display: grid; grid-template-columns: 1.2fr 1.6fr 1fr; gap: 12px;
+        align-items: center; margin-top: 14px;
+      }
+      .fs-chest-track {
+        display: flex; align-items: flex-end; justify-content: space-between;
+        gap: 6px; position: relative; padding-top: 18px;
+      }
+      .fs-chest-track::before {
+        content: ""; position: absolute; left: 8%; right: 8%; top: 28px;
+        height: 3px; background: rgba(255,255,255,0.1); border-radius: 999px;
+      }
+      .fs-chest-item { text-align: center; position: relative; z-index: 1; flex: 1; }
+      .fs-chest-item img { width: 40px; height: 40px; object-fit: contain; background: transparent; }
+      .fs-chest-item span { display: block; font-size: 10px; color: var(--fs-text-dim); margin-top: 2px; font-weight: 700; }
+      .fs-chest-item.done span { color: var(--fs-accent); }
+      .fs-coach-spark {
+        display: flex; align-items: flex-end; gap: 3px; height: 36px;
+        justify-content: center; margin: 8px 0;
+      }
+      .fs-coach-spark i {
+        width: 7px; border-radius: 3px 3px 0 0;
+        background: linear-gradient(180deg, #c4b5fd, #7c3aed);
+      }
+      .fs-stat-bar .fs-stat-sep {
+        width: 1px; height: 18px; background: rgba(255,255,255,0.12);
+        margin: 0 2px; flex: 0 0 auto; align-self: center;
+      }
+      .fs-learn-box strong { color: var(--fs-accent); }
+      .fs-reco-ico.tactics { background: rgba(61,214,140,0.15); color: #3dd68c; }
+      .fs-reco-ico.opening { background: rgba(76,141,255,0.15); color: #4c8dff; }
+      .fs-reco-ico.calc { background: rgba(167,139,250,0.15); color: #c4b5fd; }
+      .fs-reco-ico.end { background: rgba(245,197,66,0.15); color: #f5c542; }
+      .fs-btn-sm {
+        padding: 7px 10px; border-radius: 9px; font-size: 11px; font-weight: 800;
+        border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04);
+        color: var(--fs-text); cursor: pointer; white-space: nowrap;
+      }
+      .fs-btn-sm.gold {
+        background: linear-gradient(180deg, #ffd45a, #f5c542); color: #12141d; border: 0;
+      }
+      .fs-btn-sm.green { border-color: rgba(61,214,140,0.35); color: #3dd68c; }
+      .fs-btn-sm.blue { border-color: rgba(76,141,255,0.35); color: #4c8dff; }
+      .fs-btn-sm.purple { border-color: rgba(167,139,250,0.35); color: #c4b5fd; }
+      .fs-today-xp {
+        padding: 10px 12px; border-radius: 12px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      }
+      .fs-today-xp strong { display: block; font-size: 14px; margin-bottom: 6px; }
+      .fs-revisit-wrap { position: relative; }
+      .fs-revisit-atmos {
+        position: absolute; left: -8px; bottom: -18px; width: 72px; height: 90px;
+        object-fit: contain; opacity: 0.7; pointer-events: none;
+        filter: drop-shadow(0 8px 16px rgba(0,0,0,0.45));
       }
       .fs-icon-btn {
         background: transparent; border: 0; color: var(--fs-text-dim);
@@ -354,6 +1508,573 @@
       }
       .fs-body::-webkit-scrollbar { width: 6px; }
       .fs-body::-webkit-scrollbar-thumb { background: var(--fs-bg-soft); border-radius: 3px; }
+
+
+      /* ── Notifications dropdown ── */
+      .fs-header-right { position: relative; }
+      .fs-notif-wrap { position: relative; flex: 0 0 auto; }
+      .fs-header-bell {
+        width: 34px; height: 34px; border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(255,255,255,0.04);
+        display: grid; place-items: center; color: var(--fs-text-dim);
+        cursor: pointer; position: relative;
+      }
+      .fs-header-bell:hover { color: var(--fs-text); border-color: rgba(245,197,66,0.35); }
+      .fs-header-bell.fs-has-unread::after {
+        content: ""; position: absolute; top: 6px; right: 7px;
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #f5c542; border: 1.5px solid #12141d;
+        box-shadow: 0 0 8px rgba(245,197,66,0.65);
+      }
+      .fs-notif-panel {
+        position: absolute; top: calc(100% + 8px); right: 0;
+        width: 320px; max-height: 360px; overflow: auto;
+        background: #161924; border: 1px solid rgba(245,197,66,0.28);
+        border-radius: 14px; z-index: 40;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.55);
+        padding: 10px;
+      }
+      .fs-notif-panel[hidden] { display: none !important; }
+      .fs-notif-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 4px 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.08);
+        margin-bottom: 8px;
+      }
+      .fs-notif-head strong { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+      .fs-notif-item {
+        display: grid; grid-template-columns: 8px 1fr; gap: 10px;
+        padding: 10px 8px; border-radius: 10px; cursor: pointer;
+        text-align: left; width: 100%; border: 0; background: transparent; color: inherit;
+      }
+      .fs-notif-item:hover { background: rgba(255,255,255,0.04); }
+      .fs-notif-item.unread .fs-notif-dot { background: var(--fs-accent); box-shadow: 0 0 8px rgba(245,197,66,0.5); }
+      .fs-notif-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.15); margin-top: 5px; }
+      .fs-notif-title { font-size: 12.5px; font-weight: 700; color: var(--fs-text); }
+      .fs-notif-body { font-size: 11px; color: var(--fs-text-dim); margin-top: 2px; line-height: 1.35; }
+      .fs-notif-empty { padding: 18px 8px; text-align: center; color: var(--fs-text-dim); font-size: 12px; }
+
+      /* ── Profile V3 ── */
+      .fs-prof-v3-head {
+        display: grid; grid-template-columns: auto 1fr auto; gap: 16px;
+        align-items: center; padding: 14px 16px; margin-bottom: 12px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+      .fs-prof-online {
+        position: absolute; top: 2px; right: 2px; width: 12px; height: 12px;
+        border-radius: 50%; background: #3dd68c; border: 2px solid #12141d;
+        box-shadow: 0 0 8px rgba(61,214,140,0.6); z-index: 2;
+      }
+      .fs-xp-ring {
+        --fs-xp-pct: 70;
+        position: relative;
+        width: 104px; height: 104px; border-radius: 50%; margin: 0 auto;
+        display: grid; place-items: center; text-align: center;
+        background:
+          radial-gradient(circle at center, #12141d 70%, transparent 71%),
+          conic-gradient(from -90deg, #c084fc 0 calc(var(--fs-xp-pct) * 1%), rgba(255,255,255,0.07) 0);
+        box-shadow:
+          0 0 0 1px rgba(168,85,247,0.2),
+          0 0 22px rgba(168,85,247,0.28),
+          inset 0 0 18px rgba(168,85,247,0.08);
+      }
+      .fs-xp-ring::after {
+        content: "";
+        position: absolute; width: 8px; height: 8px; border-radius: 50%;
+        background: #e9d5ff; box-shadow: 0 0 10px rgba(192,132,252,0.9);
+        top: 50%; left: 50%; margin: -4px 0 0 -4px;
+        transform:
+          rotate(calc(var(--fs-xp-pct) * 3.6deg - 90deg))
+          translate(46px);
+      }
+      .fs-xp-ring .xp-lab {
+        font-size: 9px; color: #c4b5fd; font-weight: 700; letter-spacing: 0.08em;
+      }
+      .fs-xp-ring .xp-now { font-size: 17px; font-weight: 800; line-height: 1.1; }
+      .fs-xp-ring .xp-max {
+        font-size: 10px; color: var(--fs-text-dim); margin-top: 3px;
+        padding-top: 3px; border-top: 1px solid rgba(255,255,255,0.12);
+      }
+      .fs-prof-stat-ico {
+        width: 26px; height: 26px; margin: 0 auto 4px;
+        display: grid; place-items: center; font-size: 18px; line-height: 1;
+      }
+      .fs-prof-stat-ico.pawn { color: #c5CAD3; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35)); }
+      .fs-prof-stat-ico.shield {
+        width: 24px; height: 28px; font-size: 11px; color: #3a2a12; font-weight: 900;
+        clip-path: polygon(8% 0%, 92% 0%, 100% 18%, 100% 58%, 50% 100%, 0% 58%, 0% 18%);
+        background:
+          radial-gradient(circle at 35% 25%, #ffe08a, #f5c542 48%, #b8860b 88%);
+        box-shadow: 0 4px 12px rgba(245,197,66,0.35);
+      }
+      .fs-prof-stat-ico.flame { color: #f59e0b; filter: drop-shadow(0 2px 6px rgba(245,158,11,0.45)); }
+      .fs-hs-shield {
+        width: 28px; height: 32px; border-radius: 0; font-size: 12px;
+        color: #3a2a12; font-weight: 900; line-height: 1;
+        clip-path: polygon(8% 0%, 92% 0%, 100% 18%, 100% 58%, 50% 100%, 0% 58%, 0% 18%);
+        background:
+          radial-gradient(circle at 35% 25%, #ffe08a, #f5c542 48%, #b8860b 88%);
+        box-shadow: 0 4px 12px rgba(245,197,66,0.4);
+        display: grid; place-items: center;
+      }
+      .fs-panel[data-tab="profile"] .fs-header {
+        min-height: 44px; padding-top: 8px; padding-bottom: 4px;
+        justify-content: flex-end;
+      }
+      .fs-panel[data-tab="profile"] .fs-header-left { display: none; }
+      .fs-panel[data-tab="profile"] .fs-header-right { margin-left: auto; }
+      .fs-panel[data-tab="profile"] .fs-body { padding-top: 4px; }
+      .fs-attr-seg {
+        display: flex; gap: 3px; width: 100%;
+      }
+      .fs-attr-seg i {
+        flex: 1; height: 9px; border-radius: 2px;
+        background: rgba(255,255,255,0.08);
+      }
+      .fs-identity-top {
+        display: grid; grid-template-columns: 1fr 158px; gap: 10px;
+        align-items: start; margin-bottom: 8px;
+      }
+      .fs-league-path {
+        display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px;
+        align-items: end; margin-top: 16px; padding: 12px 8px 4px;
+        border-radius: 12px;
+        background:
+          radial-gradient(ellipse at 50% 80%, rgba(245,197,66,0.12), transparent 60%),
+          rgba(0,0,0,0.22);
+      }
+      .fs-league-node { text-align: center; }
+      .fs-league-node img {
+        width: 56px; height: 64px; object-fit: contain; display: block; margin: 0 auto 6px;
+        filter: drop-shadow(0 6px 14px rgba(0,0,0,0.45));
+      }
+      .fs-league-node.silver img { filter: grayscale(0.35) brightness(1.15) drop-shadow(0 6px 14px rgba(0,0,0,0.45)); }
+      .fs-league-node.gold img { filter: drop-shadow(0 0 14px rgba(245,197,66,0.45)); }
+      .fs-league-node span { font-size: 10px; color: var(--fs-text-dim); font-weight: 700; }
+      .fs-league-dots {
+        display: flex; gap: 6px; align-items: center; padding-bottom: 28px;
+      }
+      .fs-league-dots i {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: rgba(245,197,66,0.55);
+        box-shadow: 0 0 8px rgba(245,197,66,0.4);
+      }
+      .fs-arena-league-bar {
+        display: grid; grid-template-columns: 1.35fr 0.85fr 0.95fr 1fr; gap: 0;
+        align-items: start; margin-bottom: 14px; padding: 16px 18px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+      .fs-arena-league-bar > div { padding: 0 12px; min-width: 0; }
+      .fs-arena-league-bar .fs-v3-title {
+        font-size: clamp(16px, 1.6vw, 28px); line-height: 1.15; overflow-wrap: anywhere;
+      }
+      .fs-arena-league-bar .fs-v3-kicker { letter-spacing: 0.06em; }
+      .fs-arena-league-bar > div + div { border-left: 1px solid rgba(255,255,255,0.08); }
+      .fs-arena-league-main { display: flex; gap: 12px; align-items: center; padding-left: 0 !important; }
+      .fs-arena-league-main .shield {
+        width: 58px; height: 66px; border-radius: 12px 12px 28px 28px;
+        display: grid; place-items: center; font-size: 28px; line-height: 1;
+        background:
+          radial-gradient(circle at 35% 28%, #f5f5f7, #b8bec8 48%, #7b8494 78%, #5c6572);
+        box-shadow:
+          0 0 0 2px rgba(192,192,192,0.4),
+          0 8px 20px rgba(0,0,0,0.35),
+          inset 0 -8px 14px rgba(0,0,0,0.28);
+        overflow: hidden;
+        clip-path: polygon(8% 0%, 92% 0%, 100% 18%, 100% 58%, 50% 100%, 0% 58%, 0% 18%);
+      }
+      .fs-arena-league-main .shield img {
+        width: 34px; height: 34px; object-fit: contain; margin-top: -4px;
+        filter: grayscale(0.45) brightness(1.25) contrast(1.05);
+      }
+      .fs-identity-art-wrap {
+        position: relative; width: 158px; height: 168px;
+        display: grid; place-items: center; justify-self: end;
+      }
+      .fs-identity-art-wrap::before {
+        content: ""; position: absolute; inset: 2px;
+        border-radius: 50%;
+        background:
+          conic-gradient(from 210deg, transparent 0 38%, rgba(245,197,66,0.7) 48%, transparent 58% 100%),
+          radial-gradient(circle, rgba(245,197,66,0.22), transparent 70%);
+        box-shadow: 0 0 34px rgba(245,197,66,0.32);
+        animation: fs-halo-spin 14s linear infinite;
+      }
+      @keyframes fs-halo-spin { to { transform: rotate(360deg); } }
+      .fs-identity-art {
+        width: 138px; height: 158px; object-fit: contain; position: relative; z-index: 1;
+        filter: drop-shadow(0 8px 18px rgba(0,0,0,0.45)) drop-shadow(0 0 16px rgba(245,197,66,0.4));
+      }
+      .fs-v3-card .fs-v3-title {
+        font-family: Georgia, "Palatino Linotype", Palatino, "Times New Roman", serif;
+        font-weight: 600; letter-spacing: -0.015em;
+      }
+      .fs-prof-edit {
+        position: absolute; right: -2px; bottom: -2px; z-index: 2;
+        width: 22px; height: 22px; border-radius: 50%;
+        background: #1a1d28; color: var(--fs-accent);
+        border: 1.5px solid rgba(245,197,66,0.85); padding: 0;
+        display: grid; place-items: center; cursor: pointer;
+        box-shadow: 0 0 0 2px #12141d;
+      }
+      .fs-prof-edit svg { width: 11px; height: 11px; display: block; }
+      .fs-prof-idcol {
+        display: flex; flex-direction: column; align-items: flex-start; min-width: 0;
+      }
+      .fs-skill-ico-wrap {
+        width: 38px; height: 38px; border-radius: 50%;
+        display: grid; place-items: center;
+        background: color-mix(in srgb, var(--fs-skill-c, #f5c542) 28%, #12141d);
+        box-shadow:
+          0 0 0 1px color-mix(in srgb, var(--fs-skill-c, #f5c542) 45%, transparent),
+          0 0 14px color-mix(in srgb, var(--fs-skill-c, #f5c542) 22%, transparent);
+      }
+      .fs-skill-list-row .fs-skill-bar { height: 8px; margin-top: 7px; border-radius: 999px; }
+      .fs-skill-list-row .fs-skill-bar i { border-radius: 999px; }
+      .fs-skill-ico-wrap img { width: 22px !important; height: 22px !important; display: block; }
+      .fs-lb-xp-pill {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 18px; height: 18px; border-radius: 50%; margin-left: 4px;
+        font-size: 8px; font-weight: 800; vertical-align: middle;
+        background: rgba(168,85,247,0.25); color: #c084fc;
+        border: 1px solid rgba(168,85,247,0.45);
+      }
+      .fs-weekly-chest.opening {
+        box-shadow:
+          0 0 0 1px rgba(245,197,66,0.55),
+          0 0 36px rgba(245,197,66,0.35),
+          inset 0 0 40px rgba(245,197,66,0.08);
+      }
+      .fs-prog-goal { position: relative; margin: 12px 0 8px; }
+      .fs-prog-goal .fs-skill-bar { height: 10px; }
+      .fs-prog-goal .goal-ico {
+        position: absolute; right: -2px; top: 50%; transform: translateY(-50%);
+        font-size: 16px; filter: drop-shadow(0 0 8px rgba(245,197,66,0.5));
+      }
+      .fs-prof-v3-av {
+        width: 72px; height: 72px; border-radius: 50%;
+        object-fit: cover; border: 2px solid rgba(245,197,66,0.65);
+        box-shadow: 0 0 0 3px rgba(18,20,29,0.9), 0 8px 20px rgba(0,0,0,0.4);
+        background: var(--fs-bg-elev);
+      }
+      .fs-prof-v3-av-ph {
+        width: 72px; height: 72px; border-radius: 50%;
+        display: grid; place-items: center; font-weight: 800; font-size: 22px;
+        border: 2px solid rgba(245,197,66,0.65); background: #222633;
+      }
+      .fs-prof-v3-name { font-size: 26px; font-weight: 700; font-family: Georgia, serif; }
+      .fs-prof-v3-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 12px; color: var(--fs-text-dim); margin-top: 4px;
+        background: none; border: 0; cursor: pointer; padding: 0;
+      }
+      .fs-prof-v3-link:hover { color: var(--fs-accent); }
+      .fs-prof-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        margin-top: 8px; padding: 4px 10px; border-radius: 999px;
+        background: rgba(245,197,66,0.12); border: 1px solid rgba(245,197,66,0.35);
+        color: var(--fs-accent); font-size: 11px; font-weight: 800;
+      }
+      .fs-prof-badge img {
+        width: 14px; height: 14px; object-fit: contain;
+        filter: drop-shadow(0 0 4px rgba(245,197,66,0.45));
+      }
+      .fs-prof-statcols {
+        display: grid; grid-template-columns: repeat(3, minmax(70px, 88px)) 108px;
+        gap: 0; min-width: 390px; align-items: center;
+      }
+      .fs-prof-statcol {
+        text-align: center; padding: 4px 12px;
+        background: transparent; border: 0;
+        border-right: 1px solid rgba(255,255,255,0.12);
+        align-self: stretch; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+      }
+      .fs-prof-statcol:nth-child(3) { border-right: 0; }
+      .fs-prof-statcol.fs-prof-xp { border: 0; padding: 0 0 0 10px; }
+      .fs-prof-statcol b { display: block; font-size: 24px; font-weight: 800; line-height: 1.1; margin-top: 2px; }
+      .fs-prof-statcol > span.lab {
+        font-size: 11px; color: var(--fs-text-dim); font-weight: 600;
+        letter-spacing: 0.02em; text-transform: none;
+      }
+      .fs-prof-statcol .fs-v3-sub {
+        margin-top: 2px; font-size: 11px; color: var(--fs-text-dim); font-weight: 500;
+      }
+      .fs-v3-card .fs-v3-kicker { color: var(--fs-accent); }
+      .fs-quote-box {
+        position: relative;
+        margin-top: 12px; padding: 12px 14px 12px 36px; border-radius: 12px;
+        background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08);
+        font-style: italic; color: var(--fs-text-dim); font-size: 12.5px; line-height: 1.45;
+      }
+      .fs-quote-box::before {
+        content: "“"; position: absolute; left: 10px; top: 4px;
+        font-size: 28px; line-height: 1; color: rgba(245,197,66,0.45);
+        font-family: Georgia, serif;
+      }
+      .fs-prof-grid2 {
+        display: grid; grid-template-columns: 1.15fr 1fr; gap: 14px; margin-top: 4px;
+      }
+      .fs-attr-row {
+        display: grid; grid-template-columns: 22px 78px 1fr 78px; gap: 8px;
+        align-items: center; margin: 6px 0; font-size: 12px;
+      }
+      .fs-attr-row .fs-skill-bar { height: 6px; }
+      .fs-attr-ico { font-size: 14px; line-height: 1; text-align: center; }
+      .fs-skill-list-row {
+        display: grid; grid-template-columns: 36px 1fr auto; gap: 10px;
+        align-items: center; padding: 8px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+      }
+      .fs-skill-list-row:last-child { border-bottom: 0; }
+      .fs-journey {
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+        margin-top: 10px; position: relative; padding: 8px 4px 14px;
+        border-radius: 12px;
+        background:
+          linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.35)),
+          repeating-conic-gradient(#1a1d28 0% 25%, #12141d 0% 50%) 50% 100% / 22px 22px;
+      }
+      .fs-journey::before {
+        content: ""; position: absolute; left: 8%; right: 8%; top: 30px;
+        height: 2px;
+        background: linear-gradient(90deg,
+          rgba(245,197,66,0.55),
+          rgba(245,197,66,0.75) 40%,
+          rgba(61,214,140,0.65) 62%,
+          rgba(167,139,250,0.75) 100%);
+      }
+      .fs-journey-item { text-align: center; position: relative; z-index: 1; }
+      .fs-journey-ico {
+        width: 46px; height: 46px; margin: 0 auto 8px; border-radius: 50%;
+        display: grid; place-items: center; font-size: 16px; position: relative;
+        background: #1a1d28; border: 2px solid rgba(245,197,66,0.55);
+        box-shadow: 0 0 0 3px rgba(18,20,29,0.9), 0 0 14px rgba(245,197,66,0.18);
+      }
+      .fs-journey-item.done .fs-journey-ico {
+        border-color: rgba(245,197,66,0.7);
+        box-shadow: 0 0 0 3px rgba(18,20,29,0.9), 0 0 16px rgba(245,197,66,0.28);
+      }
+      .fs-journey-item.peak .fs-journey-ico {
+        border-color: rgba(167,139,250,0.85);
+        box-shadow: 0 0 0 3px rgba(18,20,29,0.9), 0 0 18px rgba(167,139,250,0.35);
+        color: #c4b5fd;
+      }
+      .fs-journey-item strong {
+        display: block; font-size: 11px; color: var(--fs-accent); font-weight: 800;
+      }
+      .fs-journey-item.peak strong { color: var(--fs-text); }
+      .fs-journey-item .fs-j-when {
+        display: block; font-size: 10px; color: var(--fs-text); margin-top: 3px; font-weight: 600;
+      }
+      .fs-journey-item .fs-j-sub {
+        display: block; font-size: 10px; color: var(--fs-text-dim); margin-top: 4px;
+        padding-top: 4px;
+        border-top: 1px solid rgba(245,197,66,0.2);
+        position: relative;
+      }
+      .fs-journey-item .fs-j-sub::before {
+        content: "◆"; position: absolute; left: 50%; top: -7px; transform: translateX(-50%);
+        font-size: 7px; color: rgba(245,197,66,0.55); background: #12141d; padding: 0 4px;
+      }
+      .fs-journey-item.done .fs-journey-ico::after {
+        content: "✓"; position: absolute; right: -2px; top: -2px;
+        width: 16px; height: 16px; border-radius: 50%;
+        background: var(--fs-tactics); color: #0b1220; font-size: 10px; font-weight: 900;
+        display: grid; place-items: center;
+        box-shadow: 0 0 0 2px #12141d;
+      }
+      .fs-journey-item.peak .fs-journey-ico::after { display: none; }
+      .fs-league-badge .shield {
+        width: 36px; height: 40px; margin: 0 auto 6px;
+        clip-path: polygon(8% 0%, 92% 0%, 100% 18%, 100% 58%, 50% 100%, 0% 58%, 0% 18%);
+        display: grid; place-items: center; font-size: 16px;
+        background: radial-gradient(circle at 35% 25%, #d7dbe3, #8b929e 55%, #5c6572);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+      }
+      .fs-league-badge.on .shield {
+        background: radial-gradient(circle at 35% 25%, #ffe08a, #f5c542 48%, #b8860b 88%);
+        box-shadow: 0 0 14px rgba(245,197,66,0.4);
+      }
+      .fs-league-badge:nth-child(1) .shield { background: radial-gradient(circle at 35% 25%, #e8b892, #b87333 55%, #7a4a1e); }
+      .fs-league-badge:nth-child(3) .shield { background: radial-gradient(circle at 35% 25%, #ffe08a, #f5c542 48%, #b8860b 88%); }
+      .fs-league-badge:nth-child(4) .shield { background: radial-gradient(circle at 35% 25%, #c4f1ff, #5ec8f0 48%, #2a7eb8); }
+      .fs-league-badge:nth-child(5) .shield { background: radial-gradient(circle at 35% 25%, #e9d5ff, #a78bfa 48%, #6d28d9); }
+      .fs-ach-hex {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px;
+      }
+      .fs-ach-hex-item { text-align: center; padding: 8px 4px; }
+      .fs-ach-hex-ico {
+        width: 48px; height: 54px; margin: 0 auto 6px;
+        clip-path: polygon(50% 0%, 92% 18%, 92% 62%, 50% 100%, 8% 62%, 8% 18%);
+        display: grid; place-items: center; font-size: 18px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.4));
+        border: 1px solid rgba(255,255,255,0.14);
+        box-shadow: 0 0 14px rgba(245,197,66,0.18);
+      }
+      .fs-journey-ico { position: relative; }
+      .fs-ach-hex-item small { display: block; font-size: 10px; font-weight: 700; line-height: 1.25; }
+      .fs-ach-sub {
+        display: block; margin-top: 3px; font-size: 9px; line-height: 1.3;
+        color: var(--fs-text-dim); font-weight: 500;
+      }
+
+      /* ── Arena V3 ── */
+      .fs-arena-stats {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px;
+      }
+      .fs-arena-stat {
+        padding: 14px; border-radius: 14px;
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      }
+      .fs-arena-stat .lab { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fs-text-dim); }
+      .fs-arena-stat .val { font-size: 22px; font-weight: 800; margin-top: 4px; }
+      .fs-arena-stat .sub { font-size: 11px; color: var(--fs-text-dim); margin-top: 4px; }
+      .fs-arena-mid {
+        display: grid; grid-template-columns: 1.5fr 1fr; gap: 14px; margin-bottom: 14px;
+      }
+      .fs-lb-row-v3 {
+        display: grid; grid-template-columns: 56px 40px minmax(0, 1fr) 56px 72px;
+        gap: 10px; align-items: center; padding: 8px 12px;
+        border-radius: 10px; font-size: 12px;
+      }
+      .fs-lb-row-v3.me {
+        background: rgba(245,197,66,0.08);
+        box-shadow: 0 0 0 1px rgba(245,197,66,0.4);
+      }
+      .fs-lb-row-v3 .rank {
+        font-weight: 800; color: var(--fs-text-dim);
+        min-width: 52px; display: flex; align-items: center; gap: 4px;
+        white-space: nowrap;
+      }
+      .fs-lb-row-v3 .name {
+        min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        padding-left: 2px;
+      }
+      .fs-lb-row-v3.me .rank, .fs-lb-row-v3.me .name, .fs-lb-row-v3.me .xp { color: var(--fs-accent); }
+      .fs-delta-up { color: var(--fs-tactics); font-weight: 800; font-size: 11px; }
+      .fs-delta-dn { color: #ff6b6b; font-weight: 800; font-size: 11px; }
+      .fs-weekly-chest.opening img {
+        animation: fs-chest-pop 0.95s cubic-bezier(.2,.8,.2,1);
+      }
+      .fs-weekly-chest.locked-shake img {
+        animation: fs-chest-locked 0.42s ease;
+      }
+      @keyframes fs-chest-pop {
+        0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 8px rgba(245,197,66,0.3)); }
+        35% { transform: scale(1.14) rotate(-4deg); filter: drop-shadow(0 0 28px rgba(245,197,66,0.85)) brightness(1.25); }
+        60% { transform: scale(1.06) rotate(3deg); }
+        100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 18px rgba(245,197,66,0.55)); }
+      }
+      @keyframes fs-chest-locked {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-4px) rotate(-2deg); }
+        40% { transform: translateX(4px) rotate(2deg); }
+        60% { transform: translateX(-3px); }
+        80% { transform: translateX(3px); }
+      }
+      .fs-league-track {
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px;
+      }
+      .fs-league-badge {
+        text-align: center; padding: 10px 6px; border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2);
+      }
+      .fs-league-badge.on {
+        border-color: rgba(245,197,66,0.55);
+        box-shadow: 0 0 0 1px rgba(245,197,66,0.25), 0 0 18px rgba(245,197,66,0.15);
+      }
+      .fs-league-badge strong { display: block; font-size: 11px; }
+      .fs-league-badge span { font-size: 10px; color: var(--fs-text-dim); }
+      .fs-comp-grid {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+      }
+      .fs-comp-with-chest {
+        display: grid; grid-template-columns: 1.75fr 0.85fr; gap: 0; align-items: stretch;
+        margin-top: 10px;
+      }
+      .fs-comp-with-chest .fs-comp-grid {
+        grid-template-columns: repeat(4, 1fr); gap: 0;
+        border-right: 1px solid rgba(255,255,255,0.08);
+        padding-right: 8px;
+      }
+      .fs-comp-with-chest .fs-weekly-chest { margin-top: 0; height: 100%; margin-left: 10px; }
+      .fs-comp-cell {
+        padding: 8px 10px; border-radius: 0;
+        background: transparent; border: 0;
+        text-align: center;
+        border-right: 1px solid rgba(255,255,255,0.08);
+      }
+      .fs-comp-with-chest .fs-comp-cell:last-child { border-right: 0; }
+      .fs-comp-cell .fs-comp-ico {
+        font-size: 22px; line-height: 1; margin-bottom: 6px;
+        filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));
+      }
+      .fs-comp-cell b { display: block; font-size: 22px; margin-top: 2px; font-weight: 800; }
+      .fs-comp-cell span {
+        display: block; font-size: 11px; color: var(--fs-text-dim); font-weight: 600;
+        letter-spacing: 0.02em; text-transform: none; margin-top: 4px;
+        line-height: 1.25; overflow-wrap: anywhere;
+      }
+      .fs-comp-cell small {
+        display: block; margin-top: 4px; font-size: 10.5px; color: var(--fs-tactics);
+        line-height: 1.3; overflow-wrap: anywhere;
+      }
+      .fs-weekly-chest .fs-v3-kicker {
+        letter-spacing: 0.05em; font-size: 9.5px; line-height: 1.25;
+      }
+      .fs-notif-title, .fs-notif-body { overflow-wrap: anywhere; }
+      .fs-attr-row, .fs-skill-list-row { min-width: 0; }
+      .fs-attr-row > span:nth-child(2),
+      .fs-skill-list-row > div:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }
+      .fs-reward-cell strong, .fs-reward-cell span {
+        display: block; overflow-wrap: anywhere; line-height: 1.3;
+      }
+      .fs-journey-item strong, .fs-journey-item .fs-j-when, .fs-journey-item .fs-j-sub {
+        overflow-wrap: anywhere; line-height: 1.25;
+      }
+      .fs-ach-hex-item small, .fs-ach-sub { overflow-wrap: anywhere; }
+      .fs-chest-bar {
+        position: relative; margin-top: 10px; height: 18px; border-radius: 999px;
+        background: rgba(255,255,255,0.08); overflow: hidden;
+      }
+      .fs-chest-bar > i {
+        display: block; height: 100%; border-radius: 999px;
+        background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+      }
+      .fs-chest-bar > em {
+        position: absolute; inset: 0; display: grid; place-items: center;
+        font-style: normal; font-size: 10px; font-weight: 700; color: #fff;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.55);
+        pointer-events: none;
+      }
+      .fs-weekly-chest {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; gap: 6px; padding: 12px 10px;
+        border-radius: 14px;
+        background:
+          radial-gradient(ellipse at 50% 28%, rgba(125,211,252,0.16), transparent 42%),
+          radial-gradient(ellipse at 50% 60%, rgba(245,197,66,0.12), transparent 55%),
+          rgba(255,255,255,0.02);
+        border: 1px solid rgba(245,197,66,0.22);
+      }
+      .fs-weekly-chest > div { width: 100%; }
+      .fs-weekly-chest img {
+        width: 92px; height: 92px; object-fit: contain;
+        filter: drop-shadow(0 0 16px rgba(125,211,252,0.3)) drop-shadow(0 0 14px rgba(245,197,66,0.35));
+      }
+      .fs-xp-pill {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 28px; height: 18px; padding: 0 6px; margin-left: 6px;
+        border-radius: 999px; font-size: 10px; font-weight: 800; vertical-align: middle;
+        background: rgba(168,85,247,0.22); color: #c084fc;
+        border: 1px solid rgba(168,85,247,0.45);
+      }
+      .fs-coach-hl { color: #c4b5fd; font-weight: 800; }
 
       /* ── Profile tab ── */
       .fs-prof-head {
@@ -715,6 +2436,218 @@
       .fs-quiz-flash.fs-ok { color: var(--fs-good); }
       .fs-quiz-flash.fs-err { color: var(--fs-bad); }
       .fs-quiz-flash.fs-info { color: var(--fs-text-dim); }
+
+      /* ── Onboarding (yeni kullanıcı) ── */
+      .fs-onboard {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 14px;
+        border: 1px solid rgba(245,197,66,0.28);
+        background:
+          radial-gradient(120% 80% at 0% 0%, rgba(245,197,66,0.16), transparent 55%),
+          radial-gradient(90% 70% at 100% 100%, rgba(61,214,140,0.10), transparent 50%),
+          linear-gradient(160deg, #171a24 0%, #12141d 100%);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+        animation: fs-onboard-in .45s ease-out;
+      }
+      @keyframes fs-onboard-in {
+        from { opacity: 0; transform: translateY(12px) scale(.985); }
+        to { opacity: 1; transform: none; }
+      }
+      .fs-onboard-inner { padding: 18px 18px 16px; position: relative; z-index: 1; }
+      .fs-onboard-kicker {
+        font-size: 10px; font-weight: 800; letter-spacing: .12em;
+        text-transform: uppercase; color: var(--fs-accent);
+        margin-bottom: 6px;
+      }
+      .fs-onboard-title {
+        font-size: 22px; font-weight: 800; line-height: 1.2;
+        color: var(--fs-text); margin: 0 0 6px;
+        font-family: Georgia, "Times New Roman", serif;
+      }
+      .fs-onboard-sub {
+        font-size: 13px; color: var(--fs-text-dim); line-height: 1.45;
+        margin-bottom: 14px; max-width: 46ch;
+      }
+      .fs-onboard-steps {
+        display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+      }
+      .fs-onboard-step {
+        display: flex; align-items: center; gap: 7px;
+        padding: 6px 10px; border-radius: 999px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        font-size: 11px; font-weight: 700; color: var(--fs-text-dim);
+      }
+      .fs-onboard-step.on {
+        color: #12141d; background: var(--fs-accent);
+        border-color: var(--fs-accent);
+        box-shadow: 0 0 0 1px rgba(245,197,66,0.35), 0 6px 18px rgba(245,197,66,0.25);
+      }
+      .fs-onboard-step.done {
+        color: var(--fs-good);
+        border-color: rgba(61,214,140,0.35);
+        background: rgba(61,214,140,0.1);
+      }
+      .fs-onboard-step i {
+        width: 18px; height: 18px; border-radius: 50%;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-style: normal; font-size: 10px; font-weight: 800;
+        background: rgba(0,0,0,0.25);
+      }
+      .fs-onboard-step.on i { background: rgba(0,0,0,0.18); }
+      .fs-onboard-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px; padding: 14px;
+      }
+      .fs-onboard-form { display: flex; gap: 8px; margin-top: 10px; }
+      .fs-onboard-form .fs-input { flex: 1; }
+      .fs-onboard-tip {
+        margin-top: 10px; font-size: 12px; color: var(--fs-text-dim); line-height: 1.4;
+      }
+      .fs-onboard-tip b { color: var(--fs-text); }
+      .fs-verify-box {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px dashed rgba(245,197,66,0.35);
+        background: rgba(0,0,0,0.22);
+      }
+      .fs-verify-lab {
+        font-size: 10px; font-weight: 800; letter-spacing: .08em;
+        text-transform: uppercase; color: var(--fs-accent); margin-bottom: 6px;
+      }
+      .fs-verify-row {
+        display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      }
+      .fs-verify-code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 15px; font-weight: 800; letter-spacing: .06em;
+        color: #f5c542; background: rgba(245,197,66,0.12);
+        padding: 6px 10px; border-radius: 8px;
+      }
+      .fs-onboard-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+      .fs-onboard-actions .fs-btn, .fs-onboard-actions .fs-btn-gold { flex: 1; min-width: 120px; }
+      .fs-onboard-xp {
+        display: inline-flex; align-items: center; gap: 6px;
+        margin-top: 10px; padding: 6px 10px; border-radius: 8px;
+        background: rgba(245,197,66,0.12); color: var(--fs-accent);
+        font-size: 12px; font-weight: 800;
+        animation: fs-onboard-pulse 1.4s ease-in-out infinite;
+      }
+      @keyframes fs-onboard-pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.03); opacity: .88; }
+      }
+      .fs-onboard-knight {
+        position: absolute; right: -8px; bottom: -18px;
+        width: 140px; height: 140px; opacity: .22;
+        pointer-events: none;
+        animation: fs-onboard-float 4.5s ease-in-out infinite;
+      }
+      @keyframes fs-onboard-float {
+        0%, 100% { transform: translateY(0) rotate(-4deg); }
+        50% { transform: translateY(-10px) rotate(2deg); }
+      }
+      .fs-sync-box {
+        margin-top: 10px; padding: 12px; border-radius: 10px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+      .fs-sync-box.running { border-color: rgba(245,197,66,0.35); }
+      .fs-sync-box.done { border-color: rgba(61,214,140,0.4); }
+      .fs-sync-box.error { border-color: rgba(255,107,107,0.4); }
+      .fs-sync-head {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 8px; margin-bottom: 8px;
+      }
+      .fs-sync-title { font-size: 12px; font-weight: 800; color: var(--fs-text); }
+      .fs-sync-pct {
+        font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;
+        color: var(--fs-accent);
+      }
+      .fs-sync-box.done .fs-sync-pct { color: var(--fs-good); }
+      .fs-sync-box.error .fs-sync-pct { color: var(--fs-bad); }
+      .fs-sync-bar {
+        height: 8px; border-radius: 999px; overflow: hidden;
+        background: rgba(255,255,255,0.06);
+      }
+      .fs-sync-bar > i {
+        display: block; height: 100%; width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #f5c542, #3dd68c);
+        transition: width .4s ease;
+        position: relative;
+      }
+      .fs-sync-box.running .fs-sync-bar > i::after {
+        content: "";
+        position: absolute; inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+        animation: fs-sync-shine 1.2s linear infinite;
+      }
+      @keyframes fs-sync-shine {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(100%); }
+      }
+      .fs-sync-msg {
+        margin-top: 8px; font-size: 12px; color: var(--fs-text-dim); line-height: 1.4;
+      }
+      .fs-sync-msg strong { color: var(--fs-text); }
+
+      .fs-quiz-outcome {
+        border-radius: 12px;
+        padding: 12px;
+        margin: 4px 0 2px;
+        border: 1px solid var(--fs-border);
+        background: var(--fs-bg-elev);
+        animation: fs-outcome-in .35s ease-out;
+      }
+      .fs-quiz-outcome.fs-ok {
+        border-color: rgba(61,214,140,.45);
+        background: linear-gradient(160deg, rgba(61,214,140,.14), rgba(255,255,255,.03));
+        box-shadow: 0 0 0 1px rgba(61,214,140,.12) inset;
+      }
+      .fs-quiz-outcome.fs-err {
+        border-color: rgba(255,107,107,.45);
+        background: linear-gradient(160deg, rgba(255,107,107,.14), rgba(255,255,255,.03));
+        box-shadow: 0 0 0 1px rgba(255,107,107,.12) inset;
+      }
+      .fs-quiz-outcome-kicker {
+        font-size: 10px; font-weight: 800; letter-spacing: .08em;
+        text-transform: uppercase; color: var(--fs-text-dim); margin-bottom: 4px;
+      }
+      .fs-quiz-outcome.fs-ok .fs-quiz-outcome-kicker { color: var(--fs-good); }
+      .fs-quiz-outcome.fs-err .fs-quiz-outcome-kicker { color: var(--fs-bad); }
+      .fs-quiz-outcome-title {
+        font-size: 16px; font-weight: 800; line-height: 1.25; color: var(--fs-text);
+        margin-bottom: 6px;
+      }
+      .fs-quiz-outcome-move {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-family: ui-monospace, monospace;
+        font-size: 18px; font-weight: 800;
+        padding: 8px 12px; border-radius: 10px;
+        margin: 4px 0 8px;
+        letter-spacing: .02em;
+      }
+      .fs-quiz-outcome.fs-ok .fs-quiz-outcome-move {
+        background: rgba(61,214,140,.16); color: var(--fs-good);
+      }
+      .fs-quiz-outcome.fs-err .fs-quiz-outcome-move {
+        background: rgba(255,107,107,.14); color: #ff8e8e;
+      }
+      .fs-quiz-outcome-sub {
+        font-size: 12px; color: var(--fs-text-dim); line-height: 1.4;
+        margin-bottom: 10px;
+      }
+      .fs-quiz-outcome-actions { display: flex; gap: 6px; }
+      .fs-quiz-outcome-actions .fs-btn { flex: 1; font-size: 12px; padding: 8px 10px; font-weight: 700; }
+      @keyframes fs-outcome-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
       .fs-quiz-side { display: flex; flex-direction: column; gap: 10px; }
       .fs-quiz-stats {
         background: var(--fs-bg-elev); border-radius: 10px;
@@ -1200,16 +3133,16 @@
       const now =
         q.server_time && q.server_time > 0 ? q.server_time : Date.now() / 1000;
       const days = Math.ceil((Number(q.premium_until) - now) / 86400);
-      if (days > 0) daysSuffix = isTr ? ` · ${days} gün` : ` · ${days}d`;
+      if (days > 0) daysSuffix = ` · ${days} ${T("gün")}`;
     }
     const FEATURE_LABELS = {
       tts_chars: isPrem
         ? T("Koç sesi (karakter / gün)")
         : T("Koç sesi (karakter / gün)"),
       game_analysis: T("Oyun sonrası analiz / gün"),
-      coach_review: T("Sesli koç review / hafta"),
+      coach_review: T("Sesli koç incelemesi / hafta"),
       quiz_play: T("Bulmaca oynama / gün"),
-      hint: T("Puzzle ipucu / gün"),
+      hint: T("Bulmaca ipucu / gün"),
     };
     const order = [
       "tts_chars",
@@ -1275,6 +3208,1142 @@
     </div>`;
   }
 
+  function v3Url(name) {
+    try {
+      return chrome.runtime.getURL("v3/" + name);
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function greetingLine(user) {
+    const name = (user && (user.username || user.chess_com_username)) || "player";
+    const h = new Date().getHours();
+    const hello =
+      h < 12 ? T("Günaydın") : h < 18 ? T("İyi günler") : T("İyi akşamlar");
+    return {
+      title: `${hello}, ${name}! 👋`,
+      sub: T("Bugün satrançta ne geliştireceğiz?"),
+    };
+  }
+
+  function skillHeuristic(stats, user) {
+    const total = Math.max(1, Number(stats && stats.total_games) || 1);
+    const wins = Number(stats && stats.wins) || 0;
+    const streak = Number(user && user.streak_count) || 0;
+    const rating = Number(user && user.highest_rating) || 1200;
+    const winRate = Math.round((wins / total) * 100);
+    const tactics = Math.min(95, 55 + Math.round(winRate * 0.25) + Math.min(15, streak));
+    const opening = Math.min(92, 48 + Math.round((rating - 800) / 40));
+    const calculation = Math.min(94, 50 + Math.round(winRate * 0.3));
+    const endgame = Math.min(90, 42 + Math.round((rating - 900) / 45));
+    const consistency = Math.min(96, 50 + streak * 4 + Math.round(winRate * 0.15));
+    return [
+      { id: "tactics", label: T("Taktik"), score: tactics, color: "var(--fs-tactics)", tone: skillTone(tactics) },
+      { id: "opening", label: T("Açılış"), score: opening, color: "var(--fs-opening)", tone: skillTone(opening) },
+      { id: "calculation", label: T("Hesap"), score: calculation, color: "var(--fs-calc)", tone: skillTone(calculation) },
+      { id: "endgame", label: T("Oyunsonu"), score: endgame, color: "var(--fs-endgame)", tone: skillTone(endgame) },
+      { id: "consistency", label: T("İstikrar"), score: consistency, color: "var(--fs-consist)", tone: skillTone(consistency) },
+    ];
+  }
+
+  function skillTone(score) {
+    if (score >= 80) return T("Güçlü");
+    if (score >= 70) return T("İyi");
+    if (score >= 60) return T("Gelişiyor");
+    return T("İyileşiyor");
+  }
+
+  function renderSkillRows(skills) {
+    return skills
+      .map(
+        (s) => `
+      <div class="fs-skill-row">
+        <span>${esc(s.label)}</span>
+        <div class="fs-skill-bar"><i style="width:${s.score}%;background:${s.color}"></i></div>
+        <strong>${s.score}</strong>
+      </div>`,
+      )
+      .join("");
+  }
+
+  function skillIcon(id) {
+    const map = {
+      tactics: "ico-tactics.svg",
+      opening: "ico-opening.svg",
+      calculation: "ico-calculation.svg",
+      endgame: "ico-endgame.svg",
+      consistency: "ico-consistency.svg",
+      middlegame: "ico-consistency.svg",
+    };
+    const file = map[id];
+    if (file) {
+      return `<img src="${esc(v3Url(file))}" alt="" />`;
+    }
+    return "♟️";
+  }
+
+  function renderSkillIcons(skills) {
+    return `<div class="fs-skill-icons">${skills
+      .map(
+        (s) => `
+      <div class="fs-skill-ico" style="color:${s.color}">
+        <div class="fs-si" style="color:${s.color}">${skillIcon(s.id)}</div>
+        <div class="fs-si-lab">${esc(s.label)}</div>
+        <div class="fs-si-bar"><i style="width:${s.score}%;background:${s.color}"></i></div>
+        <div class="fs-si-score" style="color:${s.color}">${s.score}</div>
+        <span class="fs-si-tone" style="color:${s.color}">${esc(s.tone)}</span>
+      </div>`,
+      )
+      .join("")}</div>`;
+  }
+
+  function avatarHTML(url, letter, me) {
+    const cls = "fs-recent-av" + (me ? " me" : "") + (url ? "" : " placeholder");
+    if (url) {
+      return `<img class="${cls}" src="${esc(url)}" alt="" />`;
+    }
+    return `<div class="${cls}">${esc((letter || "?").slice(0, 1).toUpperCase())}</div>`;
+  }
+
+  function coachSparkHTML() {
+    const heights = [34, 48, 42, 68, 90];
+    return `<div class="fs-coach-spark">${heights
+      .map((h) => `<i style="height:${h}%"></i>`)
+      .join("")}</div>`;
+  }
+
+  function revisitRowsHTML(games) {
+    const tags = [
+      { lab: T("Kaçırılan çatal"), cls: "fs-tag-bad" },
+      { lab: T("Gaf"), cls: "fs-tag-warn" },
+      { lab: T("Açıkta taş"), cls: "fs-tag-bad" },
+      { lab: T("Kaçırılan taktik"), cls: "fs-tag-warn" },
+    ];
+    const diffs = [T("Orta"), T("Zor"), T("Orta"), T("Kolay")];
+    const list = (games || []).slice(0, 4);
+    if (!list.length) {
+      return `<div class="fs-v3-sub" style="margin-top:8px">${T("Kendi oyunlarından kaçırılan fırsatlar burada toplanır.")}</div>
+        <button class="fs-btn-outline" data-act="go-games" style="margin-top:12px">${T("İncele")}</button>`;
+    }
+    return list
+      .map((g, i) => {
+        const moveN = Math.max(
+          8,
+          Math.min(
+            42,
+            Math.floor(Number(g.ply_count || g.move_count || 0) / 2) || 12 + i * 5,
+          ),
+        );
+        const tag = tags[i % tags.length];
+        return `<div class="fs-revisit-row">
+          ${miniBoardHTML(g)}
+          <div class="fs-revisit-meta">
+            <strong>${T("Hamle")} ${moveN} <span class="fs-tag ${tag.cls}">${esc(tag.lab)}</span></strong>
+            <span>${esc(diffs[i % diffs.length])} · ${esc(g.time_class || "blitz")}</span>
+          </div>
+          <button class="fs-btn-sm" data-game-id="${g.id}" type="button">${T("İncele")}</button>
+        </div>`;
+      })
+      .join("");
+  }
+
+  function recommendedRowsHTML(startDisabled) {
+    const rows = [
+      { ico: "♞", cls: "tactics", title: T("At çatalları"), sub: T("Materyal kazandıran çifte saldırılar"), btn: "green" },
+      { ico: "♜", cls: "opening", title: T("Son sıra taktikleri"), sub: T("Rok yapmamış şahı cezalandır"), btn: "blue" },
+      { ico: "♟", cls: "calc", title: T("Sessiz hesap"), sub: T("Zorlayıcı varyantı bul"), btn: "purple" },
+      { ico: "🔍", cls: "end", title: T("Oyunsonu temelleri"), sub: T("Şah aktivitesi ve muhalefet"), btn: "gold" },
+    ];
+    return rows
+      .map(
+        (r) => `<div class="fs-reco-row">
+        <div class="fs-reco-ico ${r.cls}">${r.ico}</div>
+        <div class="fs-revisit-meta">
+          <strong>${esc(r.title)}</strong>
+          <span>${esc(r.sub)}</span>
+        </div>
+        <button class="fs-btn-sm ${r.btn}" data-quiz-act="start" ${startDisabled}>${T("Başla")}</button>
+      </div>`,
+      )
+      .join("");
+  }
+
+  function resultBadge(result) {
+    const r = String(result || "").toLowerCase();
+    if (r.includes("win") || r === "1" || r === "1-0" || r === "0-1") {
+      return `<span class="fs-recent-badge"><i class="fs-rb-ico">★</i>${T("Zafer")}</span>`;
+    }
+    if (r.includes("loss") || r.includes("defeat")) {
+      return `<span class="fs-recent-badge loss"><i class="fs-rb-ico">✕</i>${T("Kayıp")}</span>`;
+    }
+    return `<span class="fs-recent-badge draw"><i class="fs-rb-ico">＝</i>${T("Berabere")}</span>`;
+  }
+
+  function gameUserRating(g) {
+    if (!g) return null;
+    const raw = isUserBlack(g.user_color)
+      ? g.black_rating
+      : isUserWhite(g.user_color)
+        ? g.white_rating
+        : null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  function needsOnboarding(user) {
+    if (!user) return false;
+    if (cache.onboard.dismissed) return false;
+    const ccu = (user.chess_com_username || "").trim();
+    if (!ccu) return true;
+    const games =
+      Number(
+        (cache.profile &&
+          cache.profile.stats &&
+          cache.profile.stats.total_games) ||
+          0,
+      ) || ((cache.profile && cache.profile.recent_games) || []).length;
+    if (games === 0 && cache.onboard.step < 3) return true;
+    return false;
+  }
+
+  function renderSyncProgressBox(opts) {
+    const o = opts || {};
+    const s = cache.sync || {};
+    const active = !!s.active || o.forceShow;
+    if (!active && !o.always) return "";
+    const pct = Math.max(0, Math.min(100, Math.round(Number(s.progress) || 0)));
+    const stateCls = s.error
+      ? "error"
+      : pct >= 100 && !s.active
+        ? "done"
+        : s.active
+          ? "running"
+          : "";
+    const title = s.error
+      ? T("Senkronizasyon hatası")
+      : pct >= 100 && !s.active
+        ? T("Oyunlar hazır")
+        : T("Oyunlar çekiliyor");
+    const msg =
+      s.message ||
+      (s.active
+        ? T("Chess.com hesabından oyunların aktarılıyor…")
+        : T("Hazır."));
+    const gamesLine =
+      s.gamesTotal > 0
+        ? T("{n} oyun veritabanında.").replace("{n}", String(s.gamesTotal))
+        : s.inserted > 0
+          ? T("{n} yeni oyun eklendi.").replace("{n}", String(s.inserted))
+          : "";
+    return `
+      <div class="fs-sync-box ${stateCls}" data-sync-box>
+        <div class="fs-sync-head">
+          <div class="fs-sync-title">${esc(title)}</div>
+          <div class="fs-sync-pct">${pct}%</div>
+        </div>
+        <div class="fs-sync-bar"><i style="width:${pct}%"></i></div>
+        <div class="fs-sync-msg">${esc(msg)}${gamesLine ? ` <strong>${esc(gamesLine)}</strong>` : ""}</div>
+      </div>`;
+  }
+
+  function updateSyncProgressDom() {
+    if (!panelEl) return;
+    const boxes = panelEl.querySelectorAll("[data-sync-box]");
+    if (!boxes.length) {
+      const host = panelEl.querySelector("[data-sync-live]");
+      if (host)
+        host.innerHTML = renderSyncProgressBox({ forceShow: true, always: true });
+      return;
+    }
+    boxes.forEach((el) => {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = renderSyncProgressBox({ forceShow: true, always: true });
+      const next = wrap.firstElementChild;
+      if (next) el.replaceWith(next);
+    });
+  }
+
+  function stopSyncPoll() {
+    if (cache.sync.pollId) {
+      try {
+        clearInterval(cache.sync.pollId);
+      } catch (_) {}
+      cache.sync.pollId = null;
+    }
+  }
+
+  async function pollSyncStatusOnce() {
+    try {
+      const r = await send("chess_com_sync_status");
+      if (!r || !r.ok) return null;
+      const job = r.job || null;
+      if (job) {
+        cache.sync.progress = Number(job.progress) || 0;
+        cache.sync.phase = job.phase || "";
+        cache.sync.message = job.message || "";
+        cache.sync.gamesTotal = Number(
+          job.games_total != null ? job.games_total : r.games_total,
+        ) || 0;
+        cache.sync.inserted = Number(job.inserted) || 0;
+        cache.sync.error = job.error || null;
+        cache.sync.active = job.status === "queued" || job.status === "running";
+        if (job.status === "done" || job.status === "error") {
+          cache.sync.active = false;
+          if (job.status === "done") cache.sync.progress = 100;
+        }
+      } else {
+        cache.sync.gamesTotal = Number(r.games_total) || 0;
+      }
+      updateSyncProgressDom();
+      return r;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function startSyncPoll(opts) {
+    const o = opts || {};
+    stopSyncPoll();
+    cache.sync.active = true;
+    cache.sync.error = null;
+    cache.sync.progress = Math.max(cache.sync.progress || 0, 4);
+    cache.sync.message = o.message || T("Senkronizasyon başlatıldı…");
+    updateSyncProgressDom();
+    let stable = 0;
+    let lastTotal = -1;
+    const started = Date.now();
+    const tick = async () => {
+      const r = await pollSyncStatusOnce();
+      const job = r && r.job;
+      const done =
+        (job && (job.status === "done" || job.status === "error")) ||
+        (!job && Date.now() - started > 8000 && r && r.games_total > 0);
+      const total = (r && r.games_total) || 0;
+      if (total === lastTotal && total > 0) stable += 1;
+      else stable = 0;
+      lastTotal = total;
+      if (done || stable >= 2 || Date.now() - started > 120000) {
+        stopSyncPoll();
+        cache.sync.active = false;
+        if (!cache.sync.error) {
+          cache.sync.progress = 100;
+          cache.sync.message =
+            total > 0
+              ? T(
+                  "Tamam! Oyunların çekildi. Oyunlarım sekmesinden inceleyebilirsin.",
+                )
+              : T(
+                  "Senkron bitti. Henüz oyun bulunamadı — chess.com kullanıcı adını kontrol et.",
+                );
+        }
+        updateSyncProgressDom();
+        try {
+          cache.profile = null;
+          cache.games.items = [];
+          await ensureProfile(true);
+        } catch (_) {}
+        if (typeof o.onDone === "function") {
+          try {
+            o.onDone(r);
+          } catch (_) {}
+        }
+      }
+    };
+    tick();
+    cache.sync.pollId = setInterval(tick, 1500);
+  }
+
+  function renderOnboarding(user) {
+    const step = Number(cache.onboard.step) || 0;
+    const name = (user && user.username) || T("Oyuncu");
+    const knight =
+      v3Url("logo-knight-gold-cut.png") || v3Url("logo-knight-gold.png");
+    const stepsMeta = [
+      { id: 0, lab: T("Başla") },
+      { id: 1, lab: T("Hesap bağla") },
+      { id: 2, lab: T("Oyunları çek") },
+      { id: 3, lab: T("Hazırsın") },
+    ];
+    const stepsHtml = stepsMeta
+      .map((s) => {
+        const cls = step > s.id ? "done" : step === s.id ? "on" : "";
+        const mark = step > s.id ? "✓" : String(s.id + 1);
+        return `<div class="fs-onboard-step ${cls}"><i>${mark}</i>${esc(s.lab)}</div>`;
+      })
+      .join("");
+
+    let body = "";
+    if (step === 0) {
+      body = `
+        <div class="fs-onboard-card">
+          <div class="fs-onboard-sub" style="margin:0">
+            ${T("ForkSight, chess.com oyunlarından koçluk ve bulmaca üretir. İlk görev: hesabını bağla — yaklaşık 30 saniye.")}
+          </div>
+          <div class="fs-onboard-xp">★ +50 ${T("XP görev ödülü")}</div>
+          <div class="fs-onboard-actions">
+            <button class="fs-btn-gold" data-act="onboard-next">${T("Göreve Başla")}</button>
+            <button class="fs-btn fs-ghost" data-act="onboard-skip">${T("Sonra")}</button>
+          </div>
+        </div>`;
+    } else if (step === 1) {
+      body = `
+        <div class="fs-onboard-card">
+          <div class="fs-onboard-sub" style="margin:0 0 4px">
+            ${T("Önce doğrulama kodunu Chess.com profiline ekle, sonra kullanıcı adını yaz. Böylece sadece kendi hesabını bağlayabilirsin.")}
+          </div>
+          ${renderVerifyCodeBox()}
+          <div class="fs-onboard-form" style="margin-top:12px">
+            <input type="text" class="fs-input" data-onboard-ccu placeholder="${T("chess.com kullanıcı adı")}" />
+            <button class="fs-btn-gold" data-act="onboard-link" ${cache.onboard.linking ? "disabled" : ""}>${T("Bağla")}</button>
+          </div>
+          <div class="fs-msg" data-msg="onboard-ccu"></div>
+          <div class="fs-onboard-tip">
+            ${T("İpucu: Kodu ekledikten sonra Chess.com’da Kaydet’e basmayı unutma. Bağlantı sonrası kodu profilinden silebilirsin.")}
+          </div>
+        </div>`;
+    } else if (step === 2) {
+      // Sync henüz başlamadıysa otomatik tetikle (bağlı hesap + 0 oyun)
+      if (!cache.sync.active && !cache.sync.pollId && (user.chess_com_username || "").trim()) {
+        setTimeout(() => {
+          if (cache.onboard.step !== 2) return;
+          send("chess_com_sync", { force: false })
+            .then((resp) => {
+              if (resp && resp.ok) {
+                startSyncPoll({
+                  message: T("Oyunlar çekiliyor…"),
+                  onDone: () => {
+                    cache.onboard.step = 3;
+                    try {
+                      chrome.storage.local.set({ fs_onboard_done: 1 });
+                    } catch (_) {}
+                    if (activeTab === "home") renderActive();
+                  },
+                });
+              }
+            })
+            .catch(() => {});
+        }, 80);
+      }
+      body = `
+        <div class="fs-onboard-card">
+          <div class="fs-onboard-sub" style="margin:0 0 8px">
+            ${T("Oyunlar arka planda çekiliyor. Bitene kadar bekle — sayfayı yenilemen gerekmez.")}
+          </div>
+          <div data-sync-live>${renderSyncProgressBox({ forceShow: true, always: true })}</div>
+          <div class="fs-onboard-tip">
+            ${T("Bittikten sonra oyunlarını")} <b>${T("Oyunlarım")}</b> ${T("sekmesinde, antrenmanı")} <b>${T("Antrenman")}</b> ${T("sekmesinde bulursun.")}
+          </div>
+        </div>`;
+    } else {
+      body = `
+        <div class="fs-onboard-card">
+          <div class="fs-onboard-sub" style="margin:0">
+            ${T("Harika! Hesabın bağlı ve oyunların hazır. Şimdi bir bulmaca çöz veya son oyunu incele.")}
+          </div>
+          <div class="fs-onboard-xp">★ ${T("Görev tamamlandı")}</div>
+          <div class="fs-onboard-actions">
+            <button class="fs-btn-gold" data-act="go-training">${T("Antrenmana Git")}</button>
+            <button class="fs-btn" data-act="go-games">${T("Oyunlarım")}</button>
+            <button class="fs-btn fs-ghost" data-act="onboard-finish">${T("Ana sayfaya dön")}</button>
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="fs-onboard" data-onboard>
+        ${knight ? `<img class="fs-onboard-knight" src="${esc(knight)}" alt="" />` : ""}
+        <div class="fs-onboard-inner">
+          <div class="fs-onboard-kicker">${T("İlk Görev")} · ${esc(name)}</div>
+          <h2 class="fs-onboard-title">${
+            step === 0
+              ? T("Satranç yolculuğuna hoş geldin")
+              : step === 1
+                ? T("Chess.com hesabını bağla")
+                : step === 2
+                  ? T("Oyunların geliyor…")
+                  : T("Koç hazır — sen de!")
+          }</h2>
+          <div class="fs-onboard-steps">${stepsHtml}</div>
+          ${body}
+        </div>
+      </div>`;
+  }
+
+  function resolveRatingChange(game, siblings) {
+    if (!game) return null;
+    const direct =
+      game.rating_change ??
+      game.rating_diff ??
+      game.user_rating_change ??
+      game.ratingDelta;
+    if (direct != null && direct !== "") {
+      const n = Number(direct);
+      if (Number.isFinite(n) && Math.abs(n) <= 400) return n;
+    }
+    const list = Array.isArray(siblings) ? siblings : [];
+    const tc = game.time_class;
+    const mine = gameUserRating(game);
+    const end = Number(game.end_time) || 0;
+    if (mine == null || !tc) return null;
+    let best = null;
+    for (const older of list) {
+      if (!older || older.id === game.id) continue;
+      if (older.time_class !== tc) continue;
+      const oEnd = Number(older.end_time) || 0;
+      if (oEnd >= end) continue;
+      const oRating = gameUserRating(older);
+      if (oRating == null) continue;
+      if (!best || oEnd > best.end) best = { end: oEnd, rating: oRating };
+    }
+    if (!best) return null;
+    const delta = mine - best.rating;
+    return Math.abs(delta) <= 400 ? delta : null;
+  }
+
+  function renderHomeTab() {
+    const p = cache.profile;
+    if (!p) return renderLoading();
+    if (!p.user) {
+      return `<div class="fs-empty">${T("Profil bilgisi alınamadı.")}</div>`;
+    }
+    const u = p.user;
+    const stats = p.stats || {};
+    const recent = (p.recent_games || [])[0];
+    const skills = skillHeuristic(stats, u);
+    const weak = cache.weakness && cache.weakness.report;
+    const coachHeadline = T("Koçun bir şey fark etti.");
+    const coachDetail =
+      weak && weak.top_issue
+        ? String(weak.top_issue)
+        : T('Bu hafta taktik doğruluğun <span class="fs-coach-hl">%8</span> arttı.');
+    const puzzleDone = Math.min(
+      5,
+      Number(
+        (cache.puzzles.stats &&
+          (cache.puzzles.stats.solved_today ||
+            cache.puzzles.stats.today_solved)) ||
+          0,
+      ),
+    );
+    const missionDone = Math.min(5, Math.max(1, puzzleDone || 1));
+    const missionTotal = 5;
+    const segs = Array.from({ length: missionTotal })
+      .map((_, i) => `<i class="${i < missionDone ? "on" : ""}"></i>`)
+      .join("");
+    const heroUrl = v3Url("hero-training-target.png");
+    const coachAv =
+      v3Url("coach-portrait-cut.png") ||
+      v3Url("coach-sheet-nobg.png");
+    const parts = recent ? gameParticipants(recent, u) : null;
+    const meName = parts ? parts.meName : u.chess_com_username || u.username || "Sen";
+    const meAv = parts ? parts.meAv : u.chess_com_avatar || "";
+    const oppName = parts ? parts.oppName : "?";
+    const oppAv = parts ? parts.oppAv : "";
+    const meRating = parts ? parts.meRating : u.highest_rating;
+    const oppRating = parts ? parts.oppRating : "";
+    const rc = resolveRatingChange(recent, p.recent_games || []);
+    const rcCls = rc == null ? "" : rc >= 0 ? "up" : "dn";
+    const rcVal = rc == null ? "—" : `${rc >= 0 ? "+" : ""}${rc}`;
+    const ply = recent ? Number(recent.ply_count || 0) : 0;
+    const movesField = recent
+      ? Number(recent.move_count || recent.moves || recent.n_moves || 0)
+      : 0;
+    let movesVal = "—";
+    if (movesField > 0 && movesField <= 120) {
+      movesVal = String(Math.round(movesField));
+    } else if (ply > 0) {
+      movesVal = String(Math.max(1, Math.round(ply / 2)));
+    }
+    const timeLabel = recent
+      ? `${esc(recent.time_control || "")} ${esc(recent.time_class || "")}`.trim()
+      : "";
+    const reviewIco = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>`;
+
+    const onboardHtml = needsOnboarding(u) ? renderOnboarding(u) : "";
+    // Hesap bağlı değilse ana paneli sade tut — görev kartı önde
+    if (onboardHtml && !(u.chess_com_username || "").trim() && cache.onboard.step < 3) {
+      return `${onboardHtml}
+        <div class="fs-v3-card" style="margin-top:4px">
+          <div class="fs-v3-kicker">${T("Nasıl çalışır?")}</div>
+          <div class="fs-v3-sub" style="color:var(--fs-text);margin-top:6px">
+            1. ${T("Chess.com kullanıcı adını bağla")}<br/>
+            2. ${T("Son oyunların otomatik çekilir (yenilemeye gerek yok)")}<br/>
+            3. ${T("Oyunlarım’da incele, Antrenman’da bulmaca çöz")}
+          </div>
+        </div>`;
+    }
+
+    return `
+      ${onboardHtml}
+      <div class="fs-home-stats">
+        <div class="fs-hs">
+          <div class="fs-hs-ico level" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 4.2 4.8.8-3.4 3.5.8 4.8L12 13.8 7.4 15.3l.8-4.8L4.8 7l4.8-.8L12 2z" fill="#f5c542"/><path d="M6 20h12v1.5H6V20zm1.2-2.2h9.6c.4-2.1-1.2-3.8-4.8-3.8s-5.2 1.7-4.8 3.8z" fill="#f5c542" opacity=".92"/></svg>
+          </div>
+          <div class="fs-hs-txt">
+            <div class="fs-hs-lab">${T("Seviye")}</div>
+            <div class="fs-hs-val">${Math.max(1, Math.floor((Number(u.highest_rating) || 1000) / 80))}</div>
+          </div>
+        </div>
+        <span class="fs-stat-sep"></span>
+        <div class="fs-hs">
+          <div class="fs-hs-ico rating" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 3c1.2 0 2.1.9 2.1 2.1V7h1.4c.7 0 1.2.6 1.2 1.2v1.3h-8.4V8.2c0-.7.5-1.2 1.2-1.2h1.4V5.1C9.9 3.9 10.8 3 12 3z" fill="#d7dbe6"/><path d="M7.8 9.8h8.4v2.2c0 2.6-1.7 4.4-4.2 4.4s-4.2-1.8-4.2-4.4V9.8z" fill="#c5cad3"/><path d="M9.2 17.2h5.6L16 21H8l1.2-3.8z" fill="#b8bec9"/></svg>
+          </div>
+          <div class="fs-hs-txt">
+            <div class="fs-hs-lab">${T("Reyting")}</div>
+            <div class="fs-hs-val">${esc(u.highest_rating || "—")}</div>
+          </div>
+        </div>
+        <span class="fs-stat-sep"></span>
+        <div class="fs-hs">
+          <div class="fs-hs-ico streak" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M13.2 2.4c.2 2.8-1.1 4.4-2.6 6.1-1.4 1.5-2.8 3.1-2.5 5.4.3 2.4 2.4 4.1 4.9 4.1 2.7 0 4.8-2 4.8-4.8 0-2.6-1.4-4.1-2.8-5.8-.8-1-1.6-2.1-1.8-4.9z" fill="#ff8a3d"/><path d="M12 11.2c.9 1.2 1.4 2.2 1.4 3.4 0 1.5-1.1 2.6-2.5 2.6-1.5 0-2.6-1.3-2.4-2.9.2-1.3.9-2.1 1.8-3.1.3-.3.8-.8 1.7-2z" fill="#ffd08a"/></svg>
+          </div>
+          <div class="fs-hs-txt">
+            <div class="fs-hs-lab">${T("Seri")}</div>
+            <div class="fs-hs-val">${esc(u.streak_count || 0)} ${T("gün")}</div>
+          </div>
+        </div>
+        <span class="fs-stat-sep"></span>
+        <div class="fs-hs fs-xp-block">
+          <div class="fs-xp-top"><span>${T("XP İlerlemesi")}</span><strong>${Math.min(1199, (Number(u.streak_count) || 0) * 80 + 400)} / 1200 XP</strong></div>
+          <span class="fs-skill-bar"><i style="width:${Math.min(100, Math.round(((Number(u.streak_count) || 0) * 80 + 400) / 1200 * 100))}%"></i></span>
+        </div>
+      </div>
+      <div class="fs-home-stack">
+        <div class="fs-v3-card fs-hero-train" style="--fs-hero-url:url('${esc(heroUrl)}')">
+          <div class="fs-v3-kicker" style="color:var(--fs-tactics)">${T("BUGÜNKÜ ANTRENMAN")}</div>
+          <div class="fs-v3-title">${T("Taktik Görüş")}</div>
+          <div class="fs-v3-sub">${T("Odak: taktik farkındalığını güçlendir")}</div>
+          <div class="fs-v3-sub" style="margin-top:10px"><span class="fs-mission-pct">${missionDone}</span><span class="fs-mission-pct-rest"> / ${missionTotal} ${T("tamamlandı")}</span></div>
+          <div class="fs-seg-bar">${segs}</div>
+          <button class="fs-btn-gold" data-act="go-training"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>${T("Antrenmana Devam")}</button>
+        </div>
+        <div class="fs-v3-card fs-v3-coach-card">
+          <div class="fs-coach-av-wrap">
+            <img class="fs-v3-coach-av" src="${esc(coachAv)}" alt="" />
+            <div class="fs-coach-quote">“</div>
+          </div>
+          <div class="fs-v3-coach-body">
+            <div class="fs-v3-kicker" style="color:#c4b5fd">${T("KOÇ ÖNERİSİ")}</div>
+            <div class="fs-v3-title">${esc(coachHeadline)}</div>
+            <div class="fs-v3-sub">${coachDetail.includes("<span") ? coachDetail : esc(coachDetail)}</div>
+            <button class="fs-btn-outline" data-act="go-coach" style="margin-top:12px;border-color:rgba(196,181,253,0.45);color:#e9e5ff">${T("Öneriyi gör →")}</button>
+          </div>
+          <div class="fs-v3-coach-side">
+            <div class="fs-coach-side-top">
+              <div class="fs-coach-delta">↑</div>
+              <div class="fs-coach-pct">+8%</div>
+            </div>
+            ${coachSparkHTML()}
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="fs-section-head">
+          <div class="fs-v3-kicker">${T("SON OYUN")}</div>
+          <i class="fs-sec-line" aria-hidden="true"></i>
+          <button class="fs-link-gold" data-act="go-games">${T("Tüm oyunlar →")}</button>
+        </div>
+        ${
+          recent
+            ? `<div class="fs-v3-card fs-recent-wrap">
+                <div class="fs-recent-card">
+                  <div class="fs-recent-outcome">
+                    ${resultBadge(recent.result)}
+                    <div class="fs-recent-tc">${timeLabel || esc(recent.time_class || "")}</div>
+                  </div>
+                  <div class="fs-recent-players">
+                    <div class="fs-recent-player">
+                      ${avatarHTML(meAv, meName, true)}
+                      <div class="fs-rp-meta">
+                        <div class="fs-rp-name">${esc(meName)}</div>
+                        <div class="fs-rp-rating">${esc(meRating || "—")}</div>
+                      </div>
+                    </div>
+                    <span class="fs-recent-vs">vs</span>
+                    <div class="fs-recent-player">
+                      <div class="fs-rp-meta" style="text-align:right">
+                        <div class="fs-rp-name">${esc(oppName)}</div>
+                        <div class="fs-rp-rating">${esc(oppRating || "—")}</div>
+                      </div>
+                      ${avatarHTML(oppAv, oppName, false)}
+                    </div>
+                  </div>
+                  <div class="fs-recent-board-wrap">${miniBoardHTML(recent)}</div>
+                  <button class="fs-btn-review" data-act="go-games" type="button">${reviewIco}${T("Oyunu İncele")}</button>
+                  <div class="fs-recent-metrics">
+                    <div class="fs-recent-metric ${rc != null ? "fs-rm-rating" : ""} ${rcCls === "dn" ? "is-dn" : ""}">
+                      <div class="fs-rm-val ${rcCls}">${esc(rcVal)}</div>
+                      <div class="fs-rm-lab">${T("Reyting Değişimi")}</div>
+                    </div>
+                    <div class="fs-recent-metric fs-rm-moves">
+                      <div class="fs-rm-val">${esc(movesVal)}</div>
+                      <div class="fs-rm-lab">${T("Hamleler")}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>`
+            : `<div class="fs-v3-card"><div class="fs-empty" style="padding:12px">${T("Henüz oyun çekilmedi.")}</div></div>`
+        }
+      </div>
+      <div style="margin-top:14px">
+        <div class="fs-section-head">
+          <div class="fs-v3-kicker">${T("GELİŞİMİN")}</div>
+          <i class="fs-sec-line" aria-hidden="true"></i>
+          <button class="fs-link-gold" data-act="go-progress">${T("Detaylı gelişim →")}</button>
+        </div>
+        <div class="fs-v3-card">${renderSkillIcons(skills)}</div>
+      </div>
+      <div class="fs-quote-banner">
+        <img src="${esc(v3Url("quote-cinematic-pieces.png"))}" alt="" />
+        <div class="fs-quote-txt">“${T("Küçük iyileştirmeler <em>güçlü oyuncular</em> yaratır.")}”<span class="fs-quote-sig">— ForkSight</span></div>
+      </div>
+    `;
+  }
+
+  function renderProgressTab() {
+    const p = cache.profile;
+    if (!p) return renderLoading();
+    if (!p.user) return `<div class="fs-empty">${T("Profil bilgisi alınamadı.")}</div>`;
+    const skills = skillHeuristic(p.stats || {}, p.user);
+    const best = skills.slice().sort((a, b) => b.score - a.score)[0];
+    return `
+      <div class="fs-v3-card">
+        <div class="fs-v3-kicker">${T("BECERİ HARİTASI")}</div>
+        <div class="fs-v3-title">${esc(best.label)} ${esc(best.tone)}</div>
+        <div class="fs-v3-sub">${T("Rakamlarla boğulma — odaklanman gereken alanlar burada.")}</div>
+        ${renderSkillIcons(skills)}
+      </div>
+      <div class="fs-v3-card" style="margin-top:12px">
+        <div class="fs-v3-kicker">${T("GENEL BAKIŞ")}</div>
+        <div class="fs-stat-row">
+          <div class="fs-stat"><div class="fs-stat-val">${esc(p.user.highest_rating || "—")}</div><div class="fs-stat-lab">${T("Reyting")}</div></div>
+          <div class="fs-stat"><div class="fs-stat-val">🔥 ${esc(p.user.streak_count || 0)}</div><div class="fs-stat-lab">${T("Seri")}</div></div>
+          <div class="fs-stat"><div class="fs-stat-val">${esc((p.stats && p.stats.total_games) || 0)}</div><div class="fs-stat-lab">${T("Oyun")}</div></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderCoachTab() {
+    const tabs = [
+      { id: "plan", lab: T("Bugünün Planı") },
+      { id: "games", lab: T("Oyun Koçluğu") },
+      { id: "weaknesses", lab: T("Zayıf Noktalarım") },
+      { id: "suggestions", lab: T("Öneriler") },
+    ];
+    const tabBar = `<div class="fs-coach-tabs">${tabs
+      .map(
+        (t) =>
+          `<button class="fs-coach-tab ${coachSubTab === t.id ? "fs-on" : ""}" data-coach-sub="${t.id}">${esc(t.lab)}</button>`,
+      )
+      .join("")}</div>`;
+
+    if (coachSubTab === "weaknesses" || coachSubTab === "games") {
+      return tabBar + renderWeaknessTab();
+    }
+
+    const weak = cache.weakness && cache.weakness.report;
+    const issue =
+      (weak && (weak.top_issue || weak.summary)) ||
+      T("Son oyunlarında açılış sonrası plan oluşturmak en büyük fırsatın.");
+    const skills = skillHeuristic(
+      (cache.profile && cache.profile.stats) || {},
+      (cache.profile && cache.profile.user) || {},
+    );
+
+    if (coachSubTab === "suggestions") {
+      return (
+        tabBar +
+        `<div class="fs-v3-card">
+          <div class="fs-v3-kicker">${T("ÖNERİLER")}</div>
+          <div class="fs-v3-title">${T("Bu hafta odak")}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+            <span class="fs-pill" style="border-color:var(--fs-tactics);color:var(--fs-tactics)">🟢 ${T("Taktik")}</span>
+            <span class="fs-pill" style="border-color:var(--fs-opening);color:var(--fs-opening)">🟡 ${T("Açılış")}</span>
+            <span class="fs-pill" style="border-color:var(--fs-endgame);color:var(--fs-endgame)">🔴 ${T("Oyunsonu")}</span>
+          </div>
+          <button class="fs-btn" data-act="go-training">${T("Çalışmaya Başla →")}</button>
+        </div>`
+      );
+    }
+
+    return (
+      tabBar +
+      `<div class="fs-v3-card fs-v3-coach-card" style="min-height:auto;padding:18px">
+        <img class="fs-v3-coach-av-lg" src="${esc(v3Url("coach-portrait-cut.png") || v3Url("coach-sheet-nobg.png"))}" alt="" />
+        <div class="fs-v3-coach-body">
+          <div class="fs-v3-kicker" style="color:#c4b5fd">${T("KOÇ DİYOR Kİ")}</div>
+          <div class="fs-v3-title" style="font-size:18px">${esc(issue)}</div>
+          <div class="fs-v3-sub" style="margin-top:6px">${T("Analiz değil — gelişim. Bir sonraki oyunda bunu düzeltmeye odaklan.")}</div>
+          <button class="fs-btn-gold" data-act="go-training" style="margin-top:14px">${T("Çalışmaya Başla →")}</button>
+        </div>
+        <div class="fs-v3-coach-side">
+          <div class="fs-coach-delta">+8%</div>
+          ${coachSparkHTML()}
+        </div>
+      </div>
+      <div class="fs-v3-card" style="margin-top:12px">
+        <div class="fs-section-head">
+          <div class="fs-v3-kicker">${T("HAFTALIK ODAK")}</div>
+          <button class="fs-link-gold" data-act="go-progress">${T("Detaylı gelişim →")}</button>
+        </div>
+        ${renderSkillIcons(skills.slice(0, 5))}
+      </div>`
+    );
+  }
+
+
+  function leagueFromRating(rating) {
+    const r = Number(rating) || 0;
+    const leagues = [
+      { id: "bronze", label: T("Bronz"), min: 0, max: 1199, ico: "🥉" },
+      { id: "silver", label: T("Gümüş"), min: 1200, max: 1599, ico: "🥈" },
+      { id: "gold", label: T("Gold"), min: 1600, max: 1999, ico: "🥇" },
+      { id: "diamond", label: T("Diamond"), min: 2000, max: 2399, ico: "💎" },
+      { id: "master", label: T("Usta"), min: 2400, max: 99999, ico: "👑" },
+    ];
+    return leagues.find((x) => r >= x.min && r <= x.max) || leagues[0];
+  }
+
+  function identityTitle(skills) {
+    const top = (skills || []).slice().sort((a, b) => b.score - a.score)[0];
+    const map = {
+      tactics: T("Taktiksel Mücadeleci"),
+      calculation: T("Keskin Hesapçı"),
+      opening: T("Açılış Bilgini"),
+      endgame: T("Oyunsonu İşçisi"),
+      consistency: T("İstikrarlı Tırmanıcı"),
+      middlegame: T("Orta Oyun Savaşçısı"),
+    };
+    return (top && map[top.id]) || T("Taktiksel Mücadeleci");
+  }
+
+  function identityAttrs(skills) {
+    const by = Object.fromEntries((skills || []).map((s) => [s.id, s.score]));
+    const tone = (n) =>
+      n >= 80
+        ? T("Çok Güçlü")
+        : n >= 70
+          ? T("Güçlü")
+          : n >= 60
+            ? T("İyi")
+            : T("Gelişiyor");
+    const rows = [
+      { lab: T("Taktiksel"), score: by.tactics || 70, color: "var(--fs-tactics)", ico: "⚔" },
+      { lab: T("Agresif"), score: Math.min(95, Math.round((by.tactics || 70) * 0.9 + 5)), color: "#f59e0b", ico: "🔥" },
+      { lab: T("Stratejik"), score: by.opening || 64, color: "var(--fs-calc)", ico: "♛" },
+      { lab: T("İstikrarlı"), score: by.consistency || 70, color: "var(--fs-opening)", ico: "🛡" },
+      { lab: T("Yaratıcı"), score: Math.min(92, Math.round(((by.calculation || 65) + (by.tactics || 70)) / 2 - 8)), color: "#22d3ee", ico: "💡" },
+      { lab: T("Hesaplı"), score: by.calculation || 68, color: "#fb923c", ico: "◎" },
+    ];
+    return rows.map((r) => ({ ...r, tone: tone(r.score) }));
+  }
+
+  function attrSegHTML(score, color) {
+    const on = Math.max(0, Math.min(10, Math.round(Number(score) / 10)));
+    return `<div class="fs-attr-seg">${Array.from({ length: 10 }, (_, i) =>
+      `<i class="${i < on ? "on" : ""}" style="${i < on ? `background:${color}` : ""}"></i>`,
+    ).join("")}</div>`;
+  }
+
+  function journeyMilestones(profile) {
+    const games = (profile && profile.recent_games) || [];
+    const u = (profile && profile.user) || {};
+    const stats = (profile && profile.stats) || {};
+    const first = games.slice().sort((a, b) => (a.end_time || 0) - (b.end_time || 0))[0];
+    const win = games.find((g) => String(g.result || "").toLowerCase().includes("win"));
+    return [
+      {
+        ico: "♟",
+        title: T("İlk Oyun"),
+        sub: first ? `${esc(first.time_control || "")} ${esc(first.time_class || "")}`.trim() : "—",
+        when: first ? fmtDate(first.end_time) : "—",
+        done: !!first || Number(stats.total_games) > 0,
+      },
+      {
+        ico: "⚔",
+        title: T("İlk Zafer"),
+        sub: win
+          ? `vs. ${esc(gameParticipants(win, u).oppName || "?")}`
+          : "—",
+        when: win ? fmtDate(win.end_time) : "—",
+        done: !!win || Number(stats.wins) > 0,
+      },
+      {
+        ico: "100",
+        title: T("100. Oyun"),
+        sub: T("Rapid"),
+        when: Number(stats.total_games) >= 100 ? T("Ulaşıldı") : "—",
+        done: Number(stats.total_games) >= 100,
+      },
+      {
+        ico: "🔥",
+        title: T("İlk 7 Günlük Seri"),
+        sub: "7 Days",
+        when: Number(u.streak_count) >= 7 ? T("Aktif") : "—",
+        done: Number(u.streak_count) >= 7,
+      },
+      {
+        ico: "🏆",
+        title: T("En Yüksek Reyting"),
+        sub: u.highest_rating ? String(u.highest_rating) : "—",
+        when: u.highest_rating ? T("En İyi") : "—",
+        done: false,
+        peak: true,
+      },
+    ];
+  }
+
+  function weeklyXpFromCache(user) {
+    const streak = Number(user && user.streak_count) || 0;
+    const solved =
+      Number(
+        (cache.puzzles.stats &&
+          (cache.puzzles.stats.solved_today ||
+            cache.puzzles.stats.today_solved ||
+            cache.puzzles.stats.solved)) ||
+          0,
+      ) || 0;
+    const me = (cache.leaderboard.data && cache.leaderboard.data.me) || {};
+    if (
+      me.value != null &&
+      me.value !== "" &&
+      cache.leaderboard.metric === "points"
+    ) {
+      return Math.max(0, Math.round(Number(me.value) || 0));
+    }
+    if (
+      me.value != null &&
+      me.value !== "" &&
+      cache.leaderboard.metric === "weekly_solved"
+    ) {
+      return Math.max(0, Math.round((Number(me.value) || 0) * 25));
+    }
+    return Math.min(1999, 400 + streak * 80 + solved * 20);
+  }
+
+  function buildLocalNotifications() {
+    const u = (cache.profile && cache.profile.user) || {};
+    const items = [];
+    const streak = Number(u.streak_count) || 0;
+    if (streak >= 3) {
+      items.push({
+        id: "local-streak",
+        titleKey: "Serin devam ediyor",
+        bodyKey: "{n} Günlük Seri — Devam et!",
+        bodyN: streak,
+        ts: Date.now() / 1000,
+        local: true,
+      });
+    }
+    const xp = weeklyXpFromCache(u);
+    if (xp >= 2000) {
+      items.push({
+        id: "local-chest",
+        titleKey: "Haftalık Ödül Sandığı",
+        bodyKey: "Sandığı Aç · {xp} XP",
+        bodyXp: xp,
+        ts: Date.now() / 1000,
+        local: true,
+        act: "go-arena",
+      });
+    } else {
+      items.push({
+        id: "local-arena",
+        titleKey: "Arena",
+        bodyKey: "{xp} / 2000 XP · Ligde yüksel. Oyununu keskinleştir.",
+        bodyXp: xp,
+        ts: Date.now() / 1000,
+        local: true,
+        act: "go-arena",
+      });
+    }
+    items.push({
+      id: "local-coach",
+      titleKey: "Koç Önerisi",
+      bodyKey: "Koçun bir şey fark etti. Bu hafta taktik doğruluğun %8 arttı.",
+      ts: Date.now() / 1000 - 3600,
+      local: true,
+      act: "go-coach",
+    });
+    return items;
+  }
+
+  function formatNotifText(it) {
+    const titleSrc = it.titleKey || it.title || "Bildirim";
+    const bodySrc = it.bodyKey || it.body || "";
+    let title = T(titleSrc);
+    let body = T(bodySrc);
+    if (it.bodyN != null) {
+      body = body.replace("{n}", String(it.bodyN));
+      // Fallback if body was built from partial keys previously
+      if (body === bodySrc && bodySrc.includes("{n}")) {
+        body = `${it.bodyN} ${T("Günlük Seri")} — ${T("Devam et!")}`;
+      }
+    }
+    if (it.bodyXp != null) {
+      const xpTxt = Number(it.bodyXp).toLocaleString();
+      body = body.replace("{xp}", xpTxt);
+      if (body === bodySrc && bodySrc.includes("{xp}")) {
+        if (String(it.id) === "local-chest") {
+          body = `${T("Sandığı Aç")} · ${xpTxt} XP`;
+        } else {
+          body = `${xpTxt} / 2000 XP · ${T("Ligde yüksel. Oyununu keskinleştir.")}`;
+        }
+      }
+    }
+    return { title, body };
+  }
+
+  async function ensureNotifications(force) {
+    const n = cache.notifications;
+    if (n.loading) return;
+    if (n.items.length && !force) return;
+    n.loading = true;
+    try {
+      const stored = await new Promise((resolve) => {
+        try {
+          chrome.storage.local.get(["fs_notif_read"], (r) => resolve(r || {}));
+        } catch (_) {
+          resolve({});
+        }
+      });
+      n.readIds = stored.fs_notif_read || {};
+      let remote = [];
+      try {
+        const r = await send("notifications_list", { since: 0 });
+        if (r && r.ok && Array.isArray(r.notifications)) remote = r.notifications;
+      } catch (_) {}
+      const mapped = remote.map((x) => ({
+        id: String(x.id),
+        titleKey: x.title || "Bildirim",
+        bodyKey: x.body || "",
+        ts: x.ts || x.created_at || Date.now() / 1000,
+        click_url: x.click_url || "",
+        local: false,
+      }));
+      const local = buildLocalNotifications();
+      const byId = new Map();
+      [...mapped, ...local].forEach((it) => {
+        if (!byId.has(String(it.id))) byId.set(String(it.id), it);
+      });
+      n.items = Array.from(byId.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      n.unread = n.items.filter((it) => !n.readIds[String(it.id)]).length;
+    } finally {
+      n.loading = false;
+      updateNotifBell();
+    }
+  }
+
+  function updateNotifBell() {
+    if (!panelEl) return;
+    const bell = panelEl.querySelector(".fs-header-bell");
+    if (!bell) return;
+    bell.classList.toggle("fs-has-unread", (cache.notifications.unread || 0) > 0);
+  }
+
+  function renderNotifPanelHTML() {
+    const n = cache.notifications;
+    const items = n.items || [];
+    const rows = items.length
+      ? items
+          .map((it) => {
+            const unread = !n.readIds[String(it.id)];
+            const txt = formatNotifText(it);
+            return `<button type="button" class="fs-notif-item ${unread ? "unread" : ""}" data-notif-id="${esc(String(it.id))}" data-notif-act="${esc(it.act || "")}" data-notif-url="${esc(it.click_url || "")}">
+              <i class="fs-notif-dot"></i>
+              <span>
+                <div class="fs-notif-title">${esc(txt.title)}</div>
+                <div class="fs-notif-body">${esc(txt.body)}</div>
+              </span>
+            </button>`;
+          })
+          .join("")
+      : `<div class="fs-notif-empty">${T("Henüz bildirim yok.")}</div>`;
+    return `
+      <div class="fs-notif-panel" id="fs-notif-panel" ${n.open ? "" : "hidden"}>
+        <div class="fs-notif-head">
+          <strong>${T("Bildirimler")}</strong>
+          <button type="button" class="fs-link-gold" data-act="notif-mark-all">${T("Tümünü okundu işaretle")}</button>
+        </div>
+        ${rows}
+      </div>`;
+  }
+
+  function toggleNotifications(forceOpen) {
+    const n = cache.notifications;
+    n.open = typeof forceOpen === "boolean" ? forceOpen : !n.open;
+    const wrap = panelEl && panelEl.querySelector(".fs-notif-wrap");
+    if (!wrap) return;
+    let panel = wrap.querySelector(".fs-notif-panel");
+    if (!panel) {
+      wrap.insertAdjacentHTML("beforeend", renderNotifPanelHTML());
+      panel = wrap.querySelector(".fs-notif-panel");
+    } else {
+      panel.outerHTML = renderNotifPanelHTML();
+      panel = wrap.querySelector(".fs-notif-panel");
+    }
+    if (panel) panel.hidden = !n.open;
+    if (n.open) ensureNotifications(true);
+  }
+
+  async function markNotifRead(id) {
+    const n = cache.notifications;
+    n.readIds[String(id)] = 1;
+    n.unread = n.items.filter((it) => !n.readIds[String(it.id)]).length;
+    try {
+      chrome.storage.local.set({ fs_notif_read: n.readIds });
+    } catch (_) {}
+    if (!String(id).startsWith("local-")) {
+      try {
+        await send("notification_event", {
+          notification_id: id,
+          event_type: "click",
+        });
+      } catch (_) {}
+    }
+    updateNotifBell();
+    if (n.open) toggleNotifications(true);
+  }
+
+  async function playChestOpen() {
+    const wrap = panelEl && panelEl.querySelector(".fs-weekly-chest");
+    const img = wrap && wrap.querySelector("img");
+    if (!wrap || !img || cache.arenaChest.opening) return;
+    if (cache.arenaChest.opened) return;
+    const unlocked = wrap.classList.contains("unlocked");
+    if (!unlocked) {
+      wrap.classList.remove("locked-shake");
+      void wrap.offsetWidth;
+      wrap.classList.add("locked-shake");
+      setTimeout(() => wrap.classList.remove("locked-shake"), 450);
+      return;
+    }
+    cache.arenaChest.opening = true;
+    wrap.classList.add("opening");
+    const openUrl = v3Url("chest-open-cut.png") || v3Url("chest-open.png");
+    setTimeout(() => {
+      if (openUrl) img.src = openUrl;
+    }, 280);
+    setTimeout(() => {
+      wrap.classList.remove("opening");
+      cache.arenaChest.opening = false;
+      cache.arenaChest.opened = true;
+      try {
+        chrome.storage.local.set({ fs_arena_chest_opened: true });
+      } catch (_) {}
+      const btn = wrap.querySelector(".fs-btn-gold[data-act='arena-chest']");
+      if (btn) btn.remove();
+      const title = wrap.querySelector(".fs-v3-title");
+      if (title) title.textContent = T("Ödül alındı");
+    }, 1000);
+  }
+
+
   function renderProfileTab() {
     const p = cache.profile;
     if (!p) return renderLoading();
@@ -1283,56 +4352,194 @@
     }
     const u = p.user;
     const stats = p.stats || {};
-    const recent = (p.recent_games || []).slice(0, 4);
-    const av = u.chess_com_avatar
-      ? `style="background-image:url('${esc(u.chess_com_avatar)}')"`
-      : "";
-    const displayName = esc(u.username || "?");
-    const ccu = u.chess_com_username
-      ? `chess.com: ${esc(u.chess_com_username)}`
-      : T("Chess.com hesabı bağlı değil");
-    const streak = u.streak_count || 0;
-    const highRating = u.highest_rating || "—";
+    const skills = skillHeuristic(stats, u);
+    // middlegame insert for profile skills list
+    const midScore = Math.round(
+      ((skills.find((s) => s.id === "tactics") || {}).score || 70) * 0.45 +
+        ((skills.find((s) => s.id === "calculation") || {}).score || 70) * 0.55,
+    );
+    const skillList = [
+      skills.find((s) => s.id === "tactics"),
+      skills.find((s) => s.id === "calculation"),
+      skills.find((s) => s.id === "opening"),
+      {
+        id: "middlegame",
+        label: T("Orta Oyun"),
+        score: midScore,
+        color: "#f59e0b",
+        tone: midScore >= 70 ? T("İyi") : T("Gelişiyor"),
+      },
+      skills.find((s) => s.id === "endgame"),
+    ].filter(Boolean);
+    const title = identityTitle(skills);
+    const attrs = identityAttrs(skills);
+    const level = Math.max(1, Math.floor((Number(u.highest_rating) || 1000) / 80));
+    const xpNow = Math.min(2999, (Number(u.streak_count) || 0) * 120 + 1800);
+    const xpMax = 3000;
+    const ccUser = u.chess_com_username || u.username || "";
+    const avUrl = u.chess_com_avatar || "";
+    const knight = v3Url("cat-tactics-knight-cut.png") || v3Url("logo-knight-gold-cut.png");
+    const coachAv = v3Url("coach-portrait-cut.png") || v3Url("coach-sheet-nobg.png");
+    const journey = journeyMilestones(p);
+    const ach = (cache.achievements && cache.achievements !== "loading" && cache.achievements.items) || [];
+    const achFallback = [
+      { ico: "⚔", lab: T("Taktik Avcısı"), sub: T("50+ bulmaca çözüldü"), color: "#3dd68c" },
+      { ico: "🔥", lab: T("Yedi Günlük Seri"), sub: T("Momentumunu koru!"), color: "#f5c542" },
+      { ico: "♜", lab: T("Dönüş Oyuncusu"), sub: T("Kayıp pozisyonlardan galibiyet"), color: "#a78bfa" },
+      { ico: "◎", lab: T("Keskin Hesapçı"), sub: T("Taktiklerde yüksek doğruluk"), color: "#4c8dff" },
+    ];
+    const achShow = (ach.length ? ach.slice(0, 4) : achFallback).map((a, i) => {
+      if (a.lab) return a;
+      return {
+        ico: ["⚔", "🔥", "♜", "◎"][i] || "★",
+        lab: a.title || a.name || a.code || T("Başarım"),
+        sub: a.description || a.sub || "",
+        color: "#f5c542",
+      };
+    });
+    const editIco = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3 2.1 2.1 0 0 1 0 3L7 19l-4 1 1-4Z"/></svg>`;
+    const badgeIco = v3Url("logo-knight-gold-cut.png") || v3Url("logo-knight-gold.png");
 
     return `
-      <div class="fs-prof-head">
-        <div class="fs-prof-avatar-wrap">
-          <div class="fs-prof-avatar" ${av}></div>
+      <div class="fs-prof-v3-head">
+        <div style="position:relative">
+          ${
+            avUrl
+              ? `<img class="fs-prof-v3-av" src="${esc(avUrl)}" alt="" />`
+              : `<div class="fs-prof-v3-av-ph">${esc((u.username || "?").slice(0, 1).toUpperCase())}</div>`
+          }
+          <i class="fs-prof-online" aria-hidden="true"></i>
+          <button class="fs-prof-edit" type="button" data-act="go-settings" title="${T("Ayarlar")}">${editIco}</button>
         </div>
-        <div class="fs-prof-bubble">${esc(dailyMessage(streak))}</div>
-      </div>
-      <div class="fs-prof-id">
-        <div class="fs-prof-name">${displayName}</div>
-        <div class="fs-prof-ccu">${ccu}</div>
-      </div>
-      <div class="fs-stat-row">
-        <div class="fs-stat">
-          <div class="fs-stat-val">${highRating}</div>
-          <div class="fs-stat-lab">${T("EN YÜKSEK")}</div>
+        <div class="fs-prof-idcol">
+          <div class="fs-prof-v3-name">${esc(u.username || "?")}</div>
+          <button class="fs-prof-v3-link" data-act="open-chesscom" data-user="${esc(ccUser)}">
+            Chess.com: ${esc(ccUser || "—")}
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 14 20 4"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/></svg>
+          </button>
+          <div class="fs-prof-badge">${
+            badgeIco
+              ? `<img src="${esc(badgeIco)}" alt="" />`
+              : "♞"
+          } ${esc(title)}</div>
         </div>
-        <div class="fs-stat">
-          <div class="fs-stat-val">🔥 ${streak}</div>
-          <div class="fs-stat-lab">${T("GÜNLÜK SERİ")}</div>
-        </div>
-        <div class="fs-stat">
-          <div class="fs-stat-val">${stats.total_games || 0}</div>
-          <div class="fs-stat-lab">${T("TOPLAM")}</div>
+        <div class="fs-prof-statcols">
+          <div class="fs-prof-statcol">
+            <div class="fs-prof-stat-ico pawn">♟</div>
+            <span class="lab">${T("Reyting")}</span><b>${esc(u.highest_rating || "—")}</b>
+            <div class="fs-v3-sub">Rapid</div>
+          </div>
+          <div class="fs-prof-statcol">
+            <div class="fs-prof-stat-ico shield">★</div>
+            <span class="lab">${T("Seviye")}</span><b>${level}</b>
+            <div class="fs-v3-sub">Knight</div>
+          </div>
+          <div class="fs-prof-statcol">
+            <div class="fs-prof-stat-ico flame">🔥</div>
+            <span class="lab">${T("Seri")}</span><b>${esc(u.streak_count || 0)}</b>
+            <div class="fs-v3-sub">${T("gün")}</div>
+          </div>
+          <div class="fs-prof-statcol fs-prof-xp">
+            <div class="fs-xp-ring" style="--fs-xp-pct:${Math.round((xpNow / xpMax) * 100)}">
+              <div><div class="xp-lab">XP</div><div class="xp-now">${xpNow.toLocaleString()}</div><div class="xp-max">/ ${xpMax.toLocaleString()}</div></div>
+            </div>
+          </div>
         </div>
       </div>
-      ${renderQuotaStrip()}
-      <div class="fs-section-title">
-        <span>${T("Son Oyunlar")}</span>
-        <button class="fs-link-btn" data-act="more-games">${T("Daha fazla →")}</button>
+      <div class="fs-prof-grid2">
+        <div class="fs-v3-card">
+          <div class="fs-identity-top">
+            <div>
+              <div class="fs-v3-kicker">${T("SATRANÇ KİMLİĞİN")}</div>
+              <div class="fs-v3-title">${esc(title)}</div>
+              <div class="fs-v3-sub">${T("Keskin, taktiksel pozisyonlarda büyüyorsun ve kazanma fırsatları yaratmayı seviyorsun. Oyunların aktif oyun ve saldırı fikirlerine güçlü bir yatkınlık gösteriyor.")}</div>
+            </div>
+            ${
+              knight
+                ? `<div class="fs-identity-art-wrap"><img class="fs-identity-art" src="${esc(knight)}" alt="" /></div>`
+                : ""
+            }
+          </div>
+          ${attrs
+            .map(
+              (a) => `
+            <div class="fs-attr-row">
+              <span class="fs-attr-ico" style="color:${a.color}">${a.ico || "•"}</span>
+              <span>${esc(a.lab)}</span>
+              ${attrSegHTML(a.score, a.color)}
+              <strong style="color:${a.color};font-size:11px;text-align:right">${esc(a.tone)}</strong>
+            </div>`,
+            )
+            .join("")}
+          <div class="fs-quote-box">“${T("Başkalarının kaçırdığı taktikleri görüyorsun. İçgüdülerine güvenmeye devam et.")}”</div>
+        </div>
+        <div class="fs-v3-card">
+          <div class="fs-v3-kicker">${T("BECERİLERİN")}</div>
+          ${skillList
+            .map(
+              (s) => `
+            <div class="fs-skill-list-row">
+              <div class="fs-skill-ico-wrap" style="--fs-skill-c:${s.color}">${skillIcon(s.id)}</div>
+              <div>
+                <div style="font-weight:800;font-size:12px">${esc(s.label)}</div>
+                <div class="fs-skill-bar" style="margin-top:6px"><i style="width:${s.score}%;background:${s.color}"></i></div>
+              </div>
+              <div style="text-align:right;color:${s.color}"><strong>${s.score}</strong><div class="fs-v3-sub">${esc(s.tone)}</div></div>
+            </div>`,
+            )
+            .join("")}
+          <button class="fs-btn-outline" data-act="go-progress" style="width:100%;margin-top:12px">${T("Tam Gelişimi Gör")} →</button>
+        </div>
       </div>
-      ${
-        recent.length
-          ? `<div class="fs-game-grid">${recent.map(gameThumbHTML).join("")}</div>`
-          : `<div class="fs-empty">${T("Henüz oyun çekilmedi.")}<br>${
-              window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
-                ? "You can link your Chess.com account from Settings."
-                : "Chess.com hesabını Ayarlar'dan bağlayabilirsin."
-            }</div>`
-      }
+      <div class="fs-v3-card" style="margin-top:14px">
+        <div class="fs-v3-kicker">${T("OYUNCU YOLCULUĞU")}</div>
+        <div class="fs-journey">
+          ${journey
+            .map(
+              (j) => `
+            <div class="fs-journey-item ${j.done ? "done" : ""} ${j.peak ? "peak" : ""}">
+              <div class="fs-journey-ico">${j.ico}</div>
+              <strong>${esc(j.title)}</strong>
+              <span class="fs-j-when">${j.when}</span>
+              <span class="fs-j-sub">${j.sub}</span>
+            </div>`,
+            )
+            .join("")}
+        </div>
+      </div>
+      <div class="fs-prof-grid2" style="margin-top:14px">
+        <div class="fs-v3-card">
+          <div class="fs-section-head">
+            <div class="fs-v3-kicker">${T("SON BAŞARILAR")}</div>
+            <button class="fs-link-gold" data-act="go-achievements">${T("Tümünü gör")}</button>
+          </div>
+          <div class="fs-ach-hex">
+            ${achShow
+              .map(
+                (a) => `
+              <div class="fs-ach-hex-item">
+                <div class="fs-ach-hex-ico" style="color:${a.color}">${a.ico}</div>
+                <small>${esc(a.lab)}</small>
+                ${a.sub ? `<span class="fs-ach-sub">${esc(a.sub)}</span>` : ""}
+              </div>`,
+              )
+              .join("")}
+          </div>
+        </div>
+        <div class="fs-v3-card fs-v3-coach-card" style="min-height:auto;padding:14px">
+          <img class="fs-v3-coach-av" src="${esc(coachAv)}" alt="" style="width:88px;height:88px;margin-left:-18px" />
+          <div class="fs-v3-coach-body">
+            <div class="fs-v3-kicker">${T("KOÇ ÖZETİ")}</div>
+            <div class="fs-v3-title" style="font-size:14px;font-family:inherit">${T('En iyi performansın <span class="fs-coach-hl">taktik orta oyunlarda</span>; zor açılışlardan sonra da toparlanıyorsun.')}</div>
+            <div class="fs-v3-sub" style="margin-top:6px">${T("Bir sonraki seviyeye ulaşmak için oyunsonu dönüşümüne odaklan.")}</div>
+            <button class="fs-btn-outline" data-act="go-coach" style="margin-top:10px">${T("Koç Planını Gör")} →</button>
+          </div>
+        </div>
+      </div>
+      <div class="fs-quote-banner" style="margin-top:14px">
+        <img src="${esc(v3Url("quote-cinematic-pieces.png"))}" alt="" />
+        <div class="fs-quote-txt">“${T("Satranç kimliğin gücündür. Yolculuğun hikâyendir.")}”<span class="fs-quote-sig">— ForkSight Coach</span></div>
+      </div>
     `;
   }
 
@@ -1344,8 +4551,8 @@
     let html = `
       <div class="fs-chips">
         ${chip("", T("Tümü"), "result")}
-        ${chip("win", T("Kazandı"), "result")}
-        ${chip("loss", T("Kaybetti"), "result")}
+        ${chip("win", T("Kazandıklarım"), "result")}
+        ${chip("loss", T("Kaybettiklerim"), "result")}
         ${chip("draw", T("Beraberlik"), "result")}
       </div>
       <div class="fs-chips">
@@ -1353,15 +4560,15 @@
         ${chip("bullet", "Bullet", "time_class")}
         ${chip("blitz", "Blitz", "time_class")}
         ${chip("rapid", "Rapid", "time_class")}
-        ${chip("daily", "Daily", "time_class")}
+        ${chip("daily", T("Günlük"), "time_class")}
+      </div>
+      <div class="fs-learn-box">
+        <strong>${T("Ne oldu?")}</strong><br/>
+        ${T("Bir oyunu açtığında hamle motoru yerine önce faz yıldızları, en büyük hata ve öğrenilecek dersi göreceksin.")}
       </div>
     `;
     if (!g.items.length) {
-      html += `<div class="fs-empty">${
-        window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
-          ? "No matching games."
-          : "Eşleşen oyun yok."
-      }</div>`;
+      html += `<div class="fs-empty">${T("Eşleşen oyun yok.")}</div>`;
     } else {
       html += `<div class="fs-game-grid">${g.items.map(gameThumbHTML).join("")}</div>`;
       if (g.hasMore) {
@@ -1627,7 +4834,7 @@
       <div class="fs-chap">
         <div class="fs-chap-num">02</div>
         <div class="fs-chap-text">
-          <div class="fs-chap-title">${T("Faz Analizi")}</div>
+          <div class="fs-chap-title">${T("Ne oldu?")}</div>
           <div class="fs-chap-sub">${T("Açılış · Orta · Son oyun")}</div>
         </div>
       </div>
@@ -1704,7 +4911,7 @@
         <div class="fs-quiz-daily-sub">${esc(streakMsg)} · ${T("En iyi")}: ${esc(bestDayStreak)} ${dueChip}</div>
       </div>
       <div class="fs-quiz-stats">
-        <div class="fs-quiz-stat"><div class="fs-quiz-stat-val">${esc(s.rating ?? 1200)}<span class="fs-quiz-rd">±${esc(Math.round(s.rd ?? 350))}</span></div><div class="fs-quiz-stat-lab">${T("Rating")}</div></div>
+        <div class="fs-quiz-stat"><div class="fs-quiz-stat-val">${esc(s.rating ?? 1200)}<span class="fs-quiz-rd">±${esc(Math.round(s.rd ?? 350))}</span></div><div class="fs-quiz-stat-lab">${T("Reyting")}</div></div>
         <div class="fs-quiz-stat"><div class="fs-quiz-stat-val">${esc(s.streak ?? 0)}</div><div class="fs-quiz-stat-lab">${T("Seri")}</div></div>
         <div class="fs-quiz-stat"><div class="fs-quiz-stat-val">${esc(s.best_streak ?? 0)}</div><div class="fs-quiz-stat-lab">${T("En İyi")}</div></div>
         <div class="fs-quiz-stat"><div class="fs-quiz-stat-val">${esc(s.solved_cnt ?? 0)}</div><div class="fs-quiz-stat-lab">${T("Çözüm")}</div></div>
@@ -1875,22 +5082,132 @@
     }
 
     return `
-      <div class="fs-quiz-lobby">
-        <div class="fs-quiz-lobby-head">
-          <div class="fs-quiz-lobby-title">🧩 ${T("Bulmacalar")}</div>
-          <div class="fs-quiz-lobby-sub">${esc(lobbyMsg)}</div>
+      <div class="fs-v3-card fs-mission-card" style="margin-bottom:14px;--fs-mission-url:url('${esc(v3Url("hero-daily-mission.png"))}')">
+        <div class="fs-mission-hero">
+          <div>
+            <div class="fs-v3-kicker" style="color:var(--fs-tactics)">${T("GÜNLÜK GÖREV")}</div>
+            <div class="fs-v3-title" style="font-size:22px">${T("Günlük Görev")}</div>
+            <div class="fs-v3-sub" style="margin-bottom:4px">${T("Antrenmanını tamamla ve seviye atla!")}</div>
+            <ul class="fs-mission-list">
+              <li class="${hasPuzzles ? "done" : ""}"><span class="fs-mission-ico" style="color:var(--fs-tactics)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 4h8l1 4H7l1-4z"/><path d="M12 8v10"/><path d="M9 18h6"/><circle cx="12" cy="14" r="2.2"/></svg></span>${T("5 Taktik Bulmaca")}</li>
+              <li><span class="fs-mission-ico" style="color:var(--fs-opening)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><path d="M12 4v3M19 12h-3"/></svg></span>${T("3 Hata Tekrarı")}</li>
+              <li><span class="fs-mission-ico" style="color:var(--fs-calc)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 12h5M8 15h6"/></svg></span>${T("1 Oyun İncelemesi")}</li>
+            </ul>
+          </div>
+          <div class="fs-mission-mid">
+            <div class="fs-ring" style="--fs-ring-pct:${Math.max(8, Math.min(100, Math.round((total ? Math.min(total, 9) : 0) / 9 * 100)))}%">
+              <span><b>${Math.min(total, 9)} / 9</b>${T("tamamlandı")}</span>
+            </div>
+            <button class="fs-btn-gold" data-quiz-act="start" ${startDisabled}>${T("Antrenmana Devam →")}</button>
+          </div>
+          <div aria-hidden="true"></div>
         </div>
-        ${renderQuizStatsGrid()}
+      </div>
+      <div class="fs-v3-kicker" style="margin:4px 2px 6px">${T("ANTRENMAN KATEGORİLERİ")}</div>
+      <div class="fs-cat-grid" style="margin-bottom:12px">
+        <button class="fs-cat-card" data-quiz-act="start" ${startDisabled}>
+          <div class="fs-cat-name" style="color:var(--fs-tactics)"><img src="${esc(v3Url("ico-tactics.svg"))}" alt="" />${T("Taktik")}</div>
+          <img src="${esc(v3Url("cat-tactics-knight-cut.png"))}" alt="" />
+          <div class="fs-cat-score">82 <span class="fs-cat-tone" style="color:var(--fs-tactics)">${T("Güçlü")}</span></div>
+          <div class="fs-cat-bar"><i style="width:82%;background:var(--fs-tactics)"></i></div>
+          <div class="fs-cat-meta">124 / 150 ${T("çözüldü")}</div>
+          <div class="fs-cat-cta">${T("Antrenmana Başla →")}</div>
+        </button>
+        <button class="fs-cat-card" data-act="go-coach">
+          <div class="fs-cat-name" style="color:var(--fs-opening)"><img src="${esc(v3Url("ico-opening.svg"))}" alt="" />${T("Açılış")}</div>
+          <img src="${esc(v3Url("cat-opening-royalty-cut.png"))}" alt="" />
+          <div class="fs-cat-score">64 <span class="fs-cat-tone" style="color:var(--fs-opening)">${T("Gelişiyor")}</span></div>
+          <div class="fs-cat-bar"><i style="width:48%;background:var(--fs-opening)"></i></div>
+          <div class="fs-cat-meta">48 / 100 ${T("çalışıldı")}</div>
+          <div class="fs-cat-cta">${T("Çalış →")}</div>
+        </button>
+        <button class="fs-cat-card" data-quiz-act="start" ${startDisabled}>
+          <div class="fs-cat-name" style="color:var(--fs-calc)"><img src="${esc(v3Url("ico-calculation.svg"))}" alt="" />${T("Hesap")}</div>
+          <img src="${esc(v3Url("cat-calculation-cut.png"))}" alt="" />
+          <div class="fs-cat-score">71 <span class="fs-cat-tone" style="color:var(--fs-calc)">${T("İyi")}</span></div>
+          <div class="fs-cat-bar"><i style="width:63%;background:var(--fs-calc)"></i></div>
+          <div class="fs-cat-meta">76 / 120 ${T("çözüldü")}</div>
+          <div class="fs-cat-cta">${T("Antrenman →")}</div>
+        </button>
+        <button class="fs-cat-card" data-quiz-act="start" ${startDisabled}>
+          <div class="fs-cat-name" style="color:var(--fs-accent)"><img src="${esc(v3Url("ico-endgame.svg"))}" alt="" />${T("Oyunsonu")}</div>
+          <img src="${esc(v3Url("cat-endgame-cut.png"))}" alt="" />
+          <div class="fs-cat-score">56 <span class="fs-cat-tone" style="color:var(--fs-accent)">${T("İyileşiyor")}</span></div>
+          <div class="fs-cat-bar"><i style="width:32%;background:var(--fs-accent)"></i></div>
+          <div class="fs-cat-meta">32 / 100 ${T("pratik")}</div>
+          <div class="fs-cat-cta">${T("Pratik →")}</div>
+        </button>
+        <button class="fs-cat-card" data-act="go-games">
+          <div class="fs-cat-name" style="color:#22d3ee"><img src="${esc(v3Url("ico-consistency.svg"))}" alt="" />${T("Hata Tekrarı")}</div>
+          <img src="${esc(v3Url("cat-mistake-lens-cut.png"))}" alt="" />
+          <div class="fs-cat-score">78 <span class="fs-cat-tone" style="color:#22d3ee">${T("İyi")}</span></div>
+          <div class="fs-cat-bar"><i style="width:61%;background:#22d3ee"></i></div>
+          <div class="fs-cat-meta">61 / 100 ${T("incelendi")}</div>
+          <div class="fs-cat-cta">${T("İncele →")}</div>
+        </button>
+      </div>
+      <div class="fs-v3-grid fs-v3-grid-2" style="margin-bottom:14px">
+        <div class="fs-v3-card fs-revisit-wrap">
+          <div class="fs-v3-kicker">${T("TEKRAR ET")}</div>
+          <div class="fs-v3-title" style="font-size:15px;font-family:inherit">${T("Tekrar Etmen Gereken Pozisyonlar")}</div>
+          ${revisitRowsHTML(
+            (cache.profile && cache.profile.recent_games) ||
+              cache.games.items ||
+              [],
+          )}
+          <img class="fs-revisit-atmos" src="${esc(v3Url("sidebar-atmos-pawn-cutout.png") || v3Url("sidebar-atmos-pawn-cut.png"))}" alt="" />
+        </div>
+        <div class="fs-v3-card">
+          <div class="fs-v3-kicker">${T("ÖNERİLEN")}</div>
+          <div class="fs-v3-title" style="font-size:15px;font-family:inherit">${T("Senin İçin Önerilen")}</div>
+          ${recommendedRowsHTML(startDisabled)}
+        </div>
+      </div>
+      <div class="fs-v3-card">
+        <div class="fs-footer-xp">
+          <div>
+            <div class="fs-v3-kicker">${T("BUGÜNÜN İLERLEMESİ")}</div>
+            <div class="fs-v3-title" style="font-size:16px;font-family:inherit">◎ ${T("Devam et!")}</div>
+            <div class="fs-v3-sub">${esc(lobbyMsg)}</div>
+          </div>
+          <div class="fs-chest-track">
+            <div class="fs-chest-item done">
+              <img src="${esc(v3Url(hasPuzzles ? "chest-open-cut.png" : "chest-closed-cut.png"))}" alt="" />
+              <span>250 XP</span>
+            </div>
+            <div class="fs-chest-item">
+              <img src="${esc(v3Url("chest-closed-cut.png"))}" alt="" />
+              <span>500 XP</span>
+            </div>
+            <div class="fs-chest-item">
+              <img src="${esc(v3Url("chest-closed-cut.png"))}" alt="" />
+              <span>750 XP</span>
+            </div>
+            <div class="fs-chest-item">
+              <img src="${esc(v3Url("chest-closed-cut.png"))}" alt="" />
+              <span>1000 XP</span>
+            </div>
+          </div>
+          <div class="fs-today-xp">
+            <strong>${Math.min(1199, (Number((cache.profile && cache.profile.user && cache.profile.user.streak_count) || 0) * 80 + 400))} / 1200 XP</strong>
+            <div class="fs-skill-bar"><i style="width:${Math.min(100, Math.round(((Number((cache.profile && cache.profile.user && cache.profile.user.streak_count) || 0) * 80 + 400) / 1200) * 100))}%;background:linear-gradient(90deg,#a78bfa,#60a5fa)"></i></div>
+            <div class="fs-v3-sub" style="margin-top:6px">${T("Bugünün XP'si")}</div>
+          </div>
+        </div>
+      </div>
+      <details style="margin-top:10px">
+        <summary style="cursor:pointer;color:var(--fs-text-dim);font-size:12px;font-weight:700">${T("Geçmiş Denemeler")}</summary>
+        <div class="fs-quiz-lobby-slim" style="display:flex!important;opacity:0.85;margin-top:8px">
+          <span>${T("Bulmaca motoru")}: ${esc(lobbyMsg)}</span>
+          <div style="display:flex;gap:8px">
+            <button class="fs-btn-sm gold" data-quiz-act="start" ${startDisabled}>${startBtnLabel}</button>
+            <button class="fs-btn-sm" data-quiz-act="backfill" ${bfDisabled}>${bfLabel}</button>
+          </div>
+        </div>
         ${dailyHtml}
         ${themeBanner}
-        ${progressHtml}
-        <div class="fs-quiz-lobby-actions">
-          <button class="fs-btn fs-quiz-start" data-quiz-act="start" ${startDisabled}>${startBtnLabel}</button>
-          <button class="fs-btn fs-ghost" data-quiz-act="backfill" ${bfDisabled}>${bfLabel}</button>
-        </div>
-        <div class="fs-quiz-section-title">${T("Geçmiş Denemeler")}</div>
-        <div class="fs-quiz-history">${histHtml}</div>
-      </div>
+        <div class="fs-quiz-history" style="margin-top:8px">${histHtml}</div>
+      </details>
     `;
   }
 
@@ -1987,9 +5304,34 @@
           .split(/\s+/)
           .filter(Boolean)[0] || ""
       : "";
-    const flashHtml = p.flash.msg
-      ? `<div class="fs-quiz-flash fs-${p.flash.kind}">${esc(p.flash.msg)}</div>`
-      : `<div class="fs-quiz-flash"></div>`;
+    const used = Number(p.usedHint) || 0;
+    const settled = !!(p.result && p.result.settled);
+    const hintBtns = [1, 2, 3]
+      .map((lv) => {
+        let disabled = isLichess || settled;
+        let cls = "fs-quiz-hint-btn";
+        let title = T("İpucu") + " " + lv;
+        if (!isLichess && !settled) {
+          if (lv <= used) {
+            cls += " fs-active";
+            disabled = true;
+            title = T("İpucu alındı");
+          } else if (lv === used + 1) {
+            disabled = false;
+            title = T("İpucu") + " " + lv;
+          } else {
+            disabled = true;
+            title = T("Önce ipucu {n}").replace("{n}", String(lv - 1));
+          }
+        }
+        return `<button class="${cls}" data-quiz-hint="${lv}" title="${esc(title)}" ${disabled ? "disabled" : ""}>💡 ${lv}</button>`;
+      })
+      .join("");
+    const flashHtml = settled
+      ? _renderQuizOutcomeCard(p.result)
+      : p.flash.msg
+        ? `<div class="fs-quiz-flash fs-${p.flash.kind}">${esc(p.flash.msg)}</div>`
+        : `<div class="fs-quiz-flash"></div>`;
     const srcMeta = isLichess
       ? T("Kaynak") +
         ": Lichess" +
@@ -2005,6 +5347,14 @@
           " " +
           pz.source_ply
         : "";
+    const coachMood = settled
+      ? p.result.correct
+        ? "happy"
+        : "worried"
+      : "thinking";
+    const coachText = settled
+      ? p.result.phrase || (p.result.correct ? T("Aferin, doğru hamle!") : T("Yanlış. Tekrar dene."))
+      : headline;
 
     return `
       <div class="fs-quizv2">
@@ -2016,30 +5366,26 @@
             <span class="fs-quiz-chip">${esc(sideLabel)}</span>
             ${pz.rating != null ? `<span class="fs-quiz-chip">${T("Zorluk")} ${esc(pz.rating)}</span>` : ""}
             ${!isLichess && pz.played_cnt === 0 ? `<span class="fs-quiz-chip fs-quiz-chip-new">${T("YENİ")}</span>` : ""}
-            <span class="fs-quiz-chip fs-quiz-chip-reward">+${pts} ${T("puan")}</span>
+            <span class="fs-quiz-chip fs-quiz-chip-reward" data-quiz-reward>+${pts} ${T("puan")}</span>
             <span class="fs-quiz-chip fs-quiz-chip-timer" data-quiz-timer>0.0s</span>
           </div>
-          <div class="fs-quizv2-hintbtns">
-            <button class="fs-quiz-hint-btn" data-quiz-hint="1" title="${T("İpucu")} 1" ${isLichess ? "disabled" : ""}>💡 1</button>
-            <button class="fs-quiz-hint-btn" data-quiz-hint="2" title="${T("İpucu")} 2" ${isLichess ? "disabled" : ""}>💡 2</button>
-            <button class="fs-quiz-hint-btn" data-quiz-hint="3" title="${T("İpucu")} 3" ${isLichess ? "disabled" : ""}>💡 3</button>
-          </div>
+          <div class="fs-quizv2-hintbtns">${hintBtns}</div>
         </div>
         <div class="fs-quizv2-body">
           <div class="fs-quizv2-board" data-quiz-board></div>
           <aside class="fs-quizv2-side">
             <div class="fs-quizv2-coach">
-              <img class="fs-quizv2-coach-av" src="${_avatarUrl("thinking")}" alt="" />
+              <img class="fs-quizv2-coach-av" src="${_avatarUrl(coachMood)}" alt="" />
               <div class="fs-quizv2-coach-bubble">
                 <div class="fs-quizv2-coach-title">${T("Bulmaca")}</div>
-                <div class="fs-quizv2-coach-text">${esc(headline)}</div>
+                <div class="fs-quizv2-coach-text">${esc(coachText)}</div>
               </div>
             </div>
             <div class="fs-quizv2-section">${T("HAMLELER")}</div>
             ${_renderMovesList(pz.history_san || [], pz.side_to_move)}
             <div class="fs-quizv2-hintstatus" data-quiz-hint-status></div>
             ${flashHtml}
-            <div class="fs-quizv2-actions">
+            <div class="fs-quizv2-actions" ${settled ? 'style="display:none"' : ""}>
               <button class="fs-btn fs-ghost" data-quiz-skip>${T("Atla")}</button>
               ${!isLichess ? `<button class="fs-btn fs-ghost" data-quiz-act="share" title="${T("Twitter'da paylaş")}">🔗 ${T("Paylaş")}</button>` : ""}
               <button class="fs-btn" data-quiz-submit style="display:none">${T("Cevapla")}</button>
@@ -2210,7 +5556,7 @@
     } catch (_) {
       cache.achievements = { items: [], earned_count: 0, total_count: 0 };
     }
-    if (activeTab === "achievements") renderActive();
+    if (activeTab === "achievements" || activeTab === "profile") renderActive();
   }
 
   // ─── Faz 3.1: Liderlik tab ───────────────────────────
@@ -2248,91 +5594,391 @@
   ];
 
   function renderLeaderboardTab() {
-    const lang =
-      window.ForkSightI18n && window.ForkSightI18n.getLang() === "tr"
-        ? "tr"
-        : "en";
     const lb = cache.leaderboard;
-    const tabs = _LB_METRICS
-      .map((m) => {
-        const lab = lang === "tr" ? m.trLabel : m.enLabel;
-        const cls = m.id === lb.metric ? "fs-lb-tab fs-active" : "fs-lb-tab";
-        return `<button class="${cls}" data-lb-metric="${m.id}">${esc(lab)}</button>`;
-      })
-      .join("");
-
     if (lb.loading || !lb.data) {
-      if (!lb.data && !lb.loading) loadLeaderboard(lb.metric);
-      return `
-        <div class="fs-lb-tabs">${tabs}</div>
-        ${renderLoading()}
-      `;
+      if (!lb.data && !lb.loading) loadLeaderboard(lb.metric || "points");
+      return renderLoading();
     }
-    const cfg = _LB_METRICS.find((x) => x.id === lb.metric) || _LB_METRICS[0];
-    const data = lb.data;
-    const me = data.me || {};
-    const meBlock = me.rank
-      ? `
-        <div class="fs-lb-me">
-          <div class="fs-lb-me-rank">#${me.rank}</div>
-          <div class="fs-lb-me-name">${esc(me.username || T("Sen"))}</div>
-          <div class="fs-lb-me-val">${cfg.fmt(me.value || 0)}</div>
-        </div>
-      `
-      : `<div class="fs-empty" style="margin-bottom:10px">${T("Henüz sıralamada değilsin.")}</div>`;
-
-    const rows = (data.top || [])
-      .map((u) => {
-        const rankCls =
-          u.rank === 1
-            ? "fs-lb-rank fs-lb-rank-1"
-            : u.rank === 2
-              ? "fs-lb-rank fs-lb-rank-2"
-              : u.rank === 3
-                ? "fs-lb-rank fs-lb-rank-3"
-                : "fs-lb-rank";
-        const rowCls = u.is_me ? "fs-lb-row fs-lb-me-row" : "fs-lb-row";
+    const u = (cache.profile && cache.profile.user) || {};
+    const puzzleStats = (cache.puzzles && cache.puzzles.stats) || {};
+    const meEarly = (lb.data && lb.data.me) || {};
+    // Arena lig/sıra = ForkSight bulmaca reytingi; chess.com ayrı
+    const fsRating =
+      Number(meEarly.rating) ||
+      Number(puzzleStats.rating) ||
+      1200;
+    const chessComRating =
+      meEarly.chess_com_rating != null
+        ? Number(meEarly.chess_com_rating)
+        : Number(u.highest_rating) || null;
+    const apiLeague = (lb.data && lb.data.league) || {};
+    const bands = [
+      { id: "bronze", label: T("Bronz"), min: 0, max: 1199, ico: "🥉", range: "0-1199" },
+      { id: "silver", label: T("Gümüş"), min: 1200, max: 1599, ico: "🥈", range: "1200-1599" },
+      { id: "gold", label: T("Gold"), min: 1600, max: 1999, ico: "🥇", range: "1600-1999" },
+      { id: "diamond", label: T("Diamond"), min: 2000, max: 2399, ico: "💎", range: "2000-2399" },
+      { id: "master", label: T("Usta"), min: 2400, max: 99999, ico: "👑", range: "2400+" },
+    ];
+    const leagueMeta =
+      bands.find((x) => x.id === apiLeague.id) || leagueFromRating(fsRating);
+    const leagues = bands.map((b) => ({
+      id: b.id,
+      label: b.label,
+      range: b.range,
+      ico: b.ico,
+    }));
+    const top = lb.data.top || [];
+    const me = lb.data.me || {};
+    const fsName = u.username || me.username || T("Sen");
+    const myAvatar = u.chess_com_avatar || me.avatar || "";
+    const myFsPoints =
+      me.points != null
+        ? Number(me.points)
+        : Number(me.value) || Number(puzzleStats.total_points) || 0;
+    const meInTop =
+      top.find((x) => x.is_me) ||
+      (me.user_id != null
+        ? top.find((x) => Number(x.user_id) === Number(me.user_id))
+        : null);
+    const myRankRaw = Number(me.rank) || Number(meInTop && meInTop.rank);
+    const myRank =
+      Number.isFinite(myRankRaw) && myRankRaw > 0 ? myRankRaw : null;
+    const pool = Number(apiLeague.pool_size) || Math.max(top.length, 1);
+    const percentile = Number(apiLeague.percentile);
+    const weekXp = Math.max(
+      0,
+      Number.isFinite(myFsPoints) ? myFsPoints : weeklyXpFromCache(u),
+    );
+    const weekGoal = 2000;
+    const pctBar = Math.min(100, Math.round((weekXp / weekGoal) * 100));
+    const canOpenChest = weekXp >= weekGoal;
+    const chestOpened = !!cache.arenaChest.opened;
+    const unlocked = canOpenChest || chestOpened;
+    const chestSrc = v3Url(
+      chestOpened ? "chest-open-cut.png" : "chest-closed-cut.png",
+    );
+    const nextLeague = (() => {
+      const order = ["bronze", "silver", "gold", "diamond", "master"];
+      const i = order.indexOf(leagueMeta.id);
+      if (i < 0 || i >= order.length - 1) return null;
+      return bands.find((x) => x.id === order[i + 1]) || null;
+    })();
+    const endsIn = (() => {
+      const now = new Date();
+      const day = now.getUTCDay();
+      const daysToMon = (8 - day) % 7 || 7;
+      const end = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate() + daysToMon,
+          0,
+          0,
+          0,
+        ),
+      );
+      const ms = end - now;
+      const d = Math.floor(ms / 86400000);
+      const h = Math.floor((ms % 86400000) / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      return `${d}d ${h}h ${m}m`;
+    })();
+    const lbAvatarHTML = (url, name) => {
+      if (url) {
+        return `<img class="fs-recent-av" src="${esc(url)}" alt="" />`;
+      }
+      return `<div class="fs-recent-av placeholder">${esc((name || "?").slice(0, 1).toUpperCase())}</div>`;
+    };
+    const isMeRow = (row) =>
+      !!row &&
+      (!!row.is_me ||
+        (me.user_id != null && Number(row.user_id) === Number(me.user_id)) ||
+        String(row.username || "").toLowerCase() ===
+          String(u.username || "").toLowerCase());
+    const rows = top
+      .slice(0, 10)
+      .map((row, idx) => {
+        const rank = row.rank || idx + 1;
         const medal =
-          u.rank === 1
-            ? "🥇 "
-            : u.rank === 2
-              ? "🥈 "
-              : u.rank === 3
-                ? "🥉 "
-                : "";
+          rank === 1
+            ? "👑"
+            : rank === 2
+              ? "🥈"
+              : rank === 3
+                ? "🥉"
+                : String(rank);
+        const mine = isMeRow(row);
+        const displayName = mine ? fsName : row.username || "—";
+        const avUrl = mine ? myAvatar || row.avatar : row.avatar;
+        const delta = mine ? 2 : rank % 3 === 0 ? -1 : 1;
         return `
-        <div class="${rowCls}">
-          <div class="${rankCls}">${medal}${u.rank}</div>
-          <div class="fs-lb-name">${esc(u.username || "—")}</div>
-          <div class="fs-lb-val">${cfg.fmt(u.value || 0)}</div>
-        </div>
-      `;
+        <div class="fs-lb-row-v3 ${mine ? "me" : ""}">
+          <div class="rank">${medal}<span class="${delta >= 0 ? "fs-delta-up" : "fs-delta-dn"}" style="margin-left:2px;font-size:10px">${delta >= 0 ? "↑" : "↓"}${Math.abs(delta)}</span></div>
+          ${lbAvatarHTML(avUrl, displayName)}
+          <div class="name" style="font-weight:700">${esc(displayName)}${mine ? ` (${T("Sen")})` : ""}</div>
+          <div style="color:var(--fs-text-dim)">${esc(row.rating || (mine ? fsRating : null) || "—")}</div>
+          <div class="xp" style="text-align:right;font-weight:800">
+            ${Math.round(
+              row.points != null
+                ? row.points
+                : lb.metric === "points"
+                  ? row.value || 0
+                  : 0,
+            ).toLocaleString()}<span class="fs-lb-xp-pill">XP</span>
+          </div>
+        </div>`;
       })
       .join("");
+    const around = [];
+    if (myRank != null) {
+      for (let r = Math.max(1, myRank - 2); r <= myRank + 2; r++) {
+        const hit = top.find((x) => Number(x.rank) === r);
+        // Yalnızca gerçek ben satırı — başka oyuncunun sırasına Jurry yapıştırma
+        const useMe = isMeRow(hit) || (r === myRank && !hit);
+        around.push({
+          rank: r,
+          username: useMe ? fsName : (hit && hit.username) || `Player${r}`,
+          avatar: useMe ? myAvatar : (hit && hit.avatar) || "",
+          rating: useMe ? fsRating : (hit && (hit.rating || "—")) || "—",
+          xp: useMe
+            ? Math.round(myFsPoints)
+            : hit
+              ? Math.round(
+                  hit.points != null ? hit.points : hit.value || 0,
+                )
+              : 0,
+          me: useMe,
+          delta: useMe ? 2 : r < myRank ? 1 : -1,
+        });
+      }
+    } else {
+      around.push({
+        rank: "—",
+        username: fsName,
+        avatar: myAvatar,
+        rating: fsRating,
+        xp: Math.round(myFsPoints),
+        me: true,
+        delta: 0,
+      });
+    }
+    const stats = (cache.profile && cache.profile.stats) || {};
+    const gamesN = Number(stats.total_games) || 0;
+    const wins = Number(stats.wins) || 0;
+    const losses = Number(stats.losses) || 0;
+    const draws = Math.max(0, gamesN - wins - losses);
+    const puzzles = Number(
+      (cache.puzzles.stats && cache.puzzles.stats.solved) || 0,
+    );
+    const standingsBanner = (() => {
+      if (myRank == null || !pool) return T("Henüz sıralamada değilsin.");
+      const p =
+        Number.isFinite(percentile) && percentile > 0
+          ? percentile
+          : Math.max(1, Math.min(100, Math.round((100 * myRank) / pool)));
+      return T("{league} Lig'in ilk %{pct}'indesin!")
+        .replace("{league}", leagueMeta.label)
+        .replace("{pct}", String(p));
+    })();
+    const progressSub = nextLeague
+      ? `${Math.max(0, weekGoal - weekXp).toLocaleString()} XP ${T("{league} Lig'e ulaşmak için").replace("{league}", nextLeague.label)}`
+      : T("En üst ligdesin — zirveyi koru!");
+    const pathFrom = leagueMeta;
+    const pathTo = nextLeague || leagueMeta;
 
     return `
-      <div class="fs-lb-tabs">${tabs}</div>
-      ${meBlock}
-      <div class="fs-lb-table">
-        ${rows || `<div class="fs-empty" style="padding:20px">${T("Veri yok.")}</div>`}
+      <div class="fs-arena-league-bar">
+        <div class="fs-arena-league-main">
+          <div class="shield"><img src="${esc(v3Url("logo-knight-gold-cut.png"))}" alt="" /></div>
+          <div>
+            <div class="fs-v3-kicker">${T("Güncel Lig")}</div>
+            <div class="fs-v3-title" style="font-size:22px;margin:0">${esc(leagueMeta.label)} ${T("Lig")}</div>
+            <div class="fs-v3-sub">🏆 ${leagueMeta.min} – ${leagueMeta.max > 9000 ? "∞" : leagueMeta.max}</div>
+          </div>
+        </div>
+        <div>
+          <div class="fs-v3-kicker">${T("Sıralaman")}</div>
+          <div class="fs-v3-title" style="font-size:28px;margin:0">#${myRank != null ? myRank : "—"}</div>
+          <div class="fs-v3-sub">${T("{n} oyuncu arasından").replace("{n}", String(pool))}</div>
+        </div>
+        <div>
+          <div class="fs-v3-kicker">${T("Bu Haftanın XP'si")}</div>
+          <div class="fs-v3-title" style="font-size:28px;margin:0">${weekXp.toLocaleString()}<span class="fs-xp-pill">XP</span></div>
+          <div class="fs-v3-sub">${
+            Number.isFinite(percentile) && percentile > 0
+              ? T("Bu hafta ilk %{pct}").replace("{pct}", String(percentile))
+              : T("Lig sıralaman güncellenir")
+          }</div>
+        </div>
+        <div>
+          <div class="fs-v3-kicker">${T("Lig Bitişine")}</div>
+          <div class="fs-v3-title" style="font-size:20px;margin:0">⏳ ${endsIn}</div>
+          <div class="fs-v3-sub">${T("Daha çok oyna, sıralamada yüksel!")}</div>
+        </div>
+      </div>
+      <div class="fs-arena-mid">
+        <div class="fs-v3-card">
+          <div class="fs-section-head">
+            <div class="fs-v3-kicker">${esc(leagueMeta.label.toUpperCase())} ${T("LİDERLİK TABLOSU")}</div>
+            <button class="fs-link-gold" data-lb-metric="points">${T("Tam Liderlik Tablosu")} →</button>
+          </div>
+          ${rows || `<div class="fs-empty">${T("Veri yok.")}</div>`}
+          <div style="margin-top:10px;padding:10px;border-radius:10px;background:rgba(61,214,140,0.08);color:var(--fs-tactics);font-size:12px;font-weight:700">
+            🏆 ${esc(standingsBanner)}
+          </div>
+        </div>
+        <div class="fs-v3-card">
+          <div class="fs-v3-kicker">${T("LİG İLERLEMESİ")}</div>
+          <div class="fs-v3-title" style="font-size:18px;font-family:inherit">${weekXp.toLocaleString()} / ${weekGoal.toLocaleString()} <span style="color:#a855f7;font-size:12px">XP</span></div>
+          <div class="fs-v3-sub">${progressSub}</div>
+          <div class="fs-prog-goal">
+            <div class="fs-skill-bar"><i style="width:${pctBar}%;background:linear-gradient(90deg,#a78bfa,#ec4899)"></i></div>
+            <span class="goal-ico" aria-hidden="true">🥇</span>
+          </div>
+          <div class="fs-league-path">
+            <div class="fs-league-node silver">
+              <img src="${esc(v3Url("cat-tactics-knight-cut.png") || v3Url("logo-knight-gold-cut.png"))}" alt="" />
+              <span>${esc(pathFrom.label)} ${pathFrom.min}</span>
+            </div>
+            <div class="fs-league-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="fs-league-node gold">
+              <img src="${esc(v3Url("logo-knight-gold-cut.png"))}" alt="" />
+              <span>${esc(pathTo.label)} ${!nextLeague && pathTo.id === "master" ? "∞" : pathTo.min}</span>
+            </div>
+          </div>
+          <button class="fs-btn-outline" data-act="arena-how" style="width:100%;margin-top:10px">? ${T("Ligler Nasıl İşler")}</button>
+        </div>
+      </div>
+      <div class="fs-v3-card" style="margin-bottom:14px">
+        <div class="fs-section-head">
+          <div class="fs-v3-kicker" style="color:var(--fs-text-dim)">${T("BU HAFTANIN YARIŞMASI")}</div>
+        </div>
+        <div class="fs-comp-with-chest">
+          <div class="fs-comp-grid">
+            <div class="fs-comp-cell"><div class="fs-comp-ico">⚔</div><b>${weekXp.toLocaleString()}</b><span>${T("Haftalık XP")}</span><small>${T("Lig puanın")}</small></div>
+            <div class="fs-comp-cell"><div class="fs-comp-ico">🎮</div><b>${gamesN}</b><span>${T("Oynanan Oyun")}</span><small>${wins} ${T("Galibiyet")} · ${losses} ${T("Mağlubiyet")} · ${draws} ${T("Beraberlik")}</small></div>
+            <div class="fs-comp-cell"><div class="fs-comp-ico">🧩</div><b>${puzzles}</b><span>${T("Çözülen Bulmaca")}</span><small>${T("Antrenman")}</small></div>
+            <div class="fs-comp-cell"><div class="fs-comp-ico">🏆</div><b>#${myRank != null ? myRank : "—"}</b><span>${T("Güncel Sıra")}</span><small>${esc(leagueMeta.label)} · ${pool} ${T("oyuncu")}</small></div>
+          </div>
+          <div class="fs-weekly-chest ${unlocked ? "unlocked" : ""}" data-act="arena-chest">
+            <div class="fs-v3-kicker" style="color:var(--fs-text-dim)">${T("HAFTALIK ÖDÜL SANDIĞI")}</div>
+            <img src="${esc(chestSrc)}" alt="" />
+            <div>
+              <div class="fs-v3-title" style="font-size:13px;font-family:inherit;font-weight:600">${
+                chestOpened
+                  ? T("Ödül alındı")
+                  : canOpenChest
+                    ? T("Sandık açıldı — aç!")
+                    : T("Açmak için 2.000 XP kazan")
+              }</div>
+              <div class="fs-chest-bar" aria-hidden="true">
+                <i style="width:${pctBar}%"></i>
+                <em>${weekXp.toLocaleString()} / ${weekGoal.toLocaleString()} XP</em>
+              </div>
+              ${
+                canOpenChest && !chestOpened
+                  ? `<button class="fs-btn-gold" style="margin-top:10px" data-act="arena-chest">${T("Sandığı Aç")}</button>`
+                  : ""
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fs-prof-grid2">
+        <div class="fs-v3-card">
+          <div class="fs-section-head">
+            <div class="fs-v3-kicker">${T("ÇEVRENDEKİ OYUNCULAR")}</div>
+            <button class="fs-link-gold" data-lb-metric="points">${T("Tümünü gör")} →</button>
+          </div>
+          ${around
+            .map(
+              (a) => `
+            <div class="fs-lb-row-v3 ${a.me ? "me" : ""}">
+              <div class="rank">${a.rank}</div>
+              ${
+                a.avatar
+                  ? `<img class="fs-recent-av" src="${esc(a.avatar)}" alt="" />`
+                  : `<div class="fs-recent-av placeholder">${esc((a.username || "?").slice(0, 1).toUpperCase())}</div>`
+              }
+              <div class="name" style="font-weight:700">${esc(a.username)}${a.me ? ` (${T("Sen")})` : ""}</div>
+              <div style="color:var(--fs-text-dim)">${esc(a.rating)}</div>
+              <div class="xp" style="text-align:right">${a.xp} <span class="${a.delta >= 0 ? "fs-delta-up" : "fs-delta-dn"}">${a.delta >= 0 ? "↑" : "↓"}</span></div>
+            </div>`,
+            )
+            .join("")}
+          <div class="fs-v3-card" style="margin-top:10px;padding:12px;background:rgba(245,197,66,0.06)">
+            <div style="display:flex;gap:10px;align-items:center">
+              <div style="font-size:22px">♞</div>
+              <div class="fs-v3-sub" style="color:var(--fs-text)">${T("Harika gidiyorsun! Oynamaya devam et, bu hafta ilk 5'e girebilirsin.")}</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="fs-v3-card">
+            <div class="fs-v3-kicker">${T("LİG YAPISI")}</div>
+            <div class="fs-league-track">
+              ${leagues
+                .map(
+                  (L) => `
+                <div class="fs-league-badge ${L.id === leagueMeta.id ? "on" : ""}">
+                  <div class="shield">${L.ico}</div>
+                  <strong>${esc(L.label)}</strong>
+                  <span>${esc(L.range)}</span>
+                </div>`,
+                )
+                .join("")}
+            </div>
+            <div style="margin-top:12px;padding:10px;border-radius:10px;border:1px solid rgba(245,197,66,0.3);color:var(--fs-accent);font-size:12px;font-weight:700">
+              👑 ${
+                nextLeague
+                  ? T("Özel ödüller için {league} Lig'e ulaş!").replace(
+                      "{league}",
+                      nextLeague.label,
+                    )
+                  : T("En üst ligdesin — zirveyi koru!")
+              }
+            </div>
+          </div>
+          <div class="fs-v3-card" style="margin-top:12px">
+            <div class="fs-v3-kicker">${T("KAZANABİLECEĞİN ÖDÜLLER")}</div>
+            <div class="fs-comp-grid" style="grid-template-columns:repeat(4,1fr);gap:0;margin-top:8px">
+              <div class="fs-reward-cell"><div class="fs-comp-ico">✦</div><strong>${T("XP Takviyeleri")}</strong><span>${T("Antrenmanla daha fazla XP kazan.")}</span></div>
+              <div class="fs-reward-cell gold"><div class="fs-comp-ico">🛡</div><strong>${T("Özel Rozetler")}</strong><span>${T("Başarılarını sergile.")}</span></div>
+              <div class="fs-reward-cell"><div class="fs-comp-ico">▦</div><strong>${T("Özel Temalar")}</strong><span>${T("Güzel tahta temalarını aç.")}</span></div>
+              <div class="fs-reward-cell gold"><div class="fs-comp-ico">👑</div><strong>${T("Benzersiz Unvanlar")}</strong><span>${T("Arenada öne çık.")}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fs-quote-banner" style="margin-top:14px;min-height:64px">
+        <img src="${esc(v3Url("quote-cinematic-pieces.png"))}" alt="" />
+        <div class="fs-quote-txt" style="font-size:14px">
+          “${T("Her rakip büyüme fırsatıdır.")}”
+          <div class="fs-quote-sub">${T("Yarış, öğren, geliş.")}</div>
+          <span class="fs-quote-sig">— ForkSight Coach</span>
+        </div>
       </div>
     `;
   }
 
   async function loadLeaderboard(metric) {
-    const m = metric || cache.leaderboard.metric || "rating";
+    const m = metric || cache.leaderboard.metric || "points";
     cache.leaderboard.metric = m;
     cache.leaderboard.loading = true;
     cache.leaderboard.data = null;
-    if (activeTab === "leaderboard") renderActive();
+    if (activeTab === "arena") renderActive();
     try {
-      const r = await send("leaderboard", { metric: m, limit: 50 });
-      cache.leaderboard.data = r && r.ok ? r : { top: [], me: {} };
+      const r = await send("leaderboard", {
+        metric: m,
+        limit: 50,
+        scope: "league",
+      });
+      cache.leaderboard.data = r && r.ok ? r : { top: [], me: {}, league: {} };
     } catch (_) {
-      cache.leaderboard.data = { top: [], me: {} };
+      cache.leaderboard.data = { top: [], me: {}, league: {} };
     }
     cache.leaderboard.loading = false;
-    if (activeTab === "leaderboard") renderActive();
+    if (activeTab === "arena") renderActive();
   }
 
   // ─── Toast: yeni başarım kazanıldı ────────────────────
@@ -2401,6 +6047,11 @@
   function renderSettingsTab() {
     const u = (cache.profile && cache.profile.user) || {};
     const ccu = u.chess_com_username || "";
+    if (!cache.verifyCode && !cache.verifyCodeLoading) {
+      ensureVerifyCode().then((c) => {
+        if (c && panelEl && activeTab === "settings") renderActive();
+      });
+    }
     const lang =
       window.ForkSightI18n && window.ForkSightI18n.getLang() === "tr"
         ? "tr"
@@ -2415,19 +6066,38 @@
       </div>
       <div class="fs-set-row">
         <div class="fs-set-lab">${T("Chess.com Kullanıcı Adı")}</div>
+        ${
+          ccu
+            ? `<div class="fs-v3-sub" style="margin-bottom:8px">${T("Bağlı:")} <b>${esc(ccu)}</b></div>`
+            : renderVerifyCodeBox({ compact: true })
+        }
         <div class="fs-set-control">
           <input type="text" class="fs-input" data-set="ccu" value="${esc(ccu)}" placeholder="${T("kullanıcı adı")}" />
           <button class="fs-btn" data-act="save-ccu">${T("Kaydet")}</button>
         </div>
         <div class="fs-msg" data-msg="ccu"></div>
+        ${
+          ccu
+            ? `<div class="fs-onboard-tip" style="margin-top:8px">${T("Hesabı değiştirirken yeni kullanıcı adının profilinde doğrulama kodun görünmeli.")} ${cache.verifyCode ? `<code class="fs-verify-code">${esc(cache.verifyCode)}</code> <button type="button" class="fs-btn fs-ghost" data-act="copy-verify-code">${T("Kopyala")}</button>` : ""}</div>`
+            : ""
+        }
+      </div>
+      <div class="fs-set-row">
+        <div class="fs-set-lab">${T("Kullanım / Kota")}</div>
+        ${renderQuotaStrip()}
       </div>
       <div class="fs-set-row">
         <div class="fs-set-lab">${T("Veriler")}</div>
         <div class="fs-set-control" style="display:flex; flex-direction:column; gap:6px;">
-          <button class="fs-btn fs-ghost" data-act="resync" style="width:100%">${T("↻ Oyunları Yeniden Senkronize Et")}</button>
-          <button class="fs-btn fs-ghost" data-act="resync-force" style="width:100%">${T("⟳ Tüm Veriyi Sıfırla ve Yeniden Çek")}</button>
+          <button class="fs-btn fs-ghost" data-act="resync" style="width:100%" ${cache.sync.active ? "disabled" : ""}>${T("↻ Oyunları Yeniden Senkronize Et")}</button>
+          <button class="fs-btn fs-ghost" data-act="resync-force" style="width:100%" ${cache.sync.active ? "disabled" : ""}>${T("⟳ Tüm Veriyi Sıfırla ve Yeniden Çek")}</button>
         </div>
         <div class="fs-msg" data-msg="sync"></div>
+        <div data-sync-live style="margin-top:8px">${
+          cache.sync.active || cache.sync.progress > 0
+            ? renderSyncProgressBox({ forceShow: true, always: true })
+            : `<div class="fs-v3-sub" style="font-size:11px">${T("Sync bitince yüzde ve oyun sayısı burada görünür. Sayfa yenilemen gerekmez — Oyunlarım sekmesinden bak.")}</div>`
+        }</div>
       </div>
       <div class="fs-set-row">
         <div class="fs-set-lab">${T("Oturum")}</div>
@@ -2442,19 +6112,22 @@
     if (!panelEl) return;
     const body = panelEl.querySelector(".fs-body");
     let html = "";
-    if (activeTab === "profile") html = renderProfileTab();
+    if (activeTab === "home") html = renderHomeTab();
+    else if (activeTab === "coach") html = renderCoachTab();
+    else if (activeTab === "training") html = renderPuzzlesTab();
     else if (activeTab === "games") html = renderGamesTab();
-    else if (activeTab === "weakness") html = renderWeaknessTab();
-    else if (activeTab === "puzzles") html = renderPuzzlesTab();
+    else if (activeTab === "progress") html = renderProgressTab();
     else if (activeTab === "achievements") html = renderAchievementsTab();
-    else if (activeTab === "leaderboard") html = renderLeaderboardTab();
+    else if (activeTab === "arena") html = renderLeaderboardTab();
+    else if (activeTab === "profile") html = renderProfileTab();
     else if (activeTab === "settings") html = renderSettingsTab();
     body.innerHTML = html;
     panelEl.querySelectorAll(".fs-tab").forEach((t) => {
       t.classList.toggle("fs-active", t.dataset.tab === activeTab);
     });
+    updateHeaderGreeting();
     bindBody();
-    if (activeTab === "puzzles") mountQuizBoard();
+    if (activeTab === "training") mountQuizBoard();
   }
 
   // ─── Veri yükleme ─────────────────────────────────────
@@ -2475,6 +6148,21 @@
           stats: resp.stats,
           recent_games: resp.recent_games,
         };
+        // Bağlı ama oyun yok → onboarding sync adımına al
+        const u = resp.user || {};
+        const ccu = (u.chess_com_username || "").trim();
+        const games =
+          Number((resp.stats && resp.stats.total_games) || 0) ||
+          (resp.recent_games || []).length;
+        if (ccu && games === 0 && !cache.onboard.dismissed) {
+          cache.onboard.step = Math.max(cache.onboard.step, 2);
+          if (!cache.sync.active && !cache.sync.pollId) {
+            // Sessizce durum kontrolü; gerekirse kullanıcı sync başlatır
+            pollSyncStatusOnce();
+          }
+        } else if (ccu && games > 0) {
+          cache.onboard.step = 3;
+        }
       } else {
         cache.profile = { user: null };
       }
@@ -2492,7 +6180,8 @@
       cache.profile = { user: null };
     }
     updatePremiumPill();
-    if (activeTab === "profile" || activeTab === "settings") renderActive();
+    if (activeTab === "home" || activeTab === "profile" || activeTab === "progress" || activeTab === "settings" || activeTab === "coach")
+      renderActive();
   }
 
   async function loadGames(reset) {
@@ -2534,7 +6223,7 @@
     } catch (_) {
       cache.weakness = { report: null };
     }
-    if (activeTab === "weakness") renderActive();
+    if (activeTab === "coach") renderActive();
   }
 
   // ─── Bulmacalar — davranış ────────────────────────────
@@ -2558,9 +6247,158 @@
     cache.puzzles.timerId = setInterval(tick, 100);
   }
 
+  function _fmtUciMove(uci) {
+    const u = String(uci || "").toLowerCase();
+    if (u.length < 4) return u || "—";
+    const promo = u.length > 4 ? u.slice(4).toUpperCase() : "";
+    return u.slice(0, 2) + " → " + u.slice(2, 4) + (promo ? "=" + promo : "");
+  }
+
+  function _renderQuizOutcomeCard(result) {
+    const r = result || {};
+    const ok = !!r.correct;
+    const moveLabel = ok
+      ? _fmtUciMove(r.userUci)
+      : _fmtUciMove(r.expectedUci || r.userUci);
+    const title = ok ? T("Harika! Doğru çözüm") : T("Yanlış hamle");
+    const kicker = ok ? T("ÇÖZÜLDÜ") : T("DOĞRU HAMLE");
+    let sub = "";
+    if (ok) {
+      const pts = r.pointsDelta != null ? Number(r.pointsDelta) : 0;
+      sub =
+        (pts >= 0 ? "+" : "") +
+        pts +
+        " " +
+        T("puan") +
+        (r.rating != null ? " · rating " + r.rating : "");
+    } else if (r.expectedUci || r.expectedSan) {
+      sub = T(
+        "Tahtada yeşil ok doğru hamleyi gösteriyor. İstediğin kadar incele.",
+      );
+    } else {
+      sub = T("Çözümü incele, sonra listeye dön.");
+    }
+    return `
+      <div class="fs-quiz-outcome ${ok ? "fs-ok" : "fs-err"}" data-quiz-outcome>
+        <div class="fs-quiz-outcome-kicker">${esc(kicker)}</div>
+        <div class="fs-quiz-outcome-title">${esc(title)}</div>
+        <div class="fs-quiz-outcome-move">${esc(moveLabel)}</div>
+        <div class="fs-quiz-outcome-sub">${esc(sub)}</div>
+        <div class="fs-quiz-outcome-actions">
+          <button class="fs-btn" data-quiz-act="continue">${T("Listeye dön")}</button>
+          ${
+            !ok &&
+            !_isLichessPuzzle((cache.puzzles && cache.puzzles.puzzle) || {})
+              ? `<button class="fs-btn fs-ghost" data-quiz-act="share">🔗 ${T("Paylaş")}</button>`
+              : ""
+          }
+        </div>
+      </div>`;
+  }
+
+  function syncQuizHintButtons() {
+    const p = cache.puzzles;
+    if (!panelEl) return;
+    const used = Number(p.usedHint) || 0;
+    const settled = !!(p.result && p.result.settled);
+    const isLichess = _isLichessPuzzle(p.puzzle || {});
+    panelEl.querySelectorAll("[data-quiz-hint]").forEach((b) => {
+      const lv = parseInt(b.dataset.quizHint, 10);
+      b.classList.remove("fs-active");
+      if (isLichess || settled) {
+        b.disabled = true;
+        return;
+      }
+      if (lv <= used) {
+        b.classList.add("fs-active");
+        b.disabled = true;
+        b.title = T("İpucu alındı");
+      } else if (lv === used + 1) {
+        b.disabled = false;
+        b.title = T("İpucu") + " " + lv;
+      } else {
+        b.disabled = true;
+        b.title = T("Önce ipucu {n}").replace("{n}", String(lv - 1));
+      }
+    });
+    const reward = panelEl.querySelector("[data-quiz-reward]");
+    if (reward) {
+      const pts = _QUIZ_POINTS_BY_HINT_CLIENT[used] || 10;
+      reward.textContent = `+${pts} ${T("puan")}`;
+    }
+  }
+
+  /** Final doğru/yanlış: tahtada animasyon + kalıcı kart. Otomatik kapanmaz. */
+  async function presentQuizOutcome(opts) {
+    const p = cache.puzzles;
+    const o = opts || {};
+    const phrase =
+      o.phrase ||
+      (o.correct ? T("Aferin, doğru hamle!") : T("Yanlış. Tekrar dene."));
+    p.result = {
+      settled: true,
+      correct: !!o.correct,
+      userUci: o.userUci || "",
+      expectedUci: o.expectedUci || "",
+      expectedSan: o.expectedSan || "",
+      pointsDelta: o.pointsDelta,
+      rating: o.rating,
+      phrase,
+    };
+    stopQuizTimer();
+    setQuizFlash(o.correct ? "ok" : "err", phrase);
+    if (p.board) {
+      try {
+        p.board.lock(true);
+      } catch (_) {}
+    }
+    if (panelEl) {
+      panelEl
+        .querySelectorAll(
+          "[data-quiz-hint],[data-quiz-submit],[data-quiz-skip]",
+        )
+        .forEach((b) => (b.disabled = true));
+      const flashEl = panelEl.querySelector(
+        ".fs-quiz-flash, [data-quiz-outcome]",
+      );
+      if (flashEl) {
+        const wrap = document.createElement("div");
+        wrap.innerHTML = _renderQuizOutcomeCard(p.result);
+        const card = wrap.firstElementChild;
+        if (card) flashEl.replaceWith(card);
+      }
+      const actions = panelEl.querySelector(".fs-quizv2-actions");
+      if (actions) actions.style.display = "none";
+      const coachText = panelEl.querySelector(".fs-quizv2-coach-text");
+      if (coachText) coachText.textContent = phrase;
+      const coachAv = panelEl.querySelector(".fs-quizv2-coach-av");
+      if (coachAv) coachAv.src = _avatarUrl(o.correct ? "happy" : "worried");
+    }
+    syncQuizHintButtons();
+
+    if (p.board && typeof p.board.revealSolution === "function" && p.puzzle) {
+      try {
+        if (o.correct) {
+          if (o.userUci && o.userUci.length >= 4) {
+            p.board.flash(o.userUci.slice(0, 2), o.userUci.slice(2, 4), "ok");
+          }
+        } else {
+          await p.board.revealSolution({
+            // Hamle öncesi FEN (mate-2 adım 2 dahil); board.lastFenBeforeMove yedek
+            fen: null,
+            sideToMove: null,
+            wrongUci: o.userUci,
+            correctUci: o.expectedUci,
+          });
+        }
+      } catch (_) {}
+    }
+  }
+
   function setQuizFlash(kind, msg) {
     cache.puzzles.flash = { kind: kind || "", msg: msg || "" };
-    if (activeTab === "puzzles") {
+    if (cache.puzzles.result && cache.puzzles.result.settled) return;
+    if (activeTab === "training") {
       const el = panelEl && panelEl.querySelector(".fs-quiz-flash");
       if (el) {
         el.className = "fs-quiz-flash" + (kind ? " fs-" + kind : "");
@@ -2614,9 +6452,9 @@
         {
           tts_chars: T("Sesli koç (TTS)"),
           game_analysis: T("Oyun sonrası analiz"),
-          coach_review: T("Sesli koç review"),
+          coach_review: T("Sesli koç incelemesi"),
           quiz_play: T("Bulmaca oynama"),
-          hint: T("Puzzle ipucu"),
+          hint: T("Bulmaca ipucu"),
         }[info?.feature] || T("Bu özellik");
       const title = isPremiumLocked
         ? "★ " + T("Premium Özellik")
@@ -2779,43 +6617,37 @@
     }
   }
   function _coachPhraseForCorrect(pz) {
-    const en = window.ForkSightI18n && window.ForkSightI18n.getLang() === "en";
     const themes = String((pz && pz.themes) || "").toLowerCase();
     const TH = {
-      fork: ["çatal", "fork"],
-      pin: ["mıhlama", "pin"],
-      skewer: ["şiş", "skewer"],
-      discovered_check: ["keşif şahı", "discovered check"],
-      double_check: ["çifte şah", "double check"],
-      back_rank: ["geri sıra matı", "back-rank mate"],
-      sacrifice: ["feda", "sacrifice"],
-      hanging: ["korumasız taş kazanımı", "hanging piece win"],
-      promotion: ["terfi", "promotion"],
-      capture: ["alış", "capture"],
-      check: ["şah", "check"],
+      fork: "çatal",
+      pin: "mıhlama",
+      skewer: "şiş",
+      discovered_check: "keşif şahı",
+      double_check: "çifte şah",
+      back_rank: "geri sıra matı",
+      sacrifice: "feda",
+      hanging: "korumasız taş kazanımı",
+      promotion: "terfi",
+      capture: "alış",
+      check: "şah",
     };
     let lbl = "";
     for (const key in TH) {
       if (themes.includes(key)) {
-        lbl = en ? TH[key][1] : TH[key][0];
+        lbl = T(TH[key]);
         break;
       }
     }
     if (lbl) {
-      return en
-        ? "Well done! That was a nice " + lbl + "."
-        : "Aferin! Bu güzel bir " + lbl + " hamlesiydi.";
+      return T("Aferin! Bu güzel bir {lbl} hamlesiydi.").replace("{lbl}", lbl);
     }
-    return en ? "Well done, correct move!" : "Aferin, doğru hamle!";
+    return T("Aferin, doğru hamle!");
   }
   function _coachPhraseForWrong(expectedSan) {
-    const en = window.ForkSightI18n && window.ForkSightI18n.getLang() === "en";
     if (expectedSan) {
-      return en
-        ? "Wrong. The correct move was " + expectedSan + "."
-        : "Yanlış. Doğru hamle " + expectedSan + " idi.";
+      return T("Yanlış. Doğru hamle {san} idi.").replace("{san}", expectedSan);
     }
-    return en ? "Wrong. Try again." : "Yanlış. Tekrar dene.";
+    return T("Yanlış. Tekrar dene.");
   }
 
   function mountQuizBoard() {
@@ -2869,6 +6701,7 @@
         p.board.highlightHint(p.hintFromSq);
       } catch (_) {}
     }
+    syncQuizHintButtons();
   }
 
   async function ensurePuzzles() {
@@ -2880,6 +6713,7 @@
     p.preview = null;
     p.usedHint = 0;
     p.hintFromSq = null;
+    p.result = null;
     stopQuizTimer();
     if (p.board) {
       try {
@@ -2916,7 +6750,7 @@
         };
       }
     } catch (_) {}
-    if (activeTab === "puzzles") renderActive();
+    if (activeTab === "training") renderActive();
     // Otomatik backfill: havuz boş ama analiz edilebilecek oyun varsa
     // ve daha önce denemediysek arka planda üretmeye başla.
     if (
@@ -2953,7 +6787,7 @@
     if (!opts.auto) {
       setQuizFlash("info", T("Geçmiş oyunlardan bulmaca üretiliyor..."));
     }
-    if (activeTab === "puzzles" && p.view === "lobby") renderActive();
+    if (activeTab === "training" && p.view === "lobby") renderActive();
     try {
       const r = await send("quiz_backfill", {
         limit_games: 50,
@@ -2967,13 +6801,13 @@
           setQuizFlash("err", (r && r.detail) || T("Hata"));
         }
         p.backfilling = false;
-        if (activeTab === "puzzles" && p.view === "lobby") renderActive();
+        if (activeTab === "training" && p.view === "lobby") renderActive();
         return;
       }
     } catch (e) {
       setQuizFlash("err", String(e.message || e));
       p.backfilling = false;
-      if (activeTab === "puzzles" && p.view === "lobby") renderActive();
+      if (activeTab === "training" && p.view === "lobby") renderActive();
       return;
     }
     // Stats'ı periyodik tazele; yeni bulmaca eklendikçe sayaç artar.
@@ -3019,7 +6853,7 @@
           setQuizFlash("info", T("Uygun bulmaca bulunamadı."));
         }
       }
-      if (activeTab === "puzzles" && p.view === "lobby") renderActive();
+      if (activeTab === "training" && p.view === "lobby") renderActive();
     }, 3000);
   }
 
@@ -3030,7 +6864,7 @@
       const expanded = v === "solving" || v === "preview";
       panelEl.classList.toggle("fs-panel-quiz", expanded);
     }
-    if (activeTab === "puzzles") {
+    if (activeTab === "training") {
       renderActive();
       mountQuizBoard();
     }
@@ -3069,6 +6903,7 @@
     setQuizView("loading");
     p.usedHint = 0;
     p.hintFromSq = null;
+    p.result = null;
     p.solveStep = 1;
     p.firstUci = null;
     p.oppUci = null;
@@ -3079,7 +6914,7 @@
         if (r.stats) p.stats = r.stats;
         p.puzzle = r.puzzle;
         p.dailyMode = true;
-        setQuizView("active");
+        setQuizView("solving");
       } else {
         // Fallback: standart akışa düş
         setQuizView("lobby");
@@ -3096,6 +6931,7 @@
     await new Promise((r) => setTimeout(r, 600));
     p.usedHint = 0;
     p.hintFromSq = null;
+    p.result = null;
     p.solveStep = 1;
     p.firstUci = null;
     p.oppUci = null;
@@ -3216,6 +7052,7 @@
     p.preview = null;
     p.usedHint = 0;
     p.hintFromSq = null;
+    p.result = null;
     p.solveStep = 1;
     p.firstUci = null;
     p.oppUci = null;
@@ -3228,6 +7065,7 @@
     const p = cache.puzzles;
     p.usedHint = 0;
     p.hintFromSq = null;
+    p.result = null;
     setQuizFlash("info", T("Bulmaca yükleniyor..."));
     try {
       const r = await send("quiz_next", { theme: p.themeFilter || "" });
@@ -3277,7 +7115,7 @@
       p.puzzle = null;
       setQuizFlash("err", String(e.message || e));
     }
-    if (activeTab === "puzzles") {
+    if (activeTab === "training") {
       renderActive();
       mountQuizBoard();
       if (p.puzzle) startQuizTimer();
@@ -3310,7 +7148,7 @@
         };
       }
     } catch (_) {}
-    if (activeTab === "puzzles") {
+    if (activeTab === "training") {
       // Lobby görünümde tüm sayfayı yeniden çiz (history listesi de güncellensin),
       // solving/preview'de sadece istatistik sayılarını yerinde tazele.
       const p = cache.puzzles;
@@ -3340,6 +7178,7 @@
   async function submitQuizUci(uci) {
     const p = cache.puzzles;
     if (!p.puzzle || p.submitting) return;
+    if (p.result && p.result.settled) return;
     p.submitting = true;
     const isLichess = _isLichessPuzzle(p.puzzle);
     const isMate2 = (p.puzzle.type || "").toLowerCase() === "mate2";
@@ -3396,47 +7235,63 @@
           .querySelectorAll(
             "[data-quiz-hint],[data-quiz-submit],[data-quiz-skip]",
           )
-          .forEach((b) => (b.disabled = !!b.dataset.quizHint));
+          .forEach((b) => {
+            if (b.dataset.quizHint) return;
+            b.disabled = false;
+          });
+        syncQuizHintButtons();
         return;
       }
 
       if (isLichess && r && r.ok && r.correct && r.done) {
         stopQuizTimer();
         const at = r.attempt || {};
-        setQuizFlash(
-          "ok",
+        const phrase =
           T("Doğru!") +
-            " +" +
-            (at.points_delta ?? 0) +
-            " " +
-            T("puan") +
-            " · rating " +
-            (at.new_rating ?? "") +
-            " (" +
-            ((at.rating_delta || 0) >= 0 ? "+" : "") +
-            (at.rating_delta ?? 0) +
-            ")",
-        );
+          " +" +
+          (at.points_delta ?? 0) +
+          " " +
+          T("puan") +
+          " · rating " +
+          (at.new_rating ?? "") +
+          " (" +
+          ((at.rating_delta || 0) >= 0 ? "+" : "") +
+          (at.rating_delta ?? 0) +
+          ")";
+        try {
+          speakCoach(_coachPhraseForCorrect(p.puzzle));
+        } catch (_) {}
+        await presentQuizOutcome({
+          correct: true,
+          userUci: uci,
+          pointsDelta: at.points_delta,
+          rating: at.new_rating,
+          phrase,
+        });
         await refreshQuizStats();
-        setTimeout(() => {
-          if (activeTab === "puzzles") backToLobby();
-        }, 1000);
         return;
       }
 
       if (isLichess && r && r.ok && !r.correct) {
         stopQuizTimer();
-        setQuizFlash(
-          "err",
+        const phrase =
           T("Yanlış.") +
-            (r.expected_uci
-              ? " " + T("Doğru cevap") + ": " + r.expected_uci
-              : ""),
-        );
+          (r.expected_uci
+            ? " " + T("Doğru cevap") + ": " + r.expected_uci
+            : "");
+        try {
+          speakCoach(
+            _coachPhraseForWrong(r.expected_san || r.expected_uci || ""),
+          );
+        } catch (_) {}
+        await presentQuizOutcome({
+          correct: false,
+          userUci: uci,
+          expectedUci: r.expected_uci || "",
+          expectedSan: r.expected_san || "",
+          phrase,
+        });
         await refreshQuizStats();
-        setTimeout(() => {
-          if (activeTab === "puzzles") backToLobby();
-        }, 1000);
         return;
       }
 
@@ -3466,11 +7321,7 @@
         setQuizFlash("ok", T("Doğru! Rakip cevap veriyor..."));
         // Faz 2.5: ilk hamle doğru → kısa onay
         try {
-          speakCoach(
-            window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
-              ? "Correct! Now find the mating move."
-              : "Doğru! Şimdi mat hamlesini bul.",
-          );
+          speakCoach(T("Doğru! Şimdi mat hamlesini bul."));
         } catch (_) {}
         // Rakip cevabını biraz beklet, sonra tahtaya uygula
         await new Promise((res) => setTimeout(res, 700));
@@ -3489,68 +7340,52 @@
           .querySelectorAll(
             "[data-quiz-hint],[data-quiz-submit],[data-quiz-skip]",
           )
-          .forEach((b) => (b.disabled = false));
+          .forEach((b) => {
+            if (b.dataset.quizHint) return; // ipuçları sync ile
+            b.disabled = false;
+          });
+        syncQuizHintButtons();
         return;
       }
       if (r && r.ok && r.correct) {
-        setQuizFlash(
-          "ok",
+        const phrase =
           T("Doğru!") +
-            " +" +
-            (r.points_delta ?? 0) +
-            " " +
-            T("puan") +
-            " · rating " +
-            (r.rating ?? ""),
-        );
-        // Ses bittikten 1 sn sonra kapan: speakCoach Promise<void>
-        // döner; refreshQuizStats ile paralel çalışsın.
-        let _coachP = Promise.resolve();
+          " +" +
+          (r.points_delta ?? 0) +
+          " " +
+          T("puan") +
+          " · rating " +
+          (r.rating ?? "");
         try {
-          _coachP = speakCoach(_coachPhraseForCorrect(p.puzzle));
+          speakCoach(_coachPhraseForCorrect(p.puzzle));
         } catch (_) {}
-        if (p.board) {
-          const from = uci.slice(0, 2);
-          const to = uci.slice(2, 4);
-          try {
-            p.board.flash(from, to, "ok");
-          } catch (_) {}
-        }
+        await presentQuizOutcome({
+          correct: true,
+          userUci: uci,
+          pointsDelta: r.points_delta,
+          rating: r.rating,
+          phrase,
+        });
         await refreshQuizStats();
-        try {
-          await _coachP;
-        } catch (_) {}
-        setTimeout(() => {
-          if (activeTab === "puzzles") backToLobby();
-        }, 1000);
       } else if (r && r.ok && !r.correct) {
-        setQuizFlash(
-          "err",
+        const phrase =
           T("Yanlış.") +
-            (r.expected_uci
-              ? " " + T("Doğru cevap") + ": " + r.expected_uci
-              : ""),
-        );
-        let _coachP = Promise.resolve();
+          (r.expected_uci
+            ? " " + T("Doğru cevap") + ": " + r.expected_uci
+            : "");
         try {
-          _coachP = speakCoach(
+          speakCoach(
             _coachPhraseForWrong(r.expected_san || r.expected_uci || ""),
           );
         } catch (_) {}
-        if (p.board) {
-          const from = uci.slice(0, 2);
-          const to = uci.slice(2, 4);
-          try {
-            p.board.flash(from, to, "err");
-          } catch (_) {}
-        }
+        await presentQuizOutcome({
+          correct: false,
+          userUci: uci,
+          expectedUci: r.expected_uci || "",
+          expectedSan: r.expected_san || "",
+          phrase,
+        });
         await refreshQuizStats();
-        try {
-          await _coachP;
-        } catch (_) {}
-        setTimeout(() => {
-          if (activeTab === "puzzles") backToLobby();
-        }, 1000);
       } else {
         setQuizFlash("err", (r && r.detail) || T("Hata"));
       }
@@ -3564,8 +7399,20 @@
   async function requestQuizHint(level) {
     const p = cache.puzzles;
     if (!p.puzzle) return;
+    if (p.result && p.result.settled) return;
     if (_isLichessPuzzle(p.puzzle)) {
       setQuizFlash("info", T("Lichess bulmacalarında ipucu kapalı."));
+      return;
+    }
+    const next = (Number(p.usedHint) || 0) + 1;
+    if (level !== next) {
+      setQuizFlash(
+        "info",
+        T("İpuçları sırayla açılır. Önce ipucu {n}.").replace(
+          "{n}",
+          String(next),
+        ),
+      );
       return;
     }
     try {
@@ -3583,11 +7430,7 @@
         if (r.uci) parts.push(T("Hamle") + ": " + r.uci);
         const statusEl = panelEl.querySelector("[data-quiz-hint-status]");
         if (statusEl) statusEl.textContent = parts.join(" · ");
-        // Aktif butonları işaretle
-        panelEl.querySelectorAll("[data-quiz-hint]").forEach((b) => {
-          const lv = parseInt(b.dataset.quizHint, 10);
-          if (lv <= p.usedHint) b.classList.add("fs-active");
-        });
+        syncQuizHintButtons();
       } else if (_isQuotaResp(r)) {
         setQuizFlash("err", T("Günlük ipucu hakkın doldu."));
         showQuotaUpgradeModal(r);
@@ -3607,13 +7450,13 @@
 
   // ─── Tab değişimi ─────────────────────────────────────
   function switchTab(id) {
-    if (id === "puzzles") {
+    if (id === "training") {
       activeTab = id;
       renderActive();
       ensurePuzzles();
       return;
     }
-    // Bulmacalar dışı sekmeye geçerken aktif tahta/timer'ı temizle
+    // Antrenman dışı sekmeye geçerken aktif tahta/timer'ı temizle
     stopQuizTimer();
     stopBackfillPoll();
     if (cache.puzzles.board) {
@@ -3625,11 +7468,17 @@
     if (panelEl) panelEl.classList.remove("fs-panel-quiz");
     activeTab = id;
     renderActive();
-    if (id === "profile") ensureProfile();
+    if (id === "home" || id === "profile" || id === "progress" || id === "settings")
+      ensureProfile();
     else if (id === "games") {
       if (!cache.games.items.length) loadGames(true);
-    } else if (id === "weakness") ensureWeakness();
-    else if (id === "settings") ensureProfile(); // ccu için
+    } else if (id === "coach") ensureWeakness();
+    else if (id === "arena") {
+      ensureProfile();
+      loadLeaderboard(cache.leaderboard.metric || "points");
+    }
+    if (id === "profile") loadAchievements(false);
+    ensureNotifications(false);
   }
 
   // ─── Body event bind ──────────────────────────────────
@@ -3652,12 +7501,83 @@
       const act = e.target.closest("[data-act]");
       if (act) {
         const a = act.dataset.act;
-        if (a === "more-games") switchTab("games");
+        if (a === "more-games" || a === "go-games") switchTab("games");
+        else if (a === "go-training") switchTab("training");
+        else if (a === "go-coach") switchTab("coach");
+        else if (a === "go-progress") switchTab("progress");
+        else if (a === "go-achievements") switchTab("achievements");
+        else if (a === "go-arena") switchTab("arena");
+        else if (a === "go-settings") switchTab("settings");
+        else if (a === "arena-chest") playChestOpen();
+        else if (a === "arena-how") {
+          const host = panelEl.querySelector(".fs-body");
+          if (host) {
+            let tip = host.querySelector(".fs-arena-how-tip");
+            if (tip) {
+              tip.remove();
+            } else {
+              tip = document.createElement("div");
+              tip.className = "fs-v3-card fs-arena-how-tip";
+              tip.style.cssText = "margin:0 0 14px;border-color:rgba(245,197,66,0.35)";
+              tip.innerHTML = `<div class="fs-v3-kicker">${T("Ligler Nasıl İşler")}</div><div class="fs-v3-sub" style="margin-top:6px;color:var(--fs-text)">${T("Ligler ForkSight bulmaca reytingine göre belirlenir; sıralama bulmaca XP'sine göredir. chess.com reytingi Arena'yı etkilemez.")}</div>`;
+              host.insertBefore(tip, host.firstChild);
+            }
+          }
+        }
+        else if (a === "open-chesscom") {
+          const user = act.dataset.user;
+          if (user) {
+            const url = "https://www.chess.com/member/" + encodeURIComponent(user);
+            try { chrome.tabs.create({ url }); } catch (_) { window.open(url, "_blank"); }
+          }
+        }
         else if (a === "load-more") loadGames(false);
         else if (a === "save-ccu") onSaveCcu();
         else if (a === "resync") onResync(false);
         else if (a === "resync-force") onResync(true);
+        else if (a === "copy-verify-code") {
+          const code =
+            cache.verifyCode ||
+            (act.closest(".fs-set-row, .fs-onboard-card") &&
+              (act.closest(".fs-set-row, .fs-onboard-card").querySelector("[data-verify-code], .fs-verify-code") ||
+                {}).textContent) ||
+            "";
+          const text = String(code || "").trim();
+          if (text) {
+            const done = () => {
+              const prev = act.textContent;
+              act.textContent = T("Kopyalandı");
+              setTimeout(() => {
+                act.textContent = prev || T("Kopyala");
+              }, 1200);
+            };
+            try {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(() => {});
+              } else {
+                done();
+              }
+            } catch (_) {}
+          } else {
+            ensureVerifyCode().then(() => renderActive());
+          }
+        }
+        else if (a === "onboard-next") {
+          cache.onboard.step = Math.min(3, (cache.onboard.step || 0) + 1);
+          if (cache.onboard.step === 1) ensureVerifyCode();
+          renderActive();
+        } else if (a === "onboard-skip" || a === "onboard-finish") {
+          cache.onboard.dismissed = true;
+          cache.onboard.step = 3;
+          try {
+            chrome.storage.local.set({ fs_onboard_done: 1 });
+          } catch (_) {}
+          renderActive();
+        } else if (a === "onboard-link") {
+          onOnboardLink();
+        }
         else if (a === "logout") onLogout();
+        else if (a === "premium") openPremiumPage();
         else if (a === "lang-en" || a === "lang-tr") {
           if (window.ForkSightI18n) {
             window.ForkSightI18n.setLang(a === "lang-en" ? "en" : "tr");
@@ -3665,6 +7585,15 @@
         } else if (a === "lang-toggle") {
           if (window.ForkSightI18n) window.ForkSightI18n.toggleLang();
         }
+        return;
+      }
+      const coachSub = e.target.closest("[data-coach-sub]");
+      if (coachSub) {
+        coachSubTab = coachSub.dataset.coachSub || "plan";
+        if (coachSubTab === "weaknesses" || coachSubTab === "games") {
+          ensureWeakness();
+        }
+        renderActive();
         return;
       }
       // Leaderboard metric tab tıklaması
@@ -3719,7 +7648,7 @@
       if (qact) {
         const a = qact.dataset.quizAct;
         if (a === "start") startNewPuzzle();
-        else if (a === "back") backToLobby();
+        else if (a === "back" || a === "continue") backToLobby();
         else if (a === "backfill") runQuizBackfill();
         else if (a === "refresh") refreshQuizStats();
         else if (a === "theme-clear") clearThemeFilter();
@@ -3763,20 +7692,31 @@
       const resp = await send("chess_com_link", { chess_com_username: v });
       if (resp && resp.ok) {
         msg.className = "fs-msg fs-ok";
-        msg.textContent =
-          window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
-            ? `Linked: ${resp.chess_com_username}. Syncing games…`
-            : `Bağlandı: ${resp.chess_com_username}. Oyunlar senkronize ediliyor…`;
+        msg.textContent = T(
+          "Bağlandı: {user}. Oyunlar çekiliyor — ilerlemeyi aşağıda izle.",
+        ).replace("{user}", resp.chess_com_username);
         cache.profile = null;
         cache.games.items = [];
         cache.weakness = null;
-        setTimeout(() => ensureProfile(true), 1500);
+        cache.onboard.step = Math.max(cache.onboard.step, 2);
+        startSyncPoll({
+          message: T("Chess.com hesabından oyunlar çekiliyor…"),
+          onDone: () => {
+            if (msg) {
+              msg.className = "fs-msg fs-ok";
+              msg.textContent = T(
+                "Tamamlandı. Oyunlarım sekmesinden bakabilirsin — sayfa yenilemeye gerek yok.",
+              );
+            }
+          },
+        });
+        setTimeout(() => ensureProfile(true), 800);
       } else {
         msg.className = "fs-msg fs-err";
-        msg.textContent =
-          resp && resp.status === 404
-            ? T("Chess.com kullanıcısı bulunamadı.")
-            : (resp && resp.detail) || T("Bağlanılamadı.");
+        msg.textContent = chessLinkErrorMessage(resp);
+        if (resp && resp.verify_code) {
+          cache.verifyCode = String(resp.verify_code);
+        }
       }
     } catch (_) {
       msg.className = "fs-msg fs-err";
@@ -3804,18 +7744,19 @@
     }
     if (btn) btn.disabled = true;
     if (otherBtn) otherBtn.disabled = true;
-    msg.className = "fs-msg";
-    msg.textContent = T("Senkronize ediliyor…");
+    if (msg) {
+      msg.className = "fs-msg";
+      msg.textContent = T("Senkronize ediliyor…");
+    }
     try {
       const resp = await send("chess_com_sync", { force: !!force });
       if (resp && resp.ok) {
-        msg.className = "fs-msg fs-ok";
-        let txt = T("Senkronizasyon başlatıldı, birkaç saniye sürebilir.");
-        if (resp.purged) {
-          txt =
-            T("Eski veriler temizlendi.") + " " + T("Yeni oyunlar çekiliyor…");
+        if (msg) {
+          msg.className = "fs-msg fs-ok";
+          msg.textContent = resp.purged
+            ? T("Eski veriler temizlendi. Yeni oyunlar çekiliyor…")
+            : T("Senkronizasyon başladı — yüzde aşağıda güncellenir.");
         }
-        msg.textContent = txt;
         cache.profile = null;
         cache.games.items = [];
         cache.weakness = null;
@@ -3825,20 +7766,90 @@
           cache.puzzles.history = [];
           cache.puzzles.autoBackfillTried = false;
         }
-      } else {
+        startSyncPoll({
+          message: force
+            ? T("Sıfırdan yeniden çekiliyor…")
+            : T("Yeni oyunlar aranıyor…"),
+          onDone: () => {
+            if (msg) {
+              msg.className = "fs-msg fs-ok";
+              msg.textContent = T(
+                "Bitti! Oyunlar güncellendi. Oyunlarım’a geç — yenilemeye gerek yok.",
+              );
+            }
+            if (btn) btn.disabled = false;
+            if (otherBtn) otherBtn.disabled = false;
+          },
+        });
+        return;
+      }
+      if (msg) {
         msg.className = "fs-msg fs-err";
-        msg.textContent =
-          (resp && resp.detail) ||
-          (window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
-            ? "Error."
-            : "Hata.");
+        msg.textContent = (resp && resp.detail) || T("Hata.");
       }
     } catch (_) {
-      msg.className = "fs-msg fs-err";
-      msg.textContent = T("Sunucuya ulaşılamadı.");
+      if (msg) {
+        msg.className = "fs-msg fs-err";
+        msg.textContent = T("Sunucuya ulaşılamadı.");
+      }
     } finally {
-      if (btn) btn.disabled = false;
-      if (otherBtn) otherBtn.disabled = false;
+      if (!cache.sync.active) {
+        if (btn) btn.disabled = false;
+        if (otherBtn) otherBtn.disabled = false;
+      }
+    }
+  }
+
+  async function onOnboardLink() {
+    const input = panelEl.querySelector("[data-onboard-ccu]");
+    const msg = panelEl.querySelector('[data-msg="onboard-ccu"]');
+    const v = ((input && input.value) || "").trim();
+    if (!v) {
+      if (msg) {
+        msg.className = "fs-msg fs-err";
+        msg.textContent = T("Boş olamaz.");
+      }
+      return;
+    }
+    cache.onboard.linking = true;
+    if (msg) {
+      msg.className = "fs-msg";
+      msg.textContent = T("Kaydediliyor…");
+    }
+    try {
+      const resp = await send("chess_com_link", { chess_com_username: v });
+      if (resp && resp.ok) {
+        cache.onboard.step = 2;
+        cache.profile = null;
+        cache.games.items = [];
+        renderActive();
+        startSyncPoll({
+          message: T("İlk oyunların çekiliyor…"),
+          onDone: () => {
+            cache.onboard.step = 3;
+            try {
+              chrome.storage.local.set({ fs_onboard_done: 1 });
+            } catch (_) {}
+            if (activeTab === "home") renderActive();
+          },
+        });
+      } else {
+        if (msg) {
+          msg.className = "fs-msg fs-err";
+          msg.textContent = chessLinkErrorMessage(resp);
+        }
+        if (resp && resp.verify_code) {
+          cache.verifyCode = String(resp.verify_code);
+          renderActive();
+        }
+      }
+    } catch (_) {
+      if (msg) {
+        msg.className = "fs-msg fs-err";
+        msg.textContent = T("Sunucuya ulaşılamadı.");
+      }
+    } finally {
+      cache.onboard.linking = false;
     }
   }
 
@@ -3861,57 +7872,226 @@
   // ─── Mount / unmount ──────────────────────────────────
   // Panel kabuğunu (sidebar + header) içine render eder. Dil değişince
   // de yeniden çağrılarak tab etiketleri, header dil rozeti vs. yenilenir.
+  function updateHeaderGreeting() {
+    if (!panelEl) return;
+    panelEl.dataset.tab = activeTab || "";
+    const left = panelEl.querySelector(".fs-header-left");
+    const pills = panelEl.querySelector(".fs-stat-pills");
+    if (!left) return;
+    const u = (cache.profile && cache.profile.user) || null;
+    const g = greetingLine(u);
+    if (activeTab === "home") {
+      left.innerHTML = `<div class="fs-greet-title">${esc(g.title)}</div><div class="fs-greet-sub">${esc(g.sub)}</div>`;
+    } else if (activeTab === "training") {
+      left.innerHTML = `<div class="fs-greet-title">${T("Antrenman")}</div><div class="fs-greet-sub">${T("Alışkanlıklarını güçlendir, pozisyon pozisyon.")}</div>`;
+    } else if (activeTab === "profile") {
+      left.innerHTML = "";
+    } else if (activeTab === "arena") {
+      left.innerHTML = `<div class="fs-greet-title">Arena</div><div class="fs-greet-sub">${T("Ligde yüksel. Oyununu keskinleştir.")}</div>`;
+    } else {
+      const tab = TABS.find((x) => x.id === activeTab);
+      left.innerHTML = `<div class="fs-greet-title">${esc(T(tab ? tab.trLabel : "ForkSight"))}</div><div class="fs-greet-sub">${esc(g.sub)}</div>`;
+    }
+    if (pills && u) {
+      const level = Math.max(1, Math.floor((Number(u.highest_rating) || 1000) / 80));
+      const xpNow = Math.min(2999, (Number(u.streak_count) || 0) * 120 + 1800);
+      const xpMax = 3000;
+      const avInner = u.chess_com_avatar
+        ? `<img class="fs-header-av" src="${esc(u.chess_com_avatar)}" alt="" />`
+        : `<div class="fs-header-av" style="display:grid;place-items:center;background:#222633;font-size:13px;font-weight:800">${esc((u.username || "?").slice(0, 1).toUpperCase())}</div>`;
+      const av = `<div class="fs-header-av-wrap">${avInner}</div>`;
+      if (activeTab === "home") {
+        pills.innerHTML = av;
+      } else if (activeTab === "training" || activeTab === "arena") {
+        pills.innerHTML = `
+          <div class="fs-train-stats">
+            <div class="fs-train-streak">
+              <div class="fs-hs-ico">🔥</div>
+              <div>
+                <div class="fs-hs-val">${esc(u.streak_count || 0)}</div>
+                <div class="fs-hs-lab">${T("Günlük Seri")}</div>
+              </div>
+            </div>
+            <div class="fs-train-level">
+              <div class="fs-hs-ico fs-hs-shield">★</div>
+              <div class="fs-hs-txt">
+                <div class="fs-hs-lab">${T("Seviye")} <strong>${level}</strong></div>
+                <span class="fs-skill-bar"><i style="width:${Math.round((xpNow / xpMax) * 100)}%"></i></span>
+                <div class="fs-xp-lab">${xpNow.toLocaleString()} / ${xpMax.toLocaleString()} XP</div>
+              </div>
+            </div>
+            ${av}
+          </div>`;
+      } else if (activeTab === "profile") {
+        pills.innerHTML = av;
+      } else {
+      const xpHome = Math.min(1199, (Number(u.streak_count) || 0) * 80 + 400);
+      pills.innerHTML = `
+        <div class="fs-stat-bar">
+          <span class="fs-pill">🛡 <strong>${T("Seviye")} ${level}</strong></span>
+          <span class="fs-stat-sep"></span>
+          <span class="fs-pill">♟ <strong>${esc(u.highest_rating || "—")}</strong></span>
+          <span class="fs-stat-sep"></span>
+          <span class="fs-pill">🔥 <strong>${esc(u.streak_count || 0)}</strong> ${T("gün")}</span>
+          <span class="fs-stat-sep"></span>
+          <span class="fs-pill fs-xp-inline"><strong>${xpHome}/1200 XP</strong><span class="fs-skill-bar"><i style="width:${Math.round((xpHome / 1200) * 100)}%"></i></span></span>
+        </div>
+        ${av}`;
+      }
+    }
+    updateSidebarAtmos();
+  }
+
+  function updateSidebarAtmos() {
+    if (!panelEl) return;
+    const img = panelEl.querySelector(".fs-sidebar-atmos");
+    if (!img) return;
+    const pawn =
+      v3Url("sidebar-atmos-pawn-cutout.png") ||
+      v3Url("sidebar-atmos-pawn-cut.png") ||
+      v3Url("sidebar-atmos-pawn.png");
+    const king =
+      v3Url("sidebar-atmos-king-cutout.png") ||
+      v3Url("sidebar-atmos-king-cut.png") ||
+      v3Url("sidebar-atmos-king.png");
+    const src =
+      activeTab === "training" || activeTab === "games" ? pawn : king;
+    if (src) img.src = src;
+  }
+
   function renderPanelShell() {
     if (!panelEl) return;
     const langCode =
       window.ForkSightI18n && window.ForkSightI18n.getLang() === "tr"
         ? "TR"
         : "EN";
+    const logo = v3Url("logo-knight-gold-cut.png") || v3Url("logo-knight-gold.png") || chrome.runtime.getURL("avatars/neutral.png");
+    const crown = v3Url("pro-crown-cut.png") || v3Url("pro-crown.png");
+    const atmos =
+      v3Url("sidebar-atmos-king-cutout.png") ||
+      v3Url("sidebar-atmos-king-cut.png") ||
+      v3Url("sidebar-atmos-king.png") ||
+      v3Url("coach-full-cut.png");
+    const primary = TABS.filter((t) => t.group === "primary");
+    const secondary = TABS.filter((t) => t.group === "secondary");
+    const utility = TABS.filter((t) => t.group === "utility");
+    const tabBtn = (t, secondaryCls) =>
+      `<button class="fs-tab ${secondaryCls || ""}" data-tab="${t.id}"><span class="fs-tab-ico">${t.icon}</span><span>${esc(T(t.trLabel))}</span></button>`;
     panelEl.innerHTML = `
       <aside class="fs-sidebar">
+        ${atmos ? `<img class="fs-sidebar-atmos" src="${esc(atmos)}" alt="" />` : ""}
         <div class="fs-brand">
-          <img class="fs-brand-ico" src="${chrome.runtime.getURL("avatars/neutral.png")}" alt="" />
-          <span>ForkSight</span>
+          <img class="fs-brand-ico" src="${esc(logo)}" alt="" />
+          <span>FORKSIGHT</span>
         </div>
         <nav class="fs-tabs">
-          ${TABS.map(
-            (t) =>
-              `<button class="fs-tab" data-tab="${t.id}"><span class="fs-tab-ico">${t.icon}</span><span>${esc(T(t.trLabel))}</span></button>`,
-          ).join("")}
+          ${primary.map((t) => tabBtn(t)).join("")}
+          <div class="fs-nav-sep"></div>
+          ${secondary.map((t) => tabBtn(t, "fs-tab-secondary")).join("")}
         </nav>
-        <button class="fs-premium-pill" data-act="premium" title="${T("Premium planını görüntüle / yükselt")}">⭐ ${T("Premium")}</button>
+        <button class="fs-pro-card" data-act="premium" title="${T("Premium planını görüntüle / yükselt")}">
+          <div class="fs-pro-card-title">
+            ${crown ? `<img src="${esc(crown)}" alt="" />` : ""}
+            <span class="fs-pro-name">ForkSight</span>
+            <span class="fs-pro-pro">PRO</span>
+          </div>
+          <div class="fs-pro-card-sub">${T("Tam potansiyelini aç — sınırsız koç ve antrenman.")}</div>
+        </button>
+        <button class="fs-premium-pill" data-act="premium" hidden>⭐ ${T("Premium")}</button>
       </aside>
       <main class="fs-main">
         <div class="fs-header">
-          <button class="fs-icon-btn fs-lang-btn" data-act="lang-toggle" aria-label="${T("Dil")}" title="${T("Dil")}">🌐 <span class="fs-lang-code">${langCode}</span></button>
-          <button class="fs-icon-btn" data-act="close" aria-label="${T("Kapat")}">×</button>
+          <div class="fs-header-left"></div>
+          <div class="fs-header-right">
+            <button class="fs-icon-btn fs-lang-btn" data-act="lang-toggle" aria-label="${T("Dil")}" title="${T("Dil")}">🌐 <span class="fs-lang-code">${langCode}</span></button>
+            <div class="fs-notif-wrap">
+              <button class="fs-header-bell" type="button" data-act="notif-toggle" aria-label="${T("Bildirimler")}" title="${T("Bildirimler")}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 17h12l-1.2-1.2V11a4.8 4.8 0 1 0-9.6 0v4.8L6 17z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+              </button>
+            </div>
+            <div class="fs-stat-pills"></div>
+            <button class="fs-icon-btn" data-act="close" aria-label="${T("Kapat")}">×</button>
+          </div>
         </div>
         <div class="fs-body"></div>
       </main>
     `;
 
     // Header dispatcher
-    panelEl.querySelector(".fs-header").addEventListener("click", (e) => {
+    panelEl.querySelector(".fs-header").addEventListener("click", async (e) => {
+      const notifItem = e.target.closest("[data-notif-id]");
+      if (notifItem) {
+        const id = notifItem.dataset.notifId;
+        const act = notifItem.dataset.notifAct;
+        const url = notifItem.dataset.notifUrl;
+        await markNotifRead(id);
+        cache.notifications.open = false;
+        toggleNotifications(false);
+        if (act === "go-arena") switchTab("arena");
+        else if (act === "go-coach") switchTab("coach");
+        else if (act === "go-training") switchTab("training");
+        else if (act === "go-profile") switchTab("profile");
+        else if (url) {
+          try { chrome.tabs.create({ url }); } catch (_) { window.open(url, "_blank"); }
+        }
+        return;
+      }
       const a = e.target.closest("[data-act]");
       if (!a) return;
       if (a.dataset.act === "close") close();
       else if (a.dataset.act === "lang-toggle" && window.ForkSightI18n) {
         window.ForkSightI18n.toggleLang();
+      } else if (a.dataset.act === "notif-toggle") {
+        await ensureNotifications(false);
+        toggleNotifications();
+      } else if (a.dataset.act === "notif-mark-all") {
+        (cache.notifications.items || []).forEach((it) => {
+          cache.notifications.readIds[String(it.id)] = 1;
+        });
+        cache.notifications.unread = 0;
+        try { chrome.storage.local.set({ fs_notif_read: cache.notifications.readIds }); } catch (_) {}
+        updateNotifBell();
+        toggleNotifications(true);
       }
     });
+    if (!window.__fsNotifOutsideBound) {
+      window.__fsNotifOutsideBound = true;
+      document.addEventListener("click", (ev) => {
+        if (!panelEl || !cache.notifications.open) return;
+        const path = typeof ev.composedPath === "function" ? ev.composedPath() : [];
+        const inNotif = path.some(
+          (n) => n && n.classList && n.classList.contains("fs-notif-wrap"),
+        );
+        if (inNotif) return;
+        cache.notifications.open = false;
+        const pan = panelEl.querySelector(".fs-notif-panel");
+        if (pan) pan.hidden = true;
+      }, true);
+    }
     panelEl.querySelectorAll(".fs-tab").forEach((t) => {
       t.addEventListener("click", () => switchTab(t.dataset.tab));
     });
-    // Active tab vurgusu
     panelEl.querySelectorAll(".fs-tab").forEach((t) => {
       t.classList.toggle("fs-active", t.dataset.tab === activeTab);
     });
-    // Premium pill: durum etiketini güncelle + tıklamada premium sayfasını aç
+    const pro = panelEl.querySelector(".fs-pro-card");
+    if (pro) pro.addEventListener("click", openPremiumPage);
     const pill = panelEl.querySelector(".fs-premium-pill");
     if (pill) {
       pill.addEventListener("click", openPremiumPage);
       updatePremiumPill();
     }
+    updateHeaderGreeting();
+    ensureNotifications(false).then(() => updateNotifBell());
+    try {
+      chrome.storage.local.get(["fs_arena_chest_opened", "fs_onboard_done"], (r) => {
+        if (r && r.fs_arena_chest_opened) cache.arenaChest.opened = true;
+        if (r && r.fs_onboard_done) {
+          cache.onboard.dismissed = true;
+          cache.onboard.step = 3;
+        }
+      });
+    } catch (_) {}
   }
 
   // Premium pill etiketini quota cache'inden günceller:
@@ -3919,7 +8099,7 @@
   function updatePremiumPill() {
     if (!panelEl) return;
     const pill = panelEl.querySelector(".fs-premium-pill");
-    if (!pill) return;
+    const pro = panelEl.querySelector(".fs-pro-card-title");
     const q = cache.quota;
     const tier = (q && q.tier) || "free";
     const isTr = !(
@@ -3928,26 +8108,30 @@
     let label;
     if (tier === "diamond") label = "💎 " + T("Diamond");
     else if (tier === "gold") label = "★ " + T("Gold");
-    else label = "⭐ " + T("Premium'a Geç");
-    // Süreli üyelikse kalan günü ekle (sınırsız/abonelik için premium_until null).
+    else label = "💎 " + T("ForkSight PRO");
     if ((tier === "gold" || tier === "diamond") && q && q.premium_until) {
       const now =
         q.server_time && q.server_time > 0 ? q.server_time : Date.now() / 1000;
       const days = Math.ceil((Number(q.premium_until) - now) / 86400);
-      if (days > 0) label += isTr ? ` · ${days} gün` : ` · ${days}d`;
+      if (days > 0) label += ` · ${days} ${T("gün")}`;
     }
-    pill.innerHTML = esc(label);
-    pill.classList.toggle("fs-pill-gold", tier === "gold");
-    pill.classList.toggle("fs-pill-diamond", tier === "diamond");
+    if (pill) {
+      pill.innerHTML = esc(label);
+      pill.classList.toggle("fs-pill-gold", tier === "gold");
+      pill.classList.toggle("fs-pill-diamond", tier === "diamond");
+    }
+    if (pro) {
+      const crown = v3Url("pro-crown.png");
+      pro.innerHTML = `${crown ? `<img src="${esc(crown)}" alt="" />` : ""}${esc(label)}`;
+    }
   }
 
   // Premium sayfasını yeni sekmede açar. Kullanıcı eklentide giriş yapmışsa
   // token'ı hash ile geçirir → premium.html otomatik oturum açar (tekrar
   // giriş gerekmez). Token yoksa düz açar.
   async function openPremiumPage() {
-    let base = await getCoachApiBase();
-    if (!base) base = "https://forksight.net";
-    let url = base + "/premium";
+    const PREMIUM_URL = "https://forksight.net/premium";
+    let url = PREMIUM_URL;
     try {
       const r = await send("get_token");
       if (r && r.token) {
@@ -3956,11 +8140,17 @@
             cache.profile.user &&
             cache.profile.user.username) ||
           "";
-        url +=
+        url =
+          PREMIUM_URL +
           "#token=" +
           encodeURIComponent(r.token) +
           (u ? "&user=" + encodeURIComponent(u) : "");
       }
+    } catch (_) {}
+    // Content script'te chrome.tabs yok → background üzerinden aç
+    try {
+      const opened = await send("open_url", { url });
+      if (opened && opened.ok) return;
     } catch (_) {}
     try {
       window.open(url, "_blank", "noopener");
@@ -4006,7 +8196,7 @@
     shadow.appendChild(panelEl);
 
     // İlk render + animasyon
-    activeTab = "profile";
+    activeTab = "home";
     renderActive();
     ensureProfile();
     requestAnimationFrame(() => {
@@ -4018,6 +8208,9 @@
     if (window.ForkSightI18n) {
       langUnsub = window.ForkSightI18n.onChange(() => {
         if (!panelEl) return;
+        // Bildirim metinleri dil değişince yeniden üretensin
+        cache.notifications.items = [];
+        cache.notifications.loading = false;
         renderPanelShell();
         renderActive();
       });

@@ -1,112 +1,134 @@
 <p align="center">
-  <img src="forksight.png" alt="ForkSight logo" width="140" />
+  <img src="screenshots/v3/banner.jpg" alt="ForkSight" width="100%" />
 </p>
 
-<h1 align="center">ForkSight — Chess.com Training & Coaching Extension</h1>
+<h1 align="center">ForkSight</h1>
 
 <p align="center">
-  Unofficial training companion for Chess.com with puzzle practice,
-  post-game coach review, profile stats, and optional Premium tiers.
+  <strong>Your personal chess coach — right on Chess.com.</strong><br/>
+  Post-game review · smart puzzles · progress tracking · Arena
+</p>
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/forksight-%E2%80%94-chess-trainin/nbeldcglpjbmlklbakipohnjcpjmcikd"><img src="https://img.shields.io/badge/Chrome_Web_Store-v3.0.0-f5c542?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Web Store" /></a>
+  <a href="https://forksight.net"><img src="https://img.shields.io/badge/Website-forksight.net-0a0c10?style=for-the-badge" alt="Website" /></a>
+  <a href="https://forksight.net/premium"><img src="https://img.shields.io/badge/Premium-Gold_&_Diamond-a78bfa?style=for-the-badge" alt="Premium" /></a>
 </p>
 
 <p align="center">
   <a href="https://forksight.net">Website</a> ·
   <a href="https://forksight.net/premium">Premium</a> ·
-  <a href="https://forksight.net/privacy">Privacy Policy</a>
+  <a href="https://forksight.net/privacy">Privacy</a> ·
+  <a href="https://chromewebstore.google.com/detail/forksight-%E2%80%94-chess-trainin/nbeldcglpjbmlklbakipohnjcpjmcikd">Install</a>
 </p>
 
-## Overview
+---
 
-ForkSight is a Chrome extension built for post-game improvement workflows on Chess.com.
+## Why ForkSight?
 
-Core goals:
+ForkSight turns finished Chess.com games into a daily training loop: coach review, puzzles from *your* mistakes, profile progress, and competitive Arena leagues.
 
-- Turn played games into actionable learning.
-- Provide puzzle and hint flows tied to your own games.
-- Offer clear, profile-based progress tracking.
-- Keep account and subscription management simple.
+It never interferes with live play.  
+**Not affiliated with, endorsed by, or sponsored by Chess.com.**
 
-Note: ForkSight is not affiliated with, endorsed by, or sponsored by Chess.com.
+## What's new in v3.0
 
-## Main Features
-
-- Puzzle practice and hint-based training
-- Post-game coach-style review
-- Player profile stats and progress views
-- Account login and session sync
-- Optional Premium plans for higher limits
-
-## Demo Video
-
-- Main usage demo: [videos/forksight_coach.mp4](videos/forksight_coach.mp4)
+- Redesigned Home, Profile, Coach, Training, My Games, and Arena
+- Secure Chess.com account linking with personal verification code
+- Onboarding + sync progress for new players
+- Stronger puzzle feedback / hint flow
+- Updated landing experience on [forksight.net](https://forksight.net)
 
 ## Screenshots
 
-### Extension Screens
+<table>
+  <tr>
+    <td width="50%">
+      <p align="center"><strong>Home</strong></p>
+      <img src="screenshots/v3/home.jpg" alt="ForkSight Home" />
+    </td>
+    <td width="50%">
+      <p align="center"><strong>Profile</strong></p>
+      <img src="screenshots/v3/profile.jpg" alt="ForkSight Profile" />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <p align="center"><strong>Coach</strong></p>
+      <img src="screenshots/v3/coach.jpg" alt="ForkSight Coach" />
+    </td>
+    <td width="50%">
+      <p align="center"><strong>Training</strong></p>
+      <img src="screenshots/v3/training.jpg" alt="ForkSight Training" />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <p align="center"><strong>My Games</strong></p>
+      <img src="screenshots/v3/my-games.jpg" alt="ForkSight My Games" />
+    </td>
+    <td width="50%">
+      <p align="center"><strong>Arena</strong></p>
+      <img src="screenshots/v3/arena.jpg" alt="ForkSight Arena" />
+    </td>
+  </tr>
+</table>
 
-| Login                                  | Main Panel                                |
-| -------------------------------------- | ----------------------------------------- |
-| ![Login](screenshots/login-screen.png) | ![Panel](screenshots/forksight_panel.png) |
+## Features
 
-| Coach Review                              | Puzzle View                                 |
-| ----------------------------------------- | ------------------------------------------- |
-| ![Coach](screenshots/forksight_coach.png) | ![Puzzle](screenshots/forksight_puzzle.png) |
+| | |
+|---|---|
+| **Coach review** | Walk finished games move by move with clear explanations |
+| **Smart puzzles** | Practice tactics generated from your own games |
+| **My Games** | Browse synced Chess.com games and jump into review |
+| **Progress & Profile** | Ratings, streaks, XP, achievements |
+| **Arena** | Climb leagues with puzzle performance |
+| **Secure linking** | Prove Chess.com ownership via a personal profile code |
 
-| Analysis                                        | Game Result                                          |
-| ----------------------------------------------- | ---------------------------------------------------- |
-| ![Analysis](screenshots/forksight_analysis.png) | ![Game Result](screenshots/forksight_gameresult.png) |
+## Install
 
-## Pricing and Purchase
+### Chrome Web Store (recommended)
 
-ForkSight uses two premium tiers:
+➡️ [Add ForkSight to Chrome](https://chromewebstore.google.com/detail/forksight-%E2%80%94-chess-trainin/nbeldcglpjbmlklbakipohnjcpjmcikd)
 
-- Gold: $3/month or $29/year
-- Diamond: $6/month or $59/year
+### Developer / local
 
-Where to buy:
+1. Open `chrome://extensions/`
+2. Enable **Developer mode**
+3. **Load unpacked** → select the [`extension`](extension) folder
 
-- Premium page: https://forksight.net/premium
-- GitHub Sponsors: https://github.com/sponsors/mrtcnygt0
+## Premium
 
-Premium activation flow:
+| Plan | Price | Highlights |
+|------|-------|------------|
+| **Free** | $0 | Daily puzzles, basic review, profile stats |
+| **Gold** | $3 / month · $29 / year | Higher limits, voice coach, deeper engine |
+| **Diamond** | $6 / month · $59 / year | Unlimited analysis & hints, priority coaching |
 
-1. Sign in to your ForkSight account.
-2. Link your GitHub account.
-3. Start a GitHub Sponsors subscription.
-4. Premium activates automatically after sponsor sync.
+Buy / activate: [forksight.net/premium](https://forksight.net/premium) · [GitHub Sponsors](https://github.com/sponsors/mrtcnygt0)
 
-## Installation (Developer / Local)
+## Demo
 
-1. Open Chrome and go to `chrome://extensions/`
-2. Enable Developer mode.
-3. Click Load unpacked.
-4. Select the [extension](extension) folder from this repository.
+- Coach demo video: [`videos/forksight_coach.mp4`](videos/forksight_coach.mp4)
 
-## Chrome Web Store Build
+## Repository
 
-The CWS package is generated from the `extension` directory only.
-
-Current local package example:
-
-- `forksight-chesscom-v2.9.0.zip`
-
-Store copy helpers:
-
-- [docs/cws-listing.md](docs/cws-listing.md): ready-to-paste Chrome Web Store listing text
-- [releases/v2.9.0.md](releases/v2.9.0.md): GitHub release notes for v2.9.0
-
-## Repository Structure
-
-- [extension](extension): Chrome extension source (Manifest V3)
-- [server.py](server.py): backend API and static routes
-- [landing.html](landing.html): main website page
-- [premium.html](premium.html): Premium plans and account linking page
-- [privacy.html](privacy.html): privacy policy page
-- [screenshots](screenshots): store and README visuals
-- [videos](videos): demo videos
+```
+extension/     Chrome extension (Manifest V3) — v3.0.0
+screenshots/   README & store visuals
+videos/        Demo media
+docs/          Chrome Web Store listing copy
+releases/      GitHub release notes
+```
 
 ## Support
 
-- Website: https://forksight.net
-- Premium & billing: https://forksight.net/premium
-- Privacy policy: https://forksight.net/privacy
+- Website: https://forksight.net  
+- Premium & billing: https://forksight.net/premium  
+- Privacy: https://forksight.net/privacy  
+
+---
+
+<p align="center">
+  <sub>Made for chess players who improve after the game — not during it.</sub>
+</p>

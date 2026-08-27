@@ -206,6 +206,21 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
 
+  if (msg.type === "open_url") {
+    // Content script'ten güvenli sekme açma (chess.com sayfasında window.open engellenebilir)
+    const raw = String((msg.data && msg.data.url) || msg.url || "").trim();
+    let ok = false;
+    try {
+      const u = new URL(raw);
+      if (u.protocol === "https:" || u.protocol === "http:") {
+        chrome.tabs.create({ url: u.href });
+        ok = true;
+      }
+    } catch (_) {}
+    sendResponse({ ok });
+    return true;
+  }
+
   if (msg.type === "open_extension_page") {
     // content-script -> background: chrome.tabs eklentisi içinden açılır
     const page = String(msg.page || "").replace(/^\/+/, "");
@@ -394,6 +409,22 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
 
   // ─── Chess.com entegrasyon endpoint'leri ─────────────
+  if (msg.type === "chess_com_verify_code") {
+    fetch(`${API_BASE}/chess-com/verify-code`, {
+      method: "GET",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
   if (msg.type === "chess_com_verify") {
     fetch(`${API_BASE}/chess-com/verify`, {
       method: "POST",
@@ -437,6 +468,22 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     const url = `${API_BASE}/chess-com/sync` + (force ? "?force=true" : "");
     fetch(url, {
       method: "POST",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "chess_com_sync_status") {
+    fetch(`${API_BASE}/chess-com/sync-status`, {
+      method: "GET",
       headers: apiHeaders(),
     })
       .then(async (r) => ({
@@ -580,6 +627,39 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
 
+
+  if (msg.type === "notifications_list") {
+    const d = msg.data || {};
+    const since = Number(d.since || 0) || 0;
+    const qs = since ? `?since=${since}` : "";
+    fetch(`${API_BASE}/notifications${qs}`, {
+      method: "GET",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({
+          ok: status === 200,
+          status,
+          notifications: (body && body.notifications) || [],
+          ...body,
+        }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message, notifications: [] }));
+    return true;
+  }
+
+  if (msg.type === "notification_event") {
+    const d = msg.data || {};
+    reportNotificationEvent(API_BASE, d.notification_id, d.event_type || "click")
+      .then(() => sendResponse({ ok: true }))
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
   // Faz 3.1: Başarımlar & Liderlik
   if (msg.type === "achievements_me") {
     fetch(`${API_BASE}/achievements/me`, {
@@ -602,6 +682,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     const qs = new URLSearchParams();
     if (d.metric) qs.set("metric", String(d.metric));
     if (d.limit) qs.set("limit", String(d.limit));
+    if (d.scope) qs.set("scope", String(d.scope));
     const url = qs.toString()
       ? `${API_BASE}/leaderboard?${qs.toString()}`
       : `${API_BASE}/leaderboard`;

@@ -10,12 +10,57 @@
 //   });
 //   board.setPosition(fen, sideToMove);
 //   board.flash("from","to","ok"|"err");
+//   board.revealSolution({ fen, sideToMove, wrongUci, correctUci })
 //   board.destroy();
 
 (function () {
   "use strict";
 
   const FILES = "abcdefgh";
+
+  // Pulse / arrow stilleri — Shadow DOM içine enjekte edilmeli (panel shadow root).
+  function ensureBoardStyles(host) {
+    if (!host) return;
+    if (host.querySelector && host.querySelector("#fsq-board-anim-css")) return;
+    const s = document.createElement("style");
+    s.id = "fsq-board-anim-css";
+    s.textContent = `
+      @keyframes fsq-pulse-ok {
+        0%, 100% { box-shadow: inset 0 0 0 4px rgba(34,197,94,.85), 0 0 0 0 rgba(34,197,94,0); }
+        50% { box-shadow: inset 0 0 0 5px rgba(34,197,94,1), 0 0 22px rgba(34,197,94,.65); }
+      }
+      @keyframes fsq-pulse-err {
+        0%, 100% { box-shadow: inset 0 0 0 4px rgba(239,68,68,.85), 0 0 0 0 rgba(239,68,68,0); }
+        50% { box-shadow: inset 0 0 0 5px rgba(239,68,68,1), 0 0 18px rgba(239,68,68,.55); }
+      }
+      @keyframes fsq-arrow-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .fsq-hl-ok {
+        animation: fsq-pulse-ok 1.1s ease-in-out infinite;
+        outline: 3px solid rgba(34,197,94,.95) !important;
+        z-index: 2;
+      }
+      .fsq-hl-err {
+        animation: fsq-pulse-err .9s ease-in-out infinite;
+        outline: 3px solid rgba(239,68,68,.95) !important;
+        z-index: 2;
+      }
+      .fsq-hl-info { outline: 3px solid rgba(59,130,246,.9) !important; z-index: 2; }
+      .fsq-arrow-layer {
+        position: absolute !important;
+        left: 0; top: 0; right: 0; bottom: 0;
+        width: 100% !important;
+        height: 100% !important;
+        pointer-events: none !important;
+        z-index: 8 !important;
+        overflow: visible;
+        animation: fsq-arrow-in .25s ease-out;
+      }
+    `;
+    host.insertBefore(s, host.firstChild);
+  }
 
   // ── FEN → board[64] (rank*8 + file). board[0] = a1, board[63] = h8.
   function fenToBoard(fen) {
@@ -53,6 +98,29 @@
     return FILES[file] + (rank + 1);
   }
 
+  function boardToFen(board, sideToMove) {
+    const ranks = [];
+    for (let rank = 7; rank >= 0; rank--) {
+      let row = "";
+      let empty = 0;
+      for (let file = 0; file < 8; file++) {
+        const p = board[rank * 8 + file] || "";
+        if (!p) {
+          empty++;
+        } else {
+          if (empty) {
+            row += String(empty);
+            empty = 0;
+          }
+          row += p;
+        }
+      }
+      if (empty) row += String(empty);
+      ranks.push(row);
+    }
+    return ranks.join("/") + " " + (sideToMove === "b" ? "b" : "w") + " - - 0 1";
+  }
+
   function isOwnPiece(piece, sideToMove) {
     if (!piece) return false;
     const isWhite = piece === piece.toUpperCase();
@@ -71,6 +139,9 @@
       root: null,
       promoOverlay: null,
       locked: false,
+      arrowEl: null,
+      lastFenBeforeMove: null,
+      lastSideBeforeMove: "w",
     };
 
     function buildSkeleton() {
@@ -337,7 +408,116 @@
       Object.values(state.squares).forEach((c) => {
         c.style.boxShadow = "";
         c.style.outline = "";
+        c.style.zIndex = "";
+        c.classList.remove("fsq-hl-ok", "fsq-hl-err", "fsq-hl-info");
       });
+    }
+
+    function clearArrow() {
+      if (state.arrowEl && state.arrowEl.parentNode) {
+        state.arrowEl.parentNode.removeChild(state.arrowEl);
+      }
+      state.arrowEl = null;
+    }
+
+    function waitFrame() {
+      return new Promise((res) => {
+        requestAnimationFrame(() => requestAnimationFrame(res));
+      });
+    }
+
+    function sqCenter(sq) {
+      const cell = state.squares[sq];
+      if (!cell || !state.root) return null;
+      const rootRect = state.root.getBoundingClientRect();
+      const r = cell.getBoundingClientRect();
+      if (!rootRect.width || !r.width) return null;
+      return {
+        x: r.left - rootRect.left + r.width / 2,
+        y: r.top - rootRect.top + r.height / 2,
+      };
+    }
+
+    function drawArrow(fromSq, toSq, kind) {
+      clearArrow();
+      ensureBoardStyles(state.root);
+      const a = sqCenter(fromSq);
+      const b = sqCenter(toSq);
+      if (!a || !b || !state.root) return;
+      const rootRect = state.root.getBoundingClientRect();
+      const w = Math.max(1, Math.round(rootRect.width));
+      const h = Math.max(1, Math.round(rootRect.height));
+      const colors = {
+        ok: "rgba(34,197,94,.95)",
+        err: "rgba(239,68,68,.92)",
+        info: "rgba(59,130,246,.9)",
+      };
+      const col = colors[kind] || colors.info;
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "fsq-arrow-layer");
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      svg.setAttribute("width", String(w));
+      svg.setAttribute("height", String(h));
+      Object.assign(svg.style, {
+        position: "absolute",
+        left: "0",
+        top: "0",
+        width: w + "px",
+        height: h + "px",
+        pointerEvents: "none",
+        zIndex: "8",
+        overflow: "visible",
+      });
+
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      const ux = dx / len;
+      const uy = dy / len;
+      // Hedef kareye yapışmasın; ok ucu için yer bırak
+      const tipPad = Math.min(22, len * 0.22);
+      const shaftPad = Math.min(10, len * 0.08);
+      const x1 = a.x + ux * shaftPad;
+      const y1 = a.y + uy * shaftPad;
+      const x2 = b.x - ux * tipPad;
+      const y2 = b.y - uy * tipPad;
+      // Ok ucu üçgeni (marker kullanma — Shadow DOM'da url(#id) kırılır)
+      const tipLen = 16;
+      const tipHalf = 9;
+      const tx = b.x - ux * Math.min(8, tipPad * 0.35);
+      const ty = b.y - uy * Math.min(8, tipPad * 0.35);
+      const bx = tx - ux * tipLen;
+      const by = ty - uy * tipLen;
+      const px = -uy;
+      const py = ux;
+      const p1x = bx + px * tipHalf;
+      const p1y = by + py * tipHalf;
+      const p2x = bx - px * tipHalf;
+      const p2y = by - py * tipHalf;
+
+      const ns = "http://www.w3.org/2000/svg";
+      const line = document.createElementNS(ns, "line");
+      line.setAttribute("x1", String(x1));
+      line.setAttribute("y1", String(y1));
+      line.setAttribute("x2", String(x2));
+      line.setAttribute("y2", String(y2));
+      line.setAttribute("stroke", col);
+      line.setAttribute("stroke-width", "9");
+      line.setAttribute("stroke-linecap", "round");
+      line.setAttribute("opacity", "0.96");
+
+      const tip = document.createElementNS(ns, "polygon");
+      tip.setAttribute(
+        "points",
+        `${tx},${ty} ${p1x},${p1y} ${p2x},${p2y}`,
+      );
+      tip.setAttribute("fill", col);
+      tip.setAttribute("opacity", "0.98");
+
+      svg.appendChild(line);
+      svg.appendChild(tip);
+      state.root.appendChild(svg);
+      state.arrowEl = svg;
     }
 
     function highlightFrom(sq) {
@@ -346,16 +526,35 @@
     }
 
     function highlightMove(from, to, kind) {
-      const colors = {
-        ok: "rgba(34,197,94,.7)",
-        err: "rgba(239,68,68,.7)",
-        info: "rgba(59,130,246,.7)",
-      };
-      const col = colors[kind] || colors.info;
+      ensureBoardStyles(state.root);
+      const cls =
+        kind === "ok" ? "fsq-hl-ok" : kind === "err" ? "fsq-hl-err" : "fsq-hl-info";
+      const outline =
+        kind === "ok"
+          ? "3px solid rgba(34,197,94,.95)"
+          : kind === "err"
+            ? "3px solid rgba(239,68,68,.95)"
+            : "3px solid rgba(59,130,246,.9)";
+      const glow =
+        kind === "ok"
+          ? "inset 0 0 0 4px rgba(34,197,94,.85), 0 0 18px rgba(34,197,94,.55)"
+          : kind === "err"
+            ? "inset 0 0 0 4px rgba(239,68,68,.85), 0 0 16px rgba(239,68,68,.5)"
+            : "inset 0 0 0 4px rgba(59,130,246,.75)";
       [from, to].forEach((sq) => {
         const c = state.squares[sq];
-        if (c) c.style.outline = "4px solid " + col;
+        if (!c) return;
+        c.classList.remove("fsq-hl-ok", "fsq-hl-err", "fsq-hl-info");
+        c.classList.add(cls);
+        // Inline fallback — Shadow DOM stil kaçırırsa yine görünsün
+        c.style.outline = outline;
+        c.style.boxShadow = glow;
+        c.style.zIndex = "2";
       });
+    }
+
+    function sleep(ms) {
+      return new Promise((res) => setTimeout(res, ms));
     }
 
     function onSquareClick(sq) {
@@ -415,8 +614,10 @@
       state.selectedFrom = null;
       state.pendingPromo = null;
       clearHighlights();
+      // Yanlış olursa geri yüklemek için hamle öncesi FEN
+      state.lastFenBeforeMove = boardToFen(state.board, state.sideToMove);
+      state.lastSideBeforeMove = state.sideToMove;
       // Taşı görsel olarak yerel tahtada oynat (kullanıcı geri bildirimi).
-      // Sunucu yanlış derse, çağıran taraf setPosition() ile FEN'i geri yükler.
       applyMoveLocal(uci);
       highlightMove(uci.slice(0, 2), uci.slice(2, 4), "info");
       try {
@@ -585,6 +786,7 @@
 
     function setPosition(fen, sideToMove) {
       hidePromoPicker();
+      clearArrow();
       state.board = fenToBoard(fen);
       state.sideToMove = sideToMove === "b" ? "b" : "w";
       // Otomatik flip: hamle sırası olan oyuncu altta
@@ -597,7 +799,13 @@
 
     function flash(fromSq, toSq, kind) {
       clearHighlights();
-      highlightMove(fromSq, toSq, kind);
+      clearArrow();
+      ensureBoardStyles(state.root);
+      // Layout hazır olsun (özellikle paint sonrası)
+      waitFrame().then(() => {
+        highlightMove(fromSq, toSq, kind);
+        if (fromSq && toSq) drawArrow(fromSq, toSq, kind || "info");
+      });
     }
 
     function lock(flag) {
@@ -606,6 +814,7 @@
 
     function destroy() {
       hidePromoPicker();
+      clearArrow();
       container.innerHTML = "";
     }
 
@@ -619,6 +828,7 @@
 
     // ── init
     buildSkeleton();
+    ensureBoardStyles(state.root);
     if (opts.fen) setPosition(opts.fen, opts.sideToMove || "w");
 
     // Dışarıdan (örn. mate-2 rakip cevabı) hamle uygulamak için.
@@ -631,6 +841,55 @@
       const to = uci.slice(2, 4);
       try {
         highlightMove(from, to, (opts2 && opts2.kind) || "info");
+        drawArrow(from, to, (opts2 && opts2.kind) || "info");
+      } catch (_) {}
+    }
+
+    /**
+     * Yanlış sonrası: FEN'e dön → kırmızı yanlış kareler → doğru hamleyi oynat + yeşil ok.
+     * Doğru sonrası: yeşil ok + pulse.
+     */
+    async function revealSolution(opts2) {
+      const o = opts2 || {};
+      const wrong = String(o.wrongUci || "").toLowerCase();
+      const correct = String(o.correctUci || "").toLowerCase();
+      lock(true);
+      try {
+        const restoreFen = o.fen || state.lastFenBeforeMove || null;
+        const restoreSide =
+          o.sideToMove || state.lastSideBeforeMove || "w";
+        if (restoreFen) {
+          setPosition(restoreFen, restoreSide);
+          lock(true);
+          await waitFrame();
+        }
+        if (wrong.length >= 4) {
+          clearHighlights();
+          clearArrow();
+          highlightMove(wrong.slice(0, 2), wrong.slice(2, 4), "err");
+          drawArrow(wrong.slice(0, 2), wrong.slice(2, 4), "err");
+          await sleep(850);
+        }
+        if (correct.length >= 4) {
+          if (restoreFen) {
+            setPosition(restoreFen, restoreSide);
+            lock(true);
+            await waitFrame();
+          }
+          clearHighlights();
+          clearArrow();
+          try {
+            applyMoveLocal(correct);
+          } catch (_) {}
+          await waitFrame();
+          highlightMove(correct.slice(0, 2), correct.slice(2, 4), "ok");
+          drawArrow(correct.slice(0, 2), correct.slice(2, 4), "ok");
+        } else if (o.kind === "ok" && wrong.length >= 4) {
+          clearHighlights();
+          clearArrow();
+          highlightMove(wrong.slice(0, 2), wrong.slice(2, 4), "ok");
+          drawArrow(wrong.slice(0, 2), wrong.slice(2, 4), "ok");
+        }
       } catch (_) {}
     }
 
@@ -642,6 +901,9 @@
       clearHighlights,
       highlightHint,
       applyMove,
+      revealSolution,
+      drawArrow,
+      getLastFenBeforeMove: () => state.lastFenBeforeMove,
     };
   }
 

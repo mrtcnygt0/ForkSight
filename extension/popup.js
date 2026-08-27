@@ -28,7 +28,11 @@ const LANGS = {
     featReview: "Detaylı koç incelemesi",
     loginForQuota: "Kullanım bilgisi için giriş yapın",
     adminPanel: "🔧 Admin Paneli",
-    language: "🌐 Dil",
+    language: "Dil",
+    openCoach: "Chess.com'da ForkSight'ı aç",
+    openHint:
+      "Chess.com sayfasında avatar'a tıklayarak Ana Sayfa, Koç ve Antrenman'a geç.",
+    brandSub: "Kişisel satranç koçu",
   },
   en: {
     serverRunning: "✅ Server is running",
@@ -54,37 +58,62 @@ const LANGS = {
     featReview: "Deep coach review",
     loginForQuota: "Log in to see usage",
     adminPanel: "🔧 Admin Panel",
-    language: "🌐 Language",
+    language: "Language",
+    openCoach: "Open ForkSight on Chess.com",
+    openHint:
+      "On Chess.com, click your avatar to open Home, Coach, and Training.",
+    brandSub: "Personal chess coach",
   },
 };
+
 function detectLang() {
   const bl = (navigator.language || "en").split("-")[0].toLowerCase();
   return LANGS[bl] ? bl : "en";
 }
+
 let lang = detectLang();
 function t(key) {
-  return LANGS[lang][key] || key;
+  return (LANGS[lang] && LANGS[lang][key]) || (LANGS.en && LANGS.en[key]) || key;
+}
+
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
 }
 
 function applyLang() {
-  document.getElementById("statsTitle").textContent = t("serverStatus");
-  const qt = document.getElementById("quotaTitle");
-  if (qt) qt.textContent = t("quotaTitle");
-  const qu = document.getElementById("quotaUpgrade");
-  if (qu) qu.textContent = t("upgrade");
-  document.getElementById("adminLink").textContent = t("adminPanel");
-  document.getElementById("langTitle").textContent = t("language");
-  // Update stats if visible
+  setText("statsTitle", t("serverStatus"));
+  setText("quotaTitle", t("quotaTitle"));
+  setText("quotaUpgrade", t("upgrade"));
+  setText("adminLink", t("adminPanel"));
+  setText("langTitle", t("language"));
+  setText("openCoachHint", t("openCoach"));
+  setText("openHint", t("openHint"));
+  setText("brandSub", t("brandSub"));
+
+  // Status bar: only refresh checking/ok/fail labels, keep class
+  if (statusEl) {
+    if (statusEl.classList.contains("checking")) {
+      statusEl.textContent = t("serverChecking");
+    } else if (statusEl.classList.contains("ok")) {
+      statusEl.textContent = t("serverRunning");
+    } else if (statusEl.classList.contains("fail")) {
+      statusEl.textContent = t("serverDown");
+    }
+  }
+
   const statsGrid = document.getElementById("statsGrid");
-  if (statsGrid.children.length) {
+  if (statsGrid && statsGrid.children.length) {
     const vals = Array.from(statsGrid.querySelectorAll(".v")).map(
       (e) => e.textContent,
     );
-    statsGrid.innerHTML = `
+    if (vals.length >= 3) {
+      statsGrid.innerHTML = `
       <div class="stat"><div class="v">${vals[0]}</div><div class="l">${t("load")}</div></div>
       <div class="stat"><div class="v">${vals[1]}</div><div class="l">${t("analyses")}</div></div>
       <div class="stat"><div class="v">${vals[2]}</div><div class="l">${t("users")}</div></div>
     `;
+    }
   }
 }
 
@@ -96,19 +125,35 @@ const adminSection = document.getElementById("adminSection");
 const verInfo = document.getElementById("verInfo");
 
 let apiBase = DEFAULT_API;
+let checkAbort = null;
+
+function persistLang(next) {
+  // Panel (fs_lang) ile popup (taktik_lang) aynı tercihi paylaşsın
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ fs_lang: next, taktik_lang: next }, () =>
+      resolve(next),
+    );
+  });
+}
 
 // ─── Başlangıç ──────────────────────────────────────
 chrome.storage.local.get(
-  ["taktik_token", "taktik_user", "taktik_lang"],
+  ["taktik_token", "taktik_user", "taktik_lang", "fs_lang"],
   (r) => {
     apiBase = DEFAULT_API;
-    lang = r.taktik_lang || detectLang();
-    document.getElementById("langSelect").value = lang;
+    const stored =
+      (r.fs_lang === "tr" || r.fs_lang === "en" ? r.fs_lang : null) ||
+      (r.taktik_lang === "tr" || r.taktik_lang === "en" ? r.taktik_lang : null);
+    lang = stored || detectLang();
+    const sel = document.getElementById("langSelect");
+    if (sel) sel.value = lang;
     applyLang();
-    if (r.taktik_user) {
+    if (r.taktik_user && userInfoEl) {
       userInfoEl.style.display = "block";
       userInfoEl.textContent = `👤 ${r.taktik_user}`;
     }
+    // Eski anahtar → yeni anahtar senkronu
+    if (!r.fs_lang && stored) persistLang(stored);
     checkServer();
     checkVersion();
     loadQuota();
@@ -130,8 +175,10 @@ function loadQuota() {
   chrome.storage.local.get(["taktik_token"], (r) => {
     if (!r.taktik_token) {
       qs.style.display = "block";
-      document.getElementById("quotaList").innerHTML =
-        `<div style="color:var(--text-muted);text-align:center;padding:6px 0;">${t("loginForQuota")}</div>`;
+      const list = document.getElementById("quotaList");
+      if (list) {
+        list.innerHTML = `<div style="color:var(--text-muted);text-align:center;padding:6px 0;">${t("loginForQuota")}</div>`;
+      }
       return;
     }
     fetch(`${apiBase}/me/quota`, {
@@ -201,32 +248,81 @@ function renderQuota(data) {
 
 // ─── Dil Değiştir ───────────────────────────────────
 document.getElementById("langSelect").addEventListener("change", (e) => {
-  lang = e.target.value;
-  chrome.storage.local.set({ taktik_lang: lang });
-  applyLang();
-  checkServer();
+  lang = e.target.value === "tr" ? "tr" : "en";
+  persistLang(lang).then(() => {
+    applyLang();
+    checkServer();
+    loadQuota();
+  });
 });
+
+// ─── Chess.com'a git ────────────────────────────────
+const openBtn = document.getElementById("openCoachHint");
+if (openBtn) {
+  openBtn.addEventListener("click", () => {
+    chrome.tabs.create({ url: "https://www.chess.com/home" });
+  });
+}
 
 // ─── Sunucu Kontrol ─────────────────────────────────
 function checkServer() {
+  if (!statusEl) return;
   statusEl.textContent = t("serverChecking");
   statusEl.className = "status checking";
-  fetch(`${apiBase}/stats`, { method: "GET" })
-    .then((r) => r.json())
+
+  if (checkAbort) {
+    try {
+      checkAbort.abort();
+    } catch (_) {}
+  }
+  checkAbort = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer =
+    checkAbort &&
+    setTimeout(() => {
+      try {
+        checkAbort.abort();
+      } catch (_) {}
+    }, 8000);
+
+  const opts = checkAbort ? { method: "GET", signal: checkAbort.signal } : { method: "GET" };
+
+  fetch(`${apiBase}/stats`, opts)
+    .then(async (r) => {
+      if (!r.ok) throw new Error("bad status " + r.status);
+      return r.json();
+    })
     .then((data) => {
       statusEl.textContent = t("serverRunning");
       statusEl.className = "status ok";
       showStats(data);
     })
     .catch(() => {
-      statusEl.textContent = t("serverDown");
-      statusEl.className = "status fail";
-      statsSection.style.display = "none";
+      // /stats başarısızsa /version ile ikinci deneme
+      return fetch(`${apiBase}/version`, { method: "GET" })
+        .then(async (r) => {
+          if (!r.ok) throw new Error("bad status");
+          return r.json();
+        })
+        .then(() => {
+          statusEl.textContent = t("serverRunning");
+          statusEl.className = "status ok";
+          if (statsSection) statsSection.style.display = "none";
+        })
+        .catch(() => {
+          statusEl.textContent = t("serverDown");
+          statusEl.className = "status fail";
+          if (statsSection) statsSection.style.display = "none";
+        });
+    })
+    .finally(() => {
+      if (timer) clearTimeout(timer);
     });
 }
 
 // ─── İstatistikler ──────────────────────────────────
 function showStats(d) {
+  if (!statsSection || !statsGrid) return;
+  // Tasarımda gizlenmiş olabilir; yine de DOM'u doldur
   statsSection.style.display = "block";
   statsGrid.innerHTML = `
     <div class="stat"><div class="v">${d.load_percent || 0}%</div><div class="l">${t("load")}</div></div>
@@ -237,17 +333,20 @@ function showStats(d) {
 
 // ─── Versiyon Kontrolü ──────────────────────────────
 function checkVersion() {
+  if (!verInfo) return;
   fetch(`${apiBase}/version`, { method: "GET" })
     .then((r) => r.json())
     .then((v) => {
       verInfo.textContent = `Extension v${EXTENSION_VERSION} | Server v${v.server_version}`;
-      // Admin link
       chrome.storage.local.get("taktik_is_admin", (r) => {
-        if (r.taktik_is_admin) {
+        if (r.taktik_is_admin && adminSection) {
           adminSection.style.display = "block";
-          document.getElementById("adminLink").onclick = () => {
-            chrome.tabs.create({ url: `${apiBase}/admin` });
-          };
+          const link = document.getElementById("adminLink");
+          if (link) {
+            link.onclick = () => {
+              chrome.tabs.create({ url: `${apiBase}/admin` });
+            };
+          }
         }
       });
     })

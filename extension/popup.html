@@ -3,44 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <style>
-      /* ─── Design Token System ─── */
       :root {
-        --bg: #0b0f17;
-        --card: #111827;
+        --bg: #12141d;
+        --card: rgba(255, 255, 255, 0.04);
         --border: rgba(255, 255, 255, 0.07);
-        --accent: #22c55e;
-        --accent-hover: #16a34a;
-        --danger: #ef4444;
-        --text: #e5e7eb;
-        --text-muted: #6b7280;
-        --text-dim: #9ca3af;
-        --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+        --accent: #f5c542;
+        --text: #eceef4;
+        --text-muted: #9ba0aa;
+        --font: "Segoe UI", system-ui, -apple-system, sans-serif;
       }
-
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
+      * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
-        width: 340px;
+        width: 320px;
         padding: 16px;
         font-family: var(--font);
         background: var(--bg);
         color: var(--text);
       }
-
-      h2 {
-        font-size: 15px;
-        font-weight: 700;
-        color: var(--accent);
-        margin-bottom: 12px;
+      .popup-header {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 10px;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
       }
-
+      .popup-logo { font-size: 22px; }
+      .popup-brand { font-size: 15px; font-weight: 800; }
+      .popup-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
       .status {
         padding: 8px 10px;
         border-radius: 8px;
@@ -49,155 +39,45 @@
         font-weight: 500;
         text-align: center;
       }
-      .status.ok {
-        background: rgba(34, 197, 94, 0.1);
-        color: #4ade80;
-      }
-      .status.fail {
-        background: rgba(239, 68, 68, 0.1);
-        color: #f87171;
-      }
-      .status.checking {
-        background: rgba(255, 255, 255, 0.04);
-        color: var(--text-muted);
-      }
-
+      .status.ok { background: rgba(61, 214, 140, 0.12); color: #3dd68c; }
+      .status.fail { background: rgba(255, 107, 107, 0.12); color: #ff6b6b; }
+      .status.checking { background: rgba(255, 255, 255, 0.04); color: var(--text-muted); }
+      .user-info { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
       .section {
         background: var(--card);
         border: 1px solid var(--border);
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 12px;
         margin-bottom: 10px;
       }
-      .section h3 {
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.6px;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        margin-bottom: 10px;
+      .cta {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #12141d;
+        font-weight: 800;
+        font-size: 13px;
+        cursor: pointer;
+        font-family: var(--font);
       }
-
-      .row {
+      .hint { font-size: 11px; color: var(--text-muted); margin-top: 8px; line-height: 1.4; }
+      .lang-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
         font-size: 12px;
-        padding: 4px 0;
-      }
-      .row .lbl {
         color: var(--text-muted);
       }
-      .row .val {
+      .lang-row select {
+        background: #1a1d28;
         color: var(--text);
-        font-weight: 600;
-      }
-
-      label {
-        font-size: 12px;
-        color: var(--text-muted);
-        display: block;
-        margin-bottom: 5px;
-      }
-
-      input[type="text"] {
-        width: 100%;
-        padding: 8px 10px;
-        background: #1f2937;
         border: 1px solid var(--border);
-        border-radius: 7px;
-        color: var(--text);
+        border-radius: 6px;
+        padding: 3px 8px;
         font-size: 12px;
-        font-family: var(--font);
-        outline: none;
-        transition: border-color 0.15s;
-      }
-      input[type="text"]:focus {
-        border-color: var(--accent);
-      }
-
-      .btn {
-        display: block;
-        width: 100%;
-        padding: 9px;
-        background: var(--accent);
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        font-family: var(--font);
-        cursor: pointer;
-        text-align: center;
-        margin-top: 8px;
-        transition:
-          background 0.15s,
-          transform 0.1s;
-      }
-      .btn:hover {
-        background: var(--accent-hover);
-        transform: translateY(-1px);
-      }
-      .btn:active {
-        transform: translateY(0);
-      }
-
-      .btn-sm {
-        display: inline-block;
-        width: auto;
-        padding: 4px 10px;
-        margin: 0;
-        font-size: 11px;
-      }
-
-      .shortcuts {
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid var(--border);
-      }
-      .shortcuts div {
-        display: flex;
-        justify-content: space-between;
-        margin: 4px 0;
-        font-size: 12px;
-        color: var(--text-muted);
-      }
-      .shortcuts kbd {
-        background: var(--accent);
-        color: #fff;
-        padding: 1px 8px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 600;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 6px;
-      }
-      .stat {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 10px 6px;
-        text-align: center;
-      }
-      .stat .v {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--accent);
-      }
-      .stat .l {
-        font-size: 10px;
-        color: var(--text-muted);
-        margin-top: 3px;
-      }
-
-      .user-info {
-        font-size: 12px;
-        color: var(--text-dim);
-        margin-bottom: 8px;
       }
       .admin-link {
         font-size: 12px;
@@ -211,111 +91,38 @@
         text-align: center;
         margin-top: 10px;
       }
-
-      .lang-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 12px;
-        color: var(--text-muted);
-      }
-      .lang-row select {
-        background: #1f2937;
-        color: var(--text);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 3px 8px;
-        font-size: 12px;
-        font-family: var(--font);
-        outline: none;
-        cursor: pointer;
-      }
-
-      /* ─── FAZ 7: Popup Header ─── */
-      .popup-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid var(--border);
-      }
-      .popup-logo {
-        font-size: 26px;
-        line-height: 1;
-        flex-shrink: 0;
-      }
-      .popup-brand {
-        font-size: 16px;
-        font-weight: 700;
-        color: var(--text);
-        line-height: 1.2;
-      }
-      .popup-sub {
-        font-size: 10px;
-        color: var(--text-muted);
-        margin-top: 1px;
-        letter-spacing: 0.3px;
-      }
-      .popup-platform {
-        margin-left: auto;
-        font-size: 10px;
-        font-weight: 600;
-        color: var(--accent);
-        background: rgba(34, 197, 94, 0.1);
-        border: 1px solid rgba(34, 197, 94, 0.25);
-        border-radius: 20px;
-        padding: 3px 8px;
-        white-space: nowrap;
-      }
+      #statsSection, #quotaSection { display: none !important; }
     </style>
   </head>
   <body>
-    <!-- FAZ 7: Yeni Header -->
     <div class="popup-header">
-      <span class="popup-logo">♟</span>
+      <span class="popup-logo">♞</span>
       <div>
         <div class="popup-brand">ForkSight</div>
-        <div class="popup-sub">Chess Training & Coaching</div>
+        <div class="popup-sub" id="brandSub">Personal chess coach</div>
       </div>
-      <span class="popup-platform">Chess.com</span>
     </div>
-    <div id="status" class="status checking">Sunucu kontrol ediliyor…</div>
+    <div id="status" class="status checking">Checking server…</div>
     <div id="userInfo" class="user-info" style="display: none"></div>
 
-    <div class="section" id="statsSection" style="display: none">
-      <h3 id="statsTitle">📊 Sunucu Durumu</h3>
-      <div class="grid" id="statsGrid"></div>
+    <div class="section">
+      <button class="cta" id="openCoachHint" type="button">Open ForkSight on Chess.com</button>
+      <div class="hint" id="openHint">
+        On Chess.com, click your avatar to open Home, Coach, and Training.
+      </div>
     </div>
 
+    <div class="section" id="statsSection" style="display: none">
+      <div class="grid" id="statsGrid"></div>
+    </div>
     <div class="section" id="quotaSection" style="display: none">
-      <h3 id="quotaTitle">📊 Günlük Kullanım</h3>
-      <div
-        id="quotaList"
-        style="display: flex; flex-direction: column; gap: 6px; font-size: 12px"
-      ></div>
-      <a
-        id="quotaUpgrade"
-        href="#"
-        style="
-          display: none;
-          margin-top: 10px;
-          text-align: center;
-          background: linear-gradient(135deg, #f5c518, #e0a800);
-          color: #0a0e14;
-          font-weight: 700;
-          padding: 8px;
-          border-radius: 8px;
-          text-decoration: none;
-          font-size: 12px;
-        "
-        >⭐ Premium'a Geç</a
-      >
+      <div id="quotaList"></div>
+      <a id="quotaUpgrade" href="#" style="display: none"></a>
     </div>
 
     <div class="section">
       <div class="lang-row">
-        <span id="langTitle">🌐 Dil</span>
+        <span id="langTitle">Dil</span>
         <select id="langSelect">
           <option value="tr">Türkçe</option>
           <option value="en">English</option>
@@ -324,11 +131,9 @@
     </div>
 
     <div id="adminSection" style="display: none">
-      <span class="admin-link" id="adminLink">🔧 Admin Paneli</span>
+      <span class="admin-link" id="adminLink">Admin Paneli</span>
     </div>
-
     <div class="ver" id="verInfo"></div>
-
     <script src="popup.js"></script>
   </body>
 </html>

@@ -1200,6 +1200,218 @@
     return timeline;
   }
 
+  // ─── Opening book (real theory detection) ───────────────────────────
+  // Chess.com/Lichess only mark a move as "book" while it follows known
+  // opening theory. We replay a curated set of main lines through the
+  // mini-engine to build a Set of theory position keys (placement + side
+  // + castling rights; move counters and en-passant are dropped so
+  // transpositions still match). A ply counts as "book" only while the
+  // running position stays in this set — the first off-book move ends the
+  // streak and from there the normal accuracy badges take over. This
+  // replaces the old `ply <= 6` rule that labelled the first six plies as
+  // book no matter what was actually played.
+  const OPENING_LINES = [
+    // 1.e4 e5
+    [
+      "e2e4",
+      "e7e5",
+      "g1f3",
+      "b8c6",
+      "f1c4",
+      "f8c5",
+      "c2c3",
+      "g8f6",
+      "d2d3",
+      "d7d6",
+    ],
+    ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "f8c5", "b2b4"],
+    ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "g8f6", "d2d3"],
+    [
+      "e2e4",
+      "e7e5",
+      "g1f3",
+      "b8c6",
+      "f1c4",
+      "g8f6",
+      "f3g5",
+      "d7d5",
+      "e4d5",
+      "c6a5",
+    ],
+    [
+      "e2e4",
+      "e7e5",
+      "g1f3",
+      "b8c6",
+      "f1b5",
+      "a7a6",
+      "b5a4",
+      "g8f6",
+      "e1g1",
+      "f8e7",
+      "f1e1",
+      "b7b5",
+      "a4b3",
+      "d7d6",
+      "c2c3",
+      "e8g8",
+    ],
+    ["e2e4", "e7e5", "g1f3", "b8c6", "f1b5", "g8f6", "e1g1", "f6e4"],
+    ["e2e4", "e7e5", "g1f3", "b8c6", "f1b5", "a7a6", "b5c6", "d7c6"],
+    ["e2e4", "e7e5", "g1f3", "g8f6", "f3e5", "d7d6", "e5f3", "f6e4"],
+    ["e2e4", "e7e5", "g1f3", "d7d6"],
+    ["e2e4", "e7e5", "g1f3", "b8c6", "d2d4", "e5d4", "f3d4"],
+    ["e2e4", "e7e5", "b1c3"],
+    ["e2e4", "e7e5", "f2f4"],
+    // 1.e4 c5 (Sicilian)
+    [
+      "e2e4",
+      "c7c5",
+      "g1f3",
+      "d7d6",
+      "d2d4",
+      "c5d4",
+      "f3d4",
+      "g8f6",
+      "b1c3",
+      "a7a6",
+    ],
+    [
+      "e2e4",
+      "c7c5",
+      "g1f3",
+      "d7d6",
+      "d2d4",
+      "c5d4",
+      "f3d4",
+      "g8f6",
+      "b1c3",
+      "g7g6",
+    ],
+    [
+      "e2e4",
+      "c7c5",
+      "g1f3",
+      "b8c6",
+      "d2d4",
+      "c5d4",
+      "f3d4",
+      "g8f6",
+      "b1c3",
+      "e7e5",
+    ],
+    ["e2e4", "c7c5", "g1f3", "e7e6", "d2d4", "c5d4", "f3d4", "b8c6"],
+    ["e2e4", "c7c5", "g1f3", "d7d6", "f1b5"],
+    ["e2e4", "c7c5", "g1f3", "b8c6", "f1b5"],
+    ["e2e4", "c7c5", "c2c3"],
+    ["e2e4", "c7c5", "b1c3"],
+    // 1.e4 e6 / c6 / d5 / minor
+    ["e2e4", "e7e6", "d2d4", "d7d5", "b1c3", "g8f6"],
+    ["e2e4", "e7e6", "d2d4", "d7d5", "b1c3", "f8b4"],
+    ["e2e4", "e7e6", "d2d4", "d7d5", "b1d2"],
+    ["e2e4", "e7e6", "d2d4", "d7d5", "e4e5"],
+    ["e2e4", "c7c6", "d2d4", "d7d5", "b1c3", "d5e4"],
+    ["e2e4", "c7c6", "d2d4", "d7d5", "e4e5"],
+    ["e2e4", "c7c6", "d2d4", "d7d5", "e4d5", "c6d5", "c2c4"],
+    ["e2e4", "d7d5", "e4d5", "d8d5", "b1c3", "d5a5"],
+    ["e2e4", "d7d5", "e4d5", "g8f6"],
+    ["e2e4", "g8f6"],
+    ["e2e4", "d7d6", "d2d4", "g8f6", "b1c3", "g7g6"],
+    ["e2e4", "g7g6", "d2d4", "f8g7"],
+    // 1.d4 d5
+    ["d2d4", "d7d5", "c2c4", "e7e6", "b1c3", "g8f6", "c1g5", "f8e7"],
+    ["d2d4", "d7d5", "c2c4", "e7e6", "b1c3", "c7c6"],
+    ["d2d4", "d7d5", "c2c4", "c7c6"],
+    ["d2d4", "d7d5", "c2c4", "c7c6", "g1f3", "g8f6", "b1c3", "d5c4"],
+    ["d2d4", "d7d5", "c2c4", "d5c4"],
+    ["d2d4", "d7d5", "c2c4", "e7e6", "b1c3", "g8f6", "c4d5", "e6d5"],
+    // 1.d4 Nf6
+    ["d2d4", "g8f6", "c2c4", "e7e6", "b1c3", "f8b4"],
+    ["d2d4", "g8f6", "c2c4", "e7e6", "g1f3", "b7b6"],
+    ["d2d4", "g8f6", "c2c4", "e7e6", "g1f3", "f8b4"],
+    ["d2d4", "g8f6", "c2c4", "g7g6", "b1c3", "f8g7", "e2e4", "d7d6"],
+    ["d2d4", "g8f6", "c2c4", "g7g6", "b1c3", "d7d5"],
+    ["d2d4", "g8f6", "c2c4", "c7c5", "d4d5", "b7b5"],
+    ["d2d4", "g8f6", "c2c4", "c7c5", "d4d5", "e7e6"],
+    ["d2d4", "f7f5"],
+    ["d2d4", "g8f6", "c1g5"],
+    // London System (several move orders — user's example)
+    ["d2d4", "d7d5", "c1f4", "g8f6", "e2e3", "e7e6", "g1f3", "f8d6"],
+    ["d2d4", "g8f6", "c1f4"],
+    ["d2d4", "g8f6", "g1f3", "g7g6", "c1f4"],
+    ["d2d4", "d7d5", "g1f3", "g8f6", "c1f4"],
+    // Colle / Queen's pawn
+    ["d2d4", "d7d5", "g1f3", "g8f6", "e2e3"],
+    ["d2d4", "d7d5", "g1f3", "g8f6", "c2c4"],
+    // Flank / others
+    ["c2c4", "e7e5"],
+    ["c2c4", "g8f6", "b1c3", "e7e6"],
+    ["c2c4", "c7c5"],
+    ["c2c4", "g7g6"],
+    ["g1f3", "d7d5", "c2c4"],
+    ["g1f3", "g8f6", "c2c4"],
+    ["g2g3"],
+    ["b2b3"],
+    ["b1c3"],
+  ];
+
+  // Reduce a FEN to a transposition-stable key: placement + side-to-move
+  // + castling rights (en-passant + move counters dropped).
+  function _bookKey(fen) {
+    return String(fen).split(" ").slice(0, 3).join(" ");
+  }
+
+  // applyMove() expects a {from,to,promotion,uci} move object, not a raw
+  // UCI string, so convert here when replaying the book lines.
+  function _uciToMove(u) {
+    return {
+      from: u.slice(0, 2),
+      to: u.slice(2, 4),
+      promotion: u.length > 4 ? u[4] : null,
+      uci: u,
+    };
+  }
+
+  // Lazily build the theory position set on first use so we never depend
+  // on engine helpers being initialised at module-load time.
+  let _BOOK_POS = null;
+  function _getBook() {
+    if (_BOOK_POS) return _BOOK_POS;
+    const set = new Set();
+    try {
+      set.add(_bookKey(positionToFen(newPosition())));
+      for (const line of OPENING_LINES) {
+        let pos = newPosition();
+        for (const uci of line) {
+          try {
+            pos = applyMove(pos, _uciToMove(uci)).pos;
+            set.add(_bookKey(positionToFen(pos)));
+          } catch (_) {
+            break; // malformed entry — stop replaying this line
+          }
+        }
+      }
+    } catch (_) {}
+    _BOOK_POS = set;
+    return set;
+  }
+
+  // Longest contiguous run of theory plies from the start of the game.
+  // Capped so an unusually deep book line can't over-label a whole game.
+  const _BOOK_PLY_CAP = 20;
+  let _bookPlies = 0;
+  function computeBookPlies(timeline) {
+    if (!timeline || timeline.length < 2) return 0;
+    const book = _getBook();
+    let last = 0;
+    const max = Math.min(timeline.length - 1, _BOOK_PLY_CAP);
+    for (let p = 1; p <= max; p++) {
+      if (timeline[p] && book.has(_bookKey(timeline[p].fen))) last = p;
+      else break;
+    }
+    return last;
+  }
+
   // ─── SVG board renderer ──────────────────────────────────────────────
   // Pieces are rendered as PNG images from extension/pieces/. Filenames
   // follow the pattern <color><PieceLetter>.png — e.g. wK.png, bQ.png.
@@ -2035,7 +2247,7 @@
    * around equality stays in the "best" bucket.
    */
   function categorize(prevEvalMover, curEvalMover, ply) {
-    if (ply <= 6) return "book";
+    if (ply <= _bookPlies) return "book";
     if (typeof prevEvalMover !== "number" || typeof curEvalMover !== "number") {
       // Eval missing for this ply (backend hiccup / unauthenticated /
       // rate-limited). Return null so no badge is drawn — better to show
@@ -3360,10 +3572,11 @@
   // Depth 8 is too noisy for reliable blunder/brilliant detection — at that
   // depth Stockfish frequently misses tactics and quiet moves' evals jitter
   // by 0.3+ pawns between consecutive plies, washing out real signal. Depth
-  // 14 is the sweet spot used by Lichess' "rapid" cloud analysis: deep
-  // enough to see 2-ply tactics and stable enough that wp-loss buckets
-  // mean what they say.
-  const REVIEW_DEPTH = 14;
+  // 16 keeps tactical accuracy close to chess.com/Lichess full analysis:
+  // at depth 14 enough quiet refutations were missed that per-move win-prob
+  // losses came out too small, inflating accuracy by several points. 16 is
+  // the balance between tactical reliability and per-review latency.
+  const REVIEW_DEPTH = 16;
   const REVIEW_SITE = "chess.com";
 
   // How many analyses to keep in flight at once. The server runs an
@@ -3531,6 +3744,7 @@
     // Pre-compute the timeline so we know how many positions to analyze.
     const moves = decodeTCN((data.game && data.game.moveList) || "");
     const timeline = buildTimeline(moves);
+    _bookPlies = computeBookPlies(timeline);
     let evalCache = new Array(timeline.length).fill(null);
     let catCache = new Array(timeline.length).fill(null);
 
@@ -3612,6 +3826,7 @@
 
     // 2) Build the per-ply timeline (honouring [FEN] header if present).
     const timeline = buildTimeline(uciMoves, startPos || undefined);
+    _bookPlies = computeBookPlies(timeline);
 
     // 3) Try to surface the chess.com game id from the [Link] header so
     //    eval-cache lookups still work across PGN re-pastes of the same
@@ -3907,6 +4122,11 @@
       const side = step.side;
       const cat = catCache[p];
       if (cat && counts[side][cat] != null) counts[side][cat]++;
+      // Opening theory reflects preparation, not over-the-board skill —
+      // keep book plies out of the accuracy aggregate so memorised lines
+      // can't inflate the score (mirrors how chess.com/Lichess treat
+      // known theory in their game reviews).
+      if (cat === "book") continue;
       if (evalCache[p] != null && evalCache[p - 1] != null) {
         const sign = side === "w" ? +1 : -1;
         const wpBefore = winProb(evalCache[p - 1] * sign);
@@ -4456,6 +4676,11 @@
             <span class="forksight-summary-caret">▌</span>
           </div>
         </div>
+        <div class="forksight-learn-box" style="margin:12px 0;padding:12px 14px;border-radius:12px;background:rgba(245,197,66,0.08);border:1px solid rgba(245,197,66,0.28);font-size:13px;line-height:1.45;color:#d7dbe6">
+          <div style="font-weight:800;color:#f5c542;margin-bottom:4px">${_isEN ? "What happened?" : "Ne oldu?"}</div>
+          <div>${_isEN ? "We'll walk through the biggest mistake and what to learn — not just engine numbers." : "En büyük hatayı ve öğrenilecek dersi birlikte göreceğiz — sadece motor sayıları değil."}</div>
+          <div style="margin-top:8px;opacity:.9">${_isEN ? "💡 Tip: Look for the first clear drop in evaluation — that's usually the lesson." : "💡 İpucu: Değerlendirmedeki ilk net düşüşe bak — genelde ders oradadır."}</div>
+        </div>
 
         <div class="forksight-summary-graph ${flip ? "forksight-summary-graph--flip" : ""}">
           ${graphSVG}
@@ -4537,6 +4762,7 @@
     // standalone for debugging).
     const moves = pre && pre.timeline ? null : decodeTCN(game.moveList || "");
     const timeline = pre && pre.timeline ? pre.timeline : buildTimeline(moves);
+    _bookPlies = computeBookPlies(timeline);
     const timestamps = parseTimestamps(game.moveTimestamps);
 
     const top = (data.players && data.players.top) || {};

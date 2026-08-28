@@ -1780,11 +1780,43 @@
     return pack.wrong();
   }
 
+  const LIVE_PLAY = {
+    tilki: {
+      tr: {
+        warning: ["Dikkatli ol — bir sonraki hamlen kritik.", "Tempo kaybettin, toparlan."],
+        mate: ["Sanırım mat yolum var — hesapla!", "Mat ağı kuruyorum."],
+        opening: (name) => `Demek ${name} tercih ettin — desenlere dikkat.`,
+        encourage: ["İyi tempo!", "Devam et, fırsatları kokla."],
+      },
+      en: {
+        warning: ["Careful — your next move is critical.", "You lost tempo — recover."],
+        mate: ["I think I have mate — calculate!", "I'm weaving a mating net."],
+        opening: (name) => `So you chose the ${name} — watch the patterns.`,
+        encourage: ["Good tempo!", "Keep going — sniff out chances."],
+      },
+    },
+  };
+
+  function livePlayLine(coachId, lang, kind, arg) {
+    const c = normCoach(coachId);
+    const l = langKey(lang);
+    const pack =
+      (LIVE_PLAY[c] && LIVE_PLAY[c][l]) ||
+      (LIVE_PLAY.tilki && LIVE_PLAY.tilki[l]) ||
+      LIVE_PLAY.tilki.tr;
+    if (kind === "opening" && typeof pack.opening === "function")
+      return pack.opening(arg || "");
+    const lines = pack[kind] || pack.encourage || [];
+    if (!lines.length) return "";
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
   window.ForkSightCoachNarration = {
     getCategories: getCategories,
     summaryIntro: summaryIntro,
     contextualHintLine: contextualHintLine,
     quizPhrase: quizPhrase,
+    livePlayLine: livePlayLine,
     coaches: Object.keys(PACKS),
   };
 })();

@@ -899,6 +899,7 @@
       lock,
       destroy,
       clearHighlights,
+      clearArrow,
       highlightHint,
       applyMove,
       revealSolution,

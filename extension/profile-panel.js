@@ -141,6 +141,7 @@
       readIds: {},
     },
     arenaChest: { opening: false, opened: false },
+    coachPlayGames: null, // null=loading | [] | CoachPlayGame[]
     leaderboard: {
       data: null, // {top, me, metric} | null
       metric: "points", // points | rating | solved | day_streak | weekly_solved
@@ -632,11 +633,11 @@
         border-radius: 8px; padding: 7px 8px; font-size: 11px; font-weight: 800;
         background: linear-gradient(135deg, #f5c542, #e0a820); color: #1a1408;
       }
-      .fs-panel[data-tab="coach"] .fs-pro-go { display: block; }
+      .fs-panel[data-tab="coach"]:not(.fs-user-premium) .fs-pro-go { display: block; }
       .fs-pro-card-sub {
         display: none; font-size: 11px; color: var(--fs-text-dim); margin-top: 6px; line-height: 1.35;
       }
-      .fs-panel[data-tab="coach"] .fs-pro-card-sub { display: block; }
+      .fs-panel[data-tab="coach"]:not(.fs-user-premium) .fs-pro-card-sub { display: block; }
       .fs-tab-new {
         margin-left: auto; font-size: 9px; font-weight: 900; letter-spacing: 0.04em;
         padding: 2px 6px; border-radius: 999px; background: #f5c542; color: #1a1408;
@@ -1877,6 +1878,155 @@
         margin-top: 10px; padding: 8px 10px; border-radius: 10px;
         background: rgba(245,197,66,0.08); border: 1px solid rgba(245,197,66,0.22);
         font-size: 11px; color: #e8d7a0; line-height: 1.4;
+      }
+      .fs-cmine-skills {
+        margin-top: 12px; position: relative; overflow: hidden;
+        border-radius: 16px; padding: 14px 14px 12px;
+        border: 1px solid color-mix(in srgb, var(--cc) 24%, rgba(255,255,255,0.08));
+        background:
+          radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--cc) 14%, transparent), transparent 58%),
+          linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.05),
+          0 10px 28px rgba(0,0,0,0.22);
+      }
+      .fs-cmine-skills[data-theme="green"] { --cc: #3dd68c; --cc-dim: rgba(61,214,140,0.28); }
+      .fs-cmine-skills[data-theme="gold"] { --cc: #f5c542; --cc-dim: rgba(245,197,66,0.28); }
+      .fs-cmine-skills[data-theme="purple"] { --cc: #a78bfa; --cc-dim: rgba(167,139,250,0.28); }
+      .fs-cmine-skills[data-theme="blue"] { --cc: #4c8dff; --cc-dim: rgba(76,141,255,0.28); }
+      .fs-cmine-skills[data-theme="red"] { --cc: #ff6b6b; --cc-dim: rgba(255,107,107,0.28); }
+      .fs-cmine-skills[data-theme="orange"] { --cc: #ff8a3d; --cc-dim: rgba(255,138,61,0.30); }
+      .fs-cmine-skills-head {
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+        margin-bottom: 12px;
+      }
+      .fs-cmine-skills-head .fs-v3-kicker { margin: 0; }
+      .fs-cmine-skills-avg {
+        display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
+        padding: 6px 10px; border-radius: 12px;
+        background: color-mix(in srgb, var(--cc) 12%, rgba(255,255,255,0.03));
+        border: 1px solid color-mix(in srgb, var(--cc) 28%, rgba(255,255,255,0.08));
+        box-shadow: 0 0 18px var(--cc-dim);
+      }
+      .fs-cmine-skills-avg .val {
+        font-size: 20px; font-weight: 900; line-height: 1; color: var(--cc);
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 0 16px var(--cc-dim);
+      }
+      .fs-cmine-skills-avg .lab {
+        font-size: 9px; font-weight: 800; letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--fs-text-dim);
+      }
+      .fs-cmine-skills-grid {
+        display: flex; flex-direction: column; gap: 8px;
+      }
+      .fs-cmine-skill {
+        position: relative;
+        padding: 9px 10px 10px 11px;
+        border-radius: 12px;
+        background: rgba(0,0,0,0.22);
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      }
+      .fs-cmine-skill::before {
+        content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: linear-gradient(180deg, var(--cc), color-mix(in srgb, var(--cc) 35%, transparent));
+        box-shadow: 0 0 10px var(--cc-dim);
+      }
+      .fs-cmine-skill-top {
+        display: grid; grid-template-columns: 22px 1fr auto auto; gap: 8px; align-items: center;
+        margin-bottom: 7px;
+      }
+      .fs-cmine-skill .ico {
+        width: 22px; height: 22px; border-radius: 7px;
+        display: grid; place-items: center;
+        font-size: 11px; line-height: 1;
+        color: var(--cc);
+        background: color-mix(in srgb, var(--cc) 14%, rgba(255,255,255,0.04));
+        border: 1px solid color-mix(in srgb, var(--cc) 24%, rgba(255,255,255,0.06));
+      }
+      .fs-cmine-skill .name {
+        font-size: 11px; font-weight: 800; color: #eef1f7; letter-spacing: 0.01em;
+      }
+      .fs-cmine-skill .tier {
+        font-size: 9px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+        color: var(--cc); opacity: 0.92;
+        padding: 2px 6px; border-radius: 999px;
+        background: color-mix(in srgb, var(--cc) 10%, transparent);
+        border: 1px solid color-mix(in srgb, var(--cc) 18%, transparent);
+      }
+      .fs-cmine-skill .score {
+        min-width: 30px; text-align: right;
+        font-size: 13px; font-weight: 900; color: #fff;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 0 12px var(--cc-dim);
+      }
+      .fs-cmine-skill-bar {
+        position: relative; height: 8px; border-radius: 999px; overflow: hidden;
+        background: rgba(255,255,255,0.06);
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.35);
+      }
+      .fs-cmine-skill-bar .fill {
+        position: relative; z-index: 1; height: 100%; border-radius: inherit;
+        background: linear-gradient(90deg, color-mix(in srgb, var(--cc) 55%, #fff 8%), var(--cc));
+        box-shadow: 0 0 14px var(--cc-dim);
+        transition: width 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .fs-cmine-skill-bar .glow {
+        position: absolute; inset: 0; z-index: 2; pointer-events: none;
+        background: linear-gradient(90deg, transparent 35%, rgba(255,255,255,0.22) 50%, transparent 65%);
+        transform: translateX(-120%);
+        animation: fs-cmine-skill-shine 2.8s ease-in-out infinite;
+      }
+      @keyframes fs-cmine-skill-shine {
+        0%, 72% { transform: translateX(-120%); opacity: 0; }
+        78% { opacity: 1; }
+        100% { transform: translateX(120%); opacity: 0; }
+      }
+      .fs-cmine-skill:nth-child(2) .glow { animation-delay: 0.35s; }
+      .fs-cmine-skill:nth-child(3) .glow { animation-delay: 0.7s; }
+      .fs-cmine-skill:nth-child(4) .glow { animation-delay: 1.05s; }
+      .fs-cmine-skill:nth-child(5) .glow { animation-delay: 1.4s; }
+      .fs-cmine-wrap { display: flex; flex-direction: column; gap: 14px; }
+      .fs-cmine-recent {
+        border-radius: 16px; padding: 14px 16px;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(0,0,0,0.22);
+      }
+      .fs-cmine-recent-head {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 10px; margin-bottom: 10px;
+      }
+      .fs-cmine-recent-head .fs-v3-kicker { margin: 0; color: #c4b5fd; }
+      .fs-cmine-recent-sub {
+        font-size: 11px; color: var(--fs-muted); line-height: 1.35;
+      }
+      .fs-cpg-row {
+        display: flex; align-items: center; gap: 12px; width: 100%;
+        padding: 10px 12px; margin: 0; border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px; background: rgba(255,255,255,0.03);
+        cursor: pointer; text-align: left; color: inherit;
+        transition: background .15s ease, border-color .15s ease;
+      }
+      .fs-cpg-row + .fs-cpg-row { margin-top: 8px; }
+      .fs-cpg-row:hover {
+        background: rgba(76,141,255,0.08);
+        border-color: rgba(76,141,255,0.28);
+      }
+      .fs-cpg-meta { flex: 1; min-width: 0; }
+      .fs-cpg-top {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 8px; margin-bottom: 4px;
+      }
+      .fs-cpg-date { font-size: 11px; color: var(--fs-muted); white-space: nowrap; }
+      .fs-cpg-sub { font-size: 12px; color: #c5ccda; line-height: 1.35; }
+      .fs-cpg-go {
+        flex: 0 0 auto; font-size: 11px; font-weight: 800;
+        color: #f5c542; white-space: nowrap;
+      }
+      .fs-cmine-recent-loading {
+        font-size: 12px; color: var(--fs-muted); padding: 8px 2px;
       }
       @media (max-width: 980px) {
         .fs-ccard { flex-basis: 228px; width: 228px; max-width: 228px; height: 488px; min-height: 488px; }
@@ -3859,8 +4009,7 @@
         ),
         voice: T("Sert ve sokak zekâsı"),
         lang: "TR / EN",
-        hasVoice: false,
-        comingSoon: true,
+        hasVoice: true,
         skills: [
           { id: "tactics", lab: T("Tactics"), n: 88 },
           { id: "calculation", lab: T("Calculation"), n: 76 },
@@ -3927,6 +4076,192 @@
     return `<div class="fs-ccard-seg">${Array.from({ length: 10 }, (_, i) =>
       `<i class="${i < on ? "on" : ""}"></i>`,
     ).join("")}</div>`;
+  }
+
+  const COACH_SKILL_META = {
+    tactics: { ico: "◎" },
+    calculation: { ico: "⚙" },
+    strategy: { ico: "♛" },
+    endgame: { ico: "♜" },
+    motivation: { ico: "❀" },
+  };
+
+  function coachSkillTier(n) {
+    const v = Number(n) || 0;
+    if (v >= 90) return T("Master");
+    if (v >= 80) return T("Elite");
+    if (v >= 70) return T("Advanced");
+    if (v >= 60) return T("Solid");
+    return T("Rising");
+  }
+
+  function coachMineSkillsHTML(c) {
+    const skills = c.skills || [];
+    const avg = skills.length
+      ? Math.round(skills.reduce((sum, s) => sum + Number(s.n || 0), 0) / skills.length)
+      : 0;
+    const rows = skills
+      .map((s) => {
+        const n = Math.max(0, Math.min(100, Number(s.n) || 0));
+        const meta = COACH_SKILL_META[s.id] || { ico: "◆" };
+        return `<div class="fs-cmine-skill" data-skill="${esc(s.id || "")}">
+          <div class="fs-cmine-skill-top">
+            <span class="ico" aria-hidden="true">${meta.ico}</span>
+            <span class="name">${esc(s.lab)}</span>
+            <span class="tier">${esc(coachSkillTier(n))}</span>
+            <span class="score">${esc(String(n))}</span>
+          </div>
+          <div class="fs-cmine-skill-bar" aria-hidden="true">
+            <div class="fill" style="width:${n}%"></div>
+            <div class="glow"></div>
+          </div>
+        </div>`;
+      })
+      .join("");
+    return `<div class="fs-cmine-skills" data-theme="${esc(c.theme || "gold")}">
+      <div class="fs-cmine-skills-head">
+        <div class="fs-v3-kicker">${T("COACH SKILLS")}</div>
+        <div class="fs-cmine-skills-avg" title="${T("Overall skill average")}">
+          <span class="val">${esc(String(avg))}</span>
+          <span class="lab">${T("Overall")}</span>
+        </div>
+      </div>
+      <div class="fs-cmine-skills-grid">${rows}</div>
+    </div>`;
+  }
+
+  function coachTerminationLabel(term) {
+    const map = {
+      checkmate: T("Mat"),
+      stalemate: T("Pat"),
+      insufficient: T("Yetersiz materyal"),
+      repetition: T("Tekrar"),
+      fifty: T("50 hamle"),
+    };
+    return map[term] || term || "—";
+  }
+
+  function coachPlayRowHTML(g) {
+    const flip = g.player_color === "b";
+    const svg = simpleBoardSvg(g.final_fen, flip);
+    const resultClass =
+      g.player_result === "win"
+        ? "win"
+        : g.player_result === "loss"
+          ? "loss"
+          : "draw";
+    const resultLabel =
+      g.player_result === "win"
+        ? T("Kazandın")
+        : g.player_result === "loss"
+          ? T("Kaybettin")
+          : T("Beraberlik");
+    const movesLabel = T("{n} hamle").replace(
+      "{n}",
+      String(g.ply_count || 0),
+    );
+    return `<button type="button" class="fs-cpg-row" data-act="coach-game-analyze" data-cpg-id="${esc(g.id)}">
+      <div class="fs-mini-board">${svg}</div>
+      <div class="fs-cpg-meta">
+        <div class="fs-cpg-top">
+          <span class="fs-game-result fs-r-${resultClass}">${resultLabel}</span>
+          <span class="fs-cpg-date">${esc(fmtDate(g.ts))}</span>
+        </div>
+        <div class="fs-cpg-sub">vs ${esc(g.coach_name || "?")} · ${esc(coachTerminationLabel(g.termination))} · ${esc(movesLabel)}</div>
+      </div>
+      <span class="fs-cpg-go">${T("Analiz Et →")}</span>
+    </button>`;
+  }
+
+  function renderCoachRecentGames() {
+    const c = getSelectedCoach();
+    const all = cache.coachPlayGames;
+    const loading = all === null;
+    const games = loading
+      ? []
+      : (all || []).filter((g) => g.coach_id === (c && c.id)).slice(0, 8);
+    let body = "";
+    if (loading) {
+      body = `<div class="fs-cmine-recent-loading">${T("Yükleniyor…")}</div>`;
+    } else if (!games.length) {
+      body = `<div class="fs-cmine-recent-sub" style="margin:0">${T("Henüz bu koçla oyun yok. Koçunla Oyna ile başla!")}</div>`;
+    } else {
+      body = games.map(coachPlayRowHTML).join("");
+    }
+    return `<div class="fs-cmine-recent">
+      <div class="fs-cmine-recent-head">
+        <div class="fs-v3-kicker">${T("Koçun ile son oyunların")}</div>
+        <div class="fs-cmine-recent-sub">${T("Eğitim maçlarını buradan inceleyebilirsin.")}</div>
+      </div>
+      ${body}
+    </div>`;
+  }
+
+  async function ensureCoachPlayGames(force) {
+    if (cache.coachPlayGames !== null && !force) return;
+    cache.coachPlayGames = null;
+    if (activeTab === "coach" && coachSubTab === "mine") renderActive();
+    try {
+      if (
+        window.ForkSightCoachPlay &&
+        typeof window.ForkSightCoachPlay.getHistory === "function"
+      ) {
+        cache.coachPlayGames = await window.ForkSightCoachPlay.getHistory();
+      } else {
+        cache.coachPlayGames = await new Promise((resolve) => {
+          try {
+            chrome.storage.local.get(["fs_coach_play_history"], (r) => {
+              resolve(
+                Array.isArray(r.fs_coach_play_history)
+                  ? r.fs_coach_play_history
+                  : [],
+              );
+            });
+          } catch (_) {
+            resolve([]);
+          }
+        });
+      }
+    } catch (_) {
+      cache.coachPlayGames = [];
+    }
+    if (activeTab === "coach" && coachSubTab === "mine") renderActive();
+  }
+
+  async function openCoachPlayGame(gameId) {
+    let game = (cache.coachPlayGames || []).find((g) => g.id === gameId);
+    if (!game && window.ForkSightCoachPlay) {
+      try {
+        const hist = await window.ForkSightCoachPlay.getHistory();
+        game = hist.find((g) => g.id === gameId);
+      } catch (_) {}
+    }
+    if (!game) return;
+    let pgn = game.pgn;
+    if (
+      !pgn &&
+      window.ForkSightCoachPlay &&
+      typeof window.ForkSightCoachPlay.buildPgn === "function"
+    ) {
+      pgn = window.ForkSightCoachPlay.buildPgn(game);
+    }
+    if (!pgn) return;
+    close();
+    const direct =
+      window.ForkSightReview &&
+      typeof window.ForkSightReview._openPgnReview === "function";
+    if (direct) {
+      try {
+        await window.ForkSightReview._openPgnReview(pgn);
+        return;
+      } catch (_) {}
+    }
+    if (
+      window.ForkSightReview &&
+      typeof window.ForkSightReview.openWithPgn === "function"
+    ) {
+      window.ForkSightReview.openWithPgn(pgn);
+    }
   }
 
   function cookSoonHTML() {
@@ -4008,41 +4343,36 @@
     const voiceNote = c.hasVoice
       ? T("Bu koçun kendi AI sesi var. Seçince seni kendi tarzında karşılar.")
       : T("Bu koç için özel ses yakında.");
-    return `<div class="fs-cmine">
-      <div class="fs-cmine-hero">
-        <div class="fs-cmine-media">
-          <img class="fs-cmine-bg" src="${esc(c.portrait)}" alt="${esc(c.name)}" />
-          <div class="fs-cmine-scrim" aria-hidden="true"></div>
-          <div class="fs-cmine-id">
-            <div class="nm">${esc(c.name)}</div>
-            <div class="sub">${esc(c.title)}</div>
+    return `<div class="fs-cmine-wrap">
+      <div class="fs-cmine">
+        <div class="fs-cmine-hero">
+          <div class="fs-cmine-media">
+            <img class="fs-cmine-bg" src="${esc(c.portrait)}" alt="${esc(c.name)}" />
+            <div class="fs-cmine-scrim" aria-hidden="true"></div>
+            <div class="fs-cmine-id">
+              <div class="nm">${esc(c.name)}</div>
+              <div class="sub">${esc(c.title)}</div>
+            </div>
+          </div>
+          <div class="pad">
+            <div class="fs-ccard-desc" style="margin:0">${esc(c.desc)}</div>
+            <div class="fs-voice-note">${esc(voiceNote)}</div>
+            <button class="fs-btn-gold" data-act="go-training" style="margin-top:12px;width:100%">${T("Çalışmaya Başla →")}</button>
+            <button class="fs-btn-outline" data-act="coach-play" type="button" style="margin-top:8px;width:100%;border-color:rgba(76,141,255,.45);color:#c8dcff">${T("Koçunla Oyna →")}</button>
           </div>
         </div>
-        <div class="pad">
-          <div class="fs-ccard-desc" style="margin:0">${esc(c.desc)}</div>
-          <div class="fs-voice-note">${esc(voiceNote)}</div>
-          <button class="fs-btn-gold" data-act="go-training" style="margin-top:12px;width:100%">${T("Çalışmaya Başla →")}</button>
+        <div>
+          <div class="fs-v3-card" style="margin:0">
+            <div class="fs-v3-kicker" style="color:#c4b5fd">${T("KOÇ DİYOR Kİ")}</div>
+            <div class="fs-v3-title" style="font-size:18px">${esc(issue)}</div>
+            <div class="fs-v3-sub" style="margin-top:6px">${T("Analiz değil — gelişim. Bir sonraki oyunda bunu düzeltmeye odaklan.")}</div>
+          </div>
+          <div class="fs-v3-card" style="margin-top:12px;padding:0;border:none;background:transparent;box-shadow:none">
+            ${coachMineSkillsHTML(c)}
+          </div>
         </div>
       </div>
-      <div>
-        <div class="fs-v3-card" style="margin:0">
-          <div class="fs-v3-kicker" style="color:#c4b5fd">${T("KOÇ DİYOR Kİ")}</div>
-          <div class="fs-v3-title" style="font-size:18px">${esc(issue)}</div>
-          <div class="fs-v3-sub" style="margin-top:6px">${T("Analiz değil — gelişim. Bir sonraki oyunda bunu düzeltmeye odaklan.")}</div>
-        </div>
-        <div class="fs-v3-card" style="margin-top:12px">
-          <div class="fs-v3-kicker">${T("COACH SKILLS")}</div>
-          <div class="fs-ccard-skills" style="margin-top:8px">${(c.skills || [])
-            .map(
-              (s) => `<div class="fs-ccard-skill">
-                <span>${esc(s.lab)}</span>
-                ${coachSkillSegHTML(s.n)}
-                <strong>${esc(String(s.n))}</strong>
-              </div>`,
-            )
-            .join("")}</div>
-        </div>
-      </div>
+      ${renderCoachRecentGames()}
     </div>`;
   }
 
@@ -8458,6 +8788,7 @@
     } else if (id === "coach") {
       ensureProfile();
       ensureWeakness();
+      if (coachSubTab === "mine") ensureCoachPlayGames();
     } else if (id === "arena") {
       ensureProfile();
       loadLeaderboard(cache.leaderboard.metric || "points");
@@ -8488,6 +8819,18 @@
         const a = act.dataset.act;
         if (a === "more-games" || a === "go-games") switchTab("games");
         else if (a === "go-training") switchTab("training");
+        else if (a === "coach-play") {
+          const c = getSelectedCoach();
+          if (c && c.comingSoon) return;
+          if (window.ForkSightProfile && typeof window.ForkSightProfile.close === "function") {
+            window.ForkSightProfile.close();
+          }
+          if (window.ForkSightCoachPlay && typeof window.ForkSightCoachPlay.open === "function") {
+            setTimeout(() => {
+              window.ForkSightCoachPlay.open({ coach: c, speak: speakCoach });
+            }, 80);
+          }
+        }
         else if (a === "go-coach") switchTab("coach");
         else if (a === "go-progress") switchTab("progress");
         else if (a === "go-achievements") switchTab("achievements");
@@ -8571,7 +8914,11 @@
           if (window.ForkSightI18n) window.ForkSightI18n.toggleLang();
         } else if (a === "coach-tab") {
           coachSubTab = act.dataset.tab === "mine" ? "mine" : "all";
-          renderActive();
+          if (coachSubTab === "mine") ensureCoachPlayGames(true);
+          else renderActive();
+        } else if (a === "coach-game-analyze") {
+          const gid = act.dataset.cpgId;
+          if (gid) openCoachPlayGame(gid);
         } else if (a === "coach-select") {
           const id = act.dataset.coach || "tilki";
           const coach = coachRoster().find((x) => x.id === id);
@@ -9034,7 +9381,7 @@
             <span class="fs-pro-pro">PRO</span>
           </div>
           <div class="fs-pro-card-sub">${T("Unlock all coaches")}</div>
-          <div class="fs-pro-go">${T("Go Premium")}</div>
+          <div class="fs-pro-go">${T("Premium'a Geç")}</div>
         </button>
         <button class="fs-premium-pill" data-act="premium" hidden>⭐ ${T("Premium")}</button>
       </aside>
@@ -9154,11 +9501,12 @@
     if (!panelEl) return;
     const pill = panelEl.querySelector(".fs-premium-pill");
     const pro = panelEl.querySelector(".fs-pro-card-title");
+    const proSub = panelEl.querySelector(".fs-pro-card-sub");
+    const proGo = panelEl.querySelector(".fs-pro-go");
     const q = cache.quota;
     const tier = (q && q.tier) || "free";
-    const isTr = !(
-      window.ForkSightI18n && window.ForkSightI18n.getLang() === "en"
-    );
+    const prem = isUserPremium();
+    panelEl.classList.toggle("fs-user-premium", prem);
     let label;
     if (tier === "diamond") label = "💎 " + T("Diamond");
     else if (tier === "gold") label = "★ " + T("Gold");
@@ -9174,6 +9522,8 @@
       pill.classList.toggle("fs-pill-gold", tier === "gold");
       pill.classList.toggle("fs-pill-diamond", tier === "diamond");
     }
+    if (proSub && !prem) proSub.textContent = T("Unlock all coaches");
+    if (proGo && !prem) proGo.textContent = T("Premium'a Geç");
     if (pro) {
       const crown = v3Url("pro-crown.png");
       pro.innerHTML = `${crown ? `<img src="${esc(crown)}" alt="" />` : ""}${esc(label)}`;
@@ -9213,7 +9563,8 @@
     }
   }
 
-  function buildPanel(anchorRect) {
+  function buildPanel(anchorRect, opts) {
+    opts = opts || {};
     if (hostEl) return;
     hostEl = document.createElement("div");
     hostEl.id = HOST_ID;
@@ -9250,9 +9601,14 @@
     shadow.appendChild(panelEl);
 
     // İlk render + animasyon
-    activeTab = "home";
+    if (opts.tab) activeTab = opts.tab;
+    if (opts.coachSubTab === "mine" || opts.coachSubTab === "all") {
+      coachSubTab = opts.coachSubTab;
+    }
+    if (!opts.tab) activeTab = "home";
     renderActive();
     ensureProfile();
+    if (activeTab === "coach" && coachSubTab === "mine") ensureCoachPlayGames(true);
     requestAnimationFrame(() => {
       overlay.classList.add("fs-show");
       panelEl.classList.add("fs-show");
@@ -9316,9 +9672,9 @@
     opts = opts || {};
     if (hostEl) {
       close();
-      setTimeout(() => buildPanel(opts.anchorRect || null), 50);
+      setTimeout(() => buildPanel(opts.anchorRect || null, opts), 50);
     } else {
-      buildPanel(opts.anchorRect || null);
+      buildPanel(opts.anchorRect || null, opts);
     }
   }
 

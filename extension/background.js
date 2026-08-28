@@ -805,4 +805,64 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       .catch((err) => sendResponse({ ok: false, error: err.message }));
     return true;
   }
+
+  if (msg.type === "coach_play_start") {
+    const d = msg.data || {};
+    fetch(`${API_BASE}/coach/play/start`, {
+      method: "POST",
+      headers: apiHeaders(),
+      body: JSON.stringify({
+        coach_id: d.coach_id || "tilki",
+        color: d.color || "w",
+      }),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "coach_play_move") {
+    const d = msg.data || {};
+    fetch(`${API_BASE}/coach/play/move`, {
+      method: "POST",
+      headers: apiHeaders(),
+      body: JSON.stringify({
+        session_id: d.session_id,
+        move_uci: d.move_uci,
+      }),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "coach_play_resign") {
+    const d = msg.data || {};
+    fetch(`${API_BASE}/coach/play/resign`, {
+      method: "POST",
+      headers: apiHeaders(),
+      body: JSON.stringify({ session_id: d.session_id }),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
 });

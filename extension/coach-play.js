@@ -59,9 +59,8 @@
   }
 
   function buildCoachPgn(game) {
-    if (game && game.pgn) return game.pgn;
     const moves = (game && game.uci_moves) || [];
-    if (!moves.length) return "";
+    if (!moves.length) return (game && game.pgn) || "";
     const R = window.ForkSightReview;
     let sanLine = [];
     if (R && typeof R._buildTimeline === "function") {
@@ -93,6 +92,8 @@
       `[Result "${game.result || "*"}"]`,
       `[Termination "${game.termination || ""}"]`,
       `[ForkSightCoach "${game.coach_id || ""}"]`,
+      `[ForkSightGameId "${game.id || ""}"]`,
+      `[ForkSightUCI "${moves.join(" ")}"]`,
     ];
     return (
       headers.join("\n") +
@@ -123,6 +124,42 @@
       });
     } catch (_) {
       if (cb) cb();
+    }
+  }
+
+  function mergeCoachHistories(a, b) {
+    const map = new Map();
+    for (const g of [...(a || []), ...(b || [])]) {
+      if (!g || !g.id) continue;
+      const prev = map.get(g.id);
+      if (!prev || (g.ts || 0) >= (prev.ts || 0)) map.set(g.id, g);
+    }
+    return Array.from(map.values())
+      .sort((x, y) => (y.ts || 0) - (x.ts || 0))
+      .slice(0, COACH_PLAY_HISTORY_MAX);
+  }
+
+  function pushCoachHistoryToServer(games) {
+    api("coach_play_save_history", { games: games || [] }).catch(() => {});
+  }
+
+  async function syncCoachHistoryFromServer() {
+    const local = await new Promise((resolve) => readCoachHistory(resolve));
+    try {
+      const remote = await api("coach_play_get_history");
+      if (!remote || !remote.ok || !Array.isArray(remote.games)) return local;
+      const remoteGames = remote.games;
+      const merged = mergeCoachHistories(local, remoteGames);
+      const mergedJson = JSON.stringify(merged);
+      if (mergedJson !== JSON.stringify(local)) {
+        await new Promise((resolve) => writeCoachHistory(merged, resolve));
+      }
+      if (mergedJson !== JSON.stringify(remoteGames) && merged.length) {
+        pushCoachHistoryToServer(merged);
+      }
+      return merged;
+    } catch (_) {
+      return local;
     }
   }
 
@@ -186,13 +223,16 @@
       record.pgn = buildCoachPgn(record);
       readCoachHistory((list) => {
         list.unshift(record);
-        writeCoachHistory(list.slice(0, COACH_PLAY_HISTORY_MAX));
+        const merged = list.slice(0, COACH_PLAY_HISTORY_MAX);
+        writeCoachHistory(merged, () => {
+          pushCoachHistoryToServer(merged);
+        });
       });
     });
   }
 
   function getCoachHistory() {
-    return new Promise((resolve) => readCoachHistory(resolve));
+    return syncCoachHistoryFromServer();
   }
   let speakFn = null;
   let audioEl = null;

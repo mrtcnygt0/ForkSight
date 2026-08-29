@@ -135,6 +135,10 @@
       selectedFrom: null, // {file, rank, sq, piece}
       pendingPromo: null, // {fromSq, toSq, color}
       onMove: opts.onMove || (() => {}),
+      canSelect: opts.canSelect || null,
+      keepSideToMove: !!opts.keepSideToMove,
+      forbidKingCapture: !!opts.forbidKingCapture,
+      onIllegalMove: opts.onIllegalMove || null,
       squares: {}, // sq-name → div element
       root: null,
       promoOverlay: null,
@@ -263,6 +267,7 @@
       if (e.button != null && e.button !== 0) return;
       const piece = state.squares[sq]?.dataset.piece || "";
       if (!isOwnPiece(piece, state.sideToMove)) return;
+      if (state.canSelect && !state.canSelect(sq, piece)) return;
       // Drag adayı: pencerede pointermove/up dinle, eşik aşılırsa
       // sürüklemeye başla.
       const startX = e.clientX;
@@ -564,7 +569,10 @@
 
       // Hiçbir şey seçili değil → kendi taşımız olmalı
       if (!state.selectedFrom) {
-        if (isOwnPiece(piece, state.sideToMove)) {
+        if (
+          isOwnPiece(piece, state.sideToMove) &&
+          (!state.canSelect || state.canSelect(sq, piece))
+        ) {
           state.selectedFrom = { sq, piece };
           clearHighlights();
           highlightFrom(sq);
@@ -580,7 +588,10 @@
       }
 
       // Yine kendi taşımıza tıklarsak seçimi değiştir
-      if (isOwnPiece(piece, state.sideToMove)) {
+      if (
+        isOwnPiece(piece, state.sideToMove) &&
+        (!state.canSelect || state.canSelect(sq, piece))
+      ) {
         state.selectedFrom = { sq, piece };
         clearHighlights();
         highlightFrom(sq);
@@ -610,7 +621,35 @@
       submitMove(from + sq);
     }
 
+    function pieceAtSq(sq) {
+      const f = FILES.indexOf(sq[0]);
+      const r = parseInt(sq[1], 10) - 1;
+      if (f < 0 || r < 0) return "";
+      return state.board[r * 8 + f] || "";
+    }
+
+    function isIllegalLearnMove(toSq) {
+      if (!state.forbidKingCapture) return false;
+      const target = pieceAtSq(toSq);
+      return target && target.toUpperCase() === "K";
+    }
+
+    function rejectIllegalMove(fromSq, toSq) {
+      clearHighlights();
+      state.selectedFrom = null;
+      if (typeof state.onIllegalMove === "function") {
+        try {
+          state.onIllegalMove("king_capture", { from: fromSq, to: toSq });
+        } catch (_) {}
+      }
+    }
+
     function submitMove(uci) {
+      const toSq = uci.slice(2, 4);
+      if (isIllegalLearnMove(toSq)) {
+        rejectIllegalMove(uci.slice(0, 2), toSq);
+        return;
+      }
       state.selectedFrom = null;
       state.pendingPromo = null;
       clearHighlights();
@@ -670,8 +709,9 @@
         }
         state.board[toIdx] = piece;
         state.board[fromIdx] = "";
-        // Tarafı değiştir (sonraki tıklama için iç tutarlılık)
-        state.sideToMove = state.sideToMove === "w" ? "b" : "w";
+        if (!state.keepSideToMove) {
+          state.sideToMove = state.sideToMove === "w" ? "b" : "w";
+        }
         paint();
       } catch (e) {
         console.error("applyMoveLocal", e);
@@ -905,6 +945,7 @@
       revealSolution,
       drawArrow,
       getLastFenBeforeMove: () => state.lastFenBeforeMove,
+      getFen: () => boardToFen(state.board, state.sideToMove),
     };
   }
 

@@ -362,11 +362,9 @@
   }
 
   /**
-   * Resolve a SAN token to a UCI string given the current position.
-   * Returns the UCI (e.g. "e2e4", "e7e8q") or null if the SAN does not
-   * uniquely identify a legal move.
+   * Resolve a SAN token to all matching legal UCI strings.
    */
-  function sanToUci(pos, sanRaw) {
+  function sanToUciAll(pos, sanRaw) {
     let san = String(sanRaw)
       .replace(/[+#!?]+$/g, "")
       .trim();
@@ -422,6 +420,20 @@
       if (!promo && p !== null) return false;
       return true;
     });
+    const legal = filterLegalMoveCandidates(pos, candidates);
+    return legal.map(([from, to, p]) => {
+      const fromSq = "abcdefgh"[from % 8] + (Math.floor(from / 8) + 1);
+      const toSq = "abcdefgh"[to % 8] + (Math.floor(to / 8) + 1);
+      return fromSq + toSq + (p || "");
+    });
+  }
+
+  function sanToUci(pos, sanRaw) {
+    const all = sanToUciAll(pos, sanRaw);
+    return all.length === 1 ? all[0] : null;
+  }
+
+  function filterLegalMoveCandidates(pos, candidates) {
     const legal = [];
     for (const cand of candidates) {
       const [from, to, p] = cand;
@@ -429,12 +441,16 @@
       const toSq = "abcdefgh"[to % 8] + (Math.floor(to / 8) + 1);
       let next;
       try {
-        next = applyMove(pos, {
-          from: fromSq,
-          to: toSq,
-          promotion: p,
-          uci: fromSq + toSq + (p || ""),
-        }).pos;
+        next = applyMove(
+          pos,
+          {
+            from: fromSq,
+            to: toSq,
+            promotion: p,
+            uci: fromSq + toSq + (p || ""),
+          },
+          { skipSan: true },
+        ).pos;
       } catch (_) {
         continue;
       }
@@ -450,11 +466,67 @@
       if (!_isAttacked(next.board, kIdx, moverColor === "w" ? "b" : "w"))
         legal.push(cand);
     }
-    if (legal.length !== 1) return null;
-    const [from, to, p] = legal[0];
-    const fromSq = "abcdefgh"[from % 8] + (Math.floor(from / 8) + 1);
-    const toSq = "abcdefgh"[to % 8] + (Math.floor(to / 8) + 1);
-    return fromSq + toSq + (p || "");
+    return legal;
+  }
+
+  function legalFromSquaresToTarget(pos, piece, targetIdx, promo) {
+    const isWhite = piece === piece.toUpperCase();
+    const myPiece = piece;
+    const pieceLower = piece.toLowerCase();
+    const pieceLetter = pieceLower === "p" ? "" : pieceLower.toUpperCase();
+    if (!pieceLetter) return [];
+    const moves = _pseudoMoves(pos);
+    const candidates = moves.filter(([from, to, p]) => {
+      if (to !== targetIdx) return false;
+      if (pos.board[from] !== myPiece) return false;
+      if (promo && p !== promo) return false;
+      if (!promo && p !== null) return false;
+      return true;
+    });
+    return filterLegalMoveCandidates(pos, candidates).map(([from]) => from);
+  }
+
+  function disambiguateSan(prevPos, move, san, pieceLower) {
+    if (pieceLower === "p" || pieceLower === "k") return san;
+    const fromIdx = sqToIdx(move.from);
+    const toIdx = sqToIdx(move.to);
+    const piece = prevPos.board[fromIdx];
+    const promo = move.promotion || null;
+    const legalFrom = legalFromSquaresToTarget(prevPos, piece, toIdx, promo);
+    if (legalFrom.length <= 1) return san;
+    const others = legalFrom.filter((i) => i !== fromIdx);
+    if (!others.length) return san;
+
+    const fromFile = move.from[0];
+    const fromRank = move.from[1];
+    const fromFileIdx = fromIdx % 8;
+    const fromRankIdx = Math.floor(fromIdx / 8);
+    let disamb = "";
+    if (others.every((i) => i % 8 !== fromFileIdx)) disamb = fromFile;
+    else if (others.every((i) => Math.floor(i / 8) !== fromRankIdx))
+      disamb = fromRank;
+    else disamb = move.from;
+
+    const letter = pieceLower.toUpperCase();
+    const promoSuffix = move.promotion
+      ? "=" + move.promotion.toUpperCase()
+      : "";
+    if (san.startsWith(letter + "x"))
+      return letter + disamb + "x" + move.to + promoSuffix;
+    if (san.startsWith(letter))
+      return letter + disamb + move.to + promoSuffix;
+    return san;
+  }
+
+  function normalizeUciMove(raw) {
+    if (raw && typeof raw === "object" && raw.from && raw.to) return raw;
+    const uci = String(raw || "").trim().toLowerCase();
+    return {
+      uci,
+      from: uci.slice(0, 2),
+      to: uci.slice(2, 4),
+      promotion: uci.length > 4 ? uci[4] : null,
+    };
   }
 
   /**
@@ -498,7 +570,11 @@
     body = body.replace(/\b(1-0|0-1|1\/2-1\/2|\*)\b/g, " ");
     body = body.replace(/\d+\.(\.\.)?/g, " ");
     const tokens = body.split(/\s+/).filter((t) => t.length > 0);
-    return { headers, sanMoves: tokens, timestamps, clocks };
+    const uciHeader = headers.ForkSightUCI || headers.ForkSightMoves || "";
+    const uciOnly = uciHeader
+      ? uciHeader.trim().split(/\s+/).filter(Boolean)
+      : null;
+    return { headers, sanMoves: tokens, timestamps, clocks, uciOnly };
   }
 
   /**
@@ -506,30 +582,64 @@
    * the array buildTimeline() expects. Throws on the first move that
    * fails to resolve so the user sees a clear "couldn't parse move X".
    */
+  function uciStringToMove(uci) {
+    return {
+      from: uci.slice(0, 2),
+      to: uci.slice(2, 4),
+      promotion: uci.length > 4 ? uci[4] : null,
+      uci,
+    };
+  }
+
+  function resolveSanMoves(pos, sanMoves, idx) {
+    if (idx >= sanMoves.length) return [];
+    const san = sanMoves[idx];
+    const options = sanToUciAll(pos, san);
+    if (!options.length) {
+      throw new Error(
+        'Hamle ayrıştırılamadı: "' + san + '" (hamle #' + (idx + 1) + ").",
+      );
+    }
+    if (options.length === 1) {
+      const move = uciStringToMove(options[0]);
+      const nextPos = applyMove(pos, move, { skipSan: true }).pos;
+      return [move].concat(resolveSanMoves(nextPos, sanMoves, idx + 1));
+    }
+    let lastErr = null;
+    for (const uci of options) {
+      try {
+        const move = uciStringToMove(uci);
+        const nextPos = applyMove(pos, move, { skipSan: true }).pos;
+        const rest = resolveSanMoves(nextPos, sanMoves, idx + 1);
+        return [move].concat(rest);
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    throw (
+      lastErr ||
+      new Error(
+        'Hamle ayrıştırılamadı: "' + san + '" (hamle #' + (idx + 1) + ").",
+      )
+    );
+  }
+
   function pgnToMoves(pgnStr) {
     const parsed = parsePgn(pgnStr);
     const startPos = parsed.headers.FEN
       ? fenToPosition(parsed.headers.FEN)
       : null;
-    let pos = startPos ? clonePosition(startPos) : newPosition();
-    const uciMoves = [];
-    for (let i = 0; i < parsed.sanMoves.length; i++) {
-      const san = parsed.sanMoves[i];
-      const uci = sanToUci(pos, san);
-      if (!uci) {
-        throw new Error(
-          'Hamle ayrıştırılamadı: "' + san + '" (hamle #' + (i + 1) + ").",
-        );
-      }
-      const move = {
-        from: uci.slice(0, 2),
-        to: uci.slice(2, 4),
-        promotion: uci.length > 4 ? uci[4] : null,
-        uci,
+    if (parsed.uciOnly && parsed.uciOnly.length) {
+      return {
+        headers: parsed.headers,
+        uciMoves: parsed.uciOnly.map(normalizeUciMove),
+        startPos,
+        timestamps: parsed.timestamps,
+        clocks: parsed.clocks,
       };
-      uciMoves.push(move);
-      pos = applyMove(pos, move).pos;
     }
+    const pos = startPos ? clonePosition(startPos) : newPosition();
+    const uciMoves = resolveSanMoves(pos, parsed.sanMoves, 0);
     return {
       headers: parsed.headers,
       uciMoves,
@@ -973,7 +1083,8 @@
    * Apply a UCI move to a position. Returns { pos, san, capture, check } for
    * narration use. Mutates a copy of `pos`. We assume the move is legal.
    */
-  function applyMove(prevPos, move) {
+  function applyMove(prevPos, move, opts) {
+    opts = opts || {};
     const pos = clonePosition(prevPos);
     const fromIdx = sqToIdx(move.from);
     const toIdx = sqToIdx(move.to);
@@ -1141,7 +1252,7 @@
         s = letter + move.to;
       }
       if (move.promotion) s += "=" + move.promotion.toUpperCase();
-      san = s;
+      san = opts.skipSan ? s : disambiguateSan(prevPos, move, s, pieceLower);
     }
 
     return {
@@ -3448,44 +3559,44 @@
    * runs the viewer-side picker + eager pre-analysis, then hands off
    * to renderSummary.
    */
-  async function openPgnReview(pgnStr) {
-    // 1) Parse PGN → moves. Throws with a readable error if SAN fails.
-    const pgn = pgnToMoves(pgnStr);
-    const { headers, uciMoves, startPos, timestamps, clocks } = pgn;
-
-    // 2) Build the per-ply timeline (honouring [FEN] header if present).
+  async function openReviewCore({
+    headers,
+    uciMoves,
+    startPos,
+    timestamps,
+    clocks,
+    parsedOverride,
+  }) {
     const timeline = buildTimeline(uciMoves, startPos || undefined);
     _bookPlies = computeBookPlies(timeline);
 
-    // 3) Try to surface the chess.com game id from the [Link] header so
-    //    eval-cache lookups still work across PGN re-pastes of the same
-    //    game. Fall back to a stable hash of the headers otherwise.
     const link = headers.Link || headers.Site || "";
     const linkMatch = link.match(
       /chess\.com\/(?:game|live)\/(live|daily|computer|coach)\/(\d+)/i,
     );
-    const gameType = linkMatch ? linkMatch[1].toLowerCase() : "pgn";
-    const gameId = linkMatch
-      ? linkMatch[2]
-      : "pgn-" +
-        (headers.White || "") +
-        "-" +
-        (headers.Black || "") +
-        "-" +
-        (headers.Date || "") +
-        "-" +
-        uciMoves.length;
-    const parsed = { type: gameType, id: gameId };
+    const parsed =
+      parsedOverride ||
+      (linkMatch
+        ? { type: linkMatch[1].toLowerCase(), id: linkMatch[2] }
+        : {
+            type: headers.ForkSightCoach ? "coach" : "pgn",
+            id:
+              headers.ForkSightGameId ||
+              "pgn-" +
+                (headers.White || "") +
+                "-" +
+                (headers.Black || "") +
+                "-" +
+                (headers.Date || "") +
+                "-" +
+                uciMoves.length,
+          });
 
-    // 4) Convert per-move clock seconds → chess.com's centisecond array
-    //    so the per-ply player rows can render "0:02:15" timers like
-    //    they do for live games. Each entry is the clock at that ply.
     const tsCsv = (clocks || [])
       .map((s) => (s == null ? "" : Math.round(s * 10)))
       .filter((v) => v !== "")
       .join(",");
 
-    // 5) Synthesize the data object renderReview expects.
     const colorOfWinner =
       headers.Result === "1-0"
         ? "white"
@@ -3494,7 +3605,7 @@
           : null;
     const data = {
       game: {
-        moveList: "", // already encoded into `timeline`
+        moveList: "",
         moveTimestamps: tsCsv,
         pgnHeaders: headers,
         colorOfWinner,
@@ -3517,11 +3628,9 @@
       },
     };
 
-    // 6) Ask who the viewer played as (or "izleyici").
     const viewerSide = await pickViewerSide(data);
     if (viewerSide === undefined) return;
 
-    // 7) Eval cache lookup + eager pre-analysis (mirrors openReview).
     let evalCache = new Array(timeline.length).fill(null);
     let catCache = new Array(timeline.length).fill(null);
 
@@ -3580,6 +3689,32 @@
       evalCache,
       catCache,
       viewerSide,
+    });
+  }
+
+  async function openUciReview(uciMoves, opts) {
+    opts = opts || {};
+    const moves = (uciMoves || []).map(normalizeUciMove).filter((m) => m.uci);
+    if (!moves.length) throw new Error(T("Hamle listesi boş."));
+    await openReviewCore({
+      headers: opts.headers || {},
+      uciMoves: moves,
+      startPos: opts.startPos || null,
+      timestamps: opts.timestamps || [],
+      clocks: opts.clocks || [],
+      parsedOverride: opts.parsed || null,
+    });
+  }
+
+  async function openPgnReview(pgnStr) {
+    const pgn = pgnToMoves(pgnStr);
+    const { headers, uciMoves, startPos, timestamps, clocks } = pgn;
+    await openReviewCore({
+      headers,
+      uciMoves,
+      startPos,
+      timestamps,
+      clocks,
     });
   }
 
@@ -5042,6 +5177,7 @@
     _buildBoardSVG: buildBoardSVG,
     _analyzeFen: analyzeFen,
     _openPgnReview: openPgnReview,
+    _openUciReview: openUciReview,
     _parsePgn: parsePgn,
     _pgnToMoves: pgnToMoves,
     _sanToUci: sanToUci,

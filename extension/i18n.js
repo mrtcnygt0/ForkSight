@@ -558,6 +558,21 @@
     "Go Premium": "Go Premium",
     "Koçunla Oyna →": "Play with your Coach →",
     "Koçunla Oyna": "Play with your Coach",
+    "Koçla Öğren →": "Learn with Coach →",
+    "Koçla Öğren": "Learn with Coach",
+    Öğren: "Learn",
+    "Oynamayı Öğren": "Learn To Play",
+    "Sonraki Ders": "Next Lesson",
+    Sıradaki: "Next",
+    "Önce önceki bölümü tamamla": "Complete the previous section first",
+    "Hadi Başlayalım!": "Let's Start!",
+    "Devam Et": "Continue",
+    Görev: "Challenge",
+    "Ders Tamamlandı": "Lesson Complete",
+    "Tekrar dene — yıldızı takip et.": "Try again — follow the star.",
+    Ders: "Lesson",
+    Geri: "Back",
+    Kapat: "Close",
     "EĞİTİM MAÇI": "TRAINING MATCH",
     "Devam Et →": "Continue →",
     "Oyundan Çık": "Exit Game",
@@ -1210,6 +1225,24 @@
     'Bu hafta taktik doğruluğun <span class="fs-coach-hl">%8</span> arttı.':
       'Your tactical accuracy improved <span class="fs-coach-hl">8%</span> this week.',
     "Koçun bir şey fark etti. Bu hafta taktik doğruluğun %8 arttı.": "Your coach noticed something. Your tactical accuracy improved 8% this week.",
+    "Bu hafta taktik doğruluğun {pct} arttı.":
+      "Your tactical accuracy improved {pct} this week.",
+    "Bu hafta taktik doğruluğun {pct} düştü — tekrar antrenmana dön.":
+      "Your tactical accuracy dropped {pct} this week — get back to training.",
+    "{tc} oyunlarında {phase} fazında kaybetme oranın {pct}.":
+      "In {tc} games, your loss rate in the {phase} is {pct}.",
+    "{name} açılışında kaybetme oranın {pct} — repertoarı gözden geçir.":
+      "Your loss rate in the {name} opening is {pct} — review your repertoire.",
+    "Son 5 oyunda kazanma oranın {pct} — geçen döneme göre {delta} yükseldi.":
+      "Your win rate in the last 5 games is {pct} — up {delta} vs the previous stretch.",
+    "Son 5 oyunda kazanma oranın {pct} — geçen döneme göre {delta} düştü.":
+      "Your win rate in the last 5 games is {pct} — down {delta} vs the previous stretch.",
+    "Son {n} bulmacada taktik doğruluğun {pct}.":
+      "Your tactical accuracy over the last {n} puzzles is {pct}.",
+    "Genel bulmaca doğruluğun {pct} — antrenmanla güçlendir.":
+      "Your overall puzzle accuracy is {pct} — keep training to improve.",
+    "{skill} alanın {pct} seviyesinde — bugün buraya odaklan.":
+      "Your {skill} score is {pct} — focus here today.",
     "Lig": "League",
     "Lig Bitişine": "League Ends In",
     "Ligde yüksel. Oyununu keskinleştir.": "Climb the league. Sharpen your game.",
@@ -1469,6 +1502,72 @@
     "Chest unlocked — open it!": "Sandık açıldı — aç!",
     "Climb the league. Sharpen your game.": "Ligde yüksel. Oyununu keskinleştir.",
     "Coach Insight": "Koç Önerisi",
+    "CHOOSE YOUR AI COACH": "AI KOÇUNU SEÇ",
+    "Every great player has the right coach.":
+      "Her büyük oyuncunun doğru koçu vardır.",
+    "ALL COACHES": "TÜM KOÇLAR",
+    "MY COACH": "KOÇUM",
+    "Active Coach": "Aktif Koç",
+    "Select Coach": "Koç Seç",
+    CURRENT: "AKTİF",
+    "The Fox": "Tilki",
+    "The Strategist": "Stratejist",
+    "The Mentor": "Mentor",
+    "The Calculator": "Hesap Ustası",
+    "The Motivator": "Motivatör",
+    TACTICIAN: "TAKTİKÇİ",
+    STRATEGIST: "STRATEJİST",
+    MENTOR: "MENTOR",
+    CALCULATOR: "HESAPÇI",
+    MOTIVATOR: "MOTİVATÖR",
+    "Focuses on tactics, calculation and pattern recognition.":
+      "Taktik, hesap ve desen tanımaya odaklanır.",
+    "Helps you build strong plans and outplay your opponent.":
+      "Güçlü planlar kurmana ve rakibini geride bırakmana yardımcı olur.",
+    "Sharp, honest feedback to help you eliminate your weaknesses.":
+      "Zayıf noktalarını ortadan kaldırmana yardımcı olacak keskin ve dürüst geri bildirim.",
+    "Improves your calculation depth and decision quality.":
+      "Hesap derinliğini ve karar kaliteni artırır.",
+    "Keeps you motivated and helps you build winning habits.":
+      "Motivasyonunu yüksek tutar ve kazanma alışkanlıkları kurmana yardımcı olur.",
+    "Warm & Calm": "Sıcak ve Sakin",
+    "Warm & Playful": "Sıcak ve Neşeli",
+    "Confident & Smart": "Kendinden Emin ve Zeki",
+    "Direct & Honest": "Doğrudan ve Dürüst",
+    "Analytical & Calm": "Analitik ve Sakin",
+    "Energetic & Positive": "Enerjik ve Pozitif",
+    Voice: "Ses",
+    Language: "Dil",
+    Strategy: "Strategi",
+    Motivation: "Motivasyon",
+    "FREE COACHES": "ÜCRETSİZ KOÇLAR",
+    "COMPARE COACHES": "KOÇLARI KARŞILAŞTIR",
+    "COACH SKILLS EXPLAINED": "KOÇ BECERİLERİ AÇIKLAMASI",
+    "COACH SKILLS": "KOÇ BECERİLERİ",
+    Compare: "Karşılaştır",
+    Select: "Seç",
+    "Your starting coach. Perfect for building habits.":
+      "Başlangıç koçun. Alışkanlık oluşturmak için ideal.",
+    "Spot patterns and tactical opportunities.":
+      "Desenleri ve taktik fırsatları yakala.",
+    "Calculate variations and best moves.":
+      "Varyantları ve en iyi hamleleri hesapla.",
+    "Build plans and positional understanding.":
+      "Plan kur ve pozisyonel anlayış geliştir.",
+    "Convert advantages and endgames.":
+      "Avantajları ve oyunsonlarını kazanca çevir.",
+    "Stay focused and improve consistently.":
+      "Odaklan ve istikrarlı geliş.",
+    "AI Coaches analyze your games, adapt to your style, and help you grow.":
+      "AI koçlar oyunlarını analiz eder, tarzına uyum sağlar ve gelişimine yardımcı olur.",
+    Previous: "Önceki",
+    Next: "Sonraki",
+    Solid: "Sağlam",
+    Rising: "Gelişen",
+    Overall: "Genel",
+    "Overall skill average": "Genel yetenek ortalaması",
+    Elite: "Elit",
+    Advanced: "İleri",
     "Comeback Player": "Dönüş Oyuncusu",
     "Complete your training and level up!": "Antrenmanını tamamla ve seviye atla!",
     "Consistent": "İstikrarlı",
@@ -1614,6 +1713,24 @@
     "Your coach noticed something.": "Koçun bir şey fark etti.",
     'Your tactical accuracy improved <span class="fs-coach-hl">8%</span> this week.':
       'Bu hafta taktik doğruluğun <span class="fs-coach-hl">%8</span> arttı.',
+    "Your tactical accuracy improved {pct} this week.":
+      "Bu hafta taktik doğruluğun {pct} arttı.",
+    "Your tactical accuracy dropped {pct} this week — get back to training.":
+      "Bu hafta taktik doğruluğun {pct} düştü — tekrar antrenmana dön.",
+    "In {tc} games, your loss rate in the {phase} is {pct}.":
+      "{tc} oyunlarında {phase} fazında kaybetme oranın {pct}.",
+    "Your loss rate in the {name} opening is {pct} — review your repertoire.":
+      "{name} açılışında kaybetme oranın {pct} — repertoarı gözden geçir.",
+    "Your win rate in the last 5 games is {pct} — up {delta} vs the previous stretch.":
+      "Son 5 oyunda kazanma oranın {pct} — geçen döneme göre {delta} yükseldi.",
+    "Your win rate in the last 5 games is {pct} — down {delta} vs the previous stretch.":
+      "Son 5 oyunda kazanma oranın {pct} — geçen döneme göre {delta} düştü.",
+    "Your tactical accuracy over the last {n} puzzles is {pct}.":
+      "Son {n} bulmacada taktik doğruluğun {pct}.",
+    "Your overall puzzle accuracy is {pct} — keep training to improve.":
+      "Genel bulmaca doğruluğun {pct} — antrenmanla güçlendir.",
+    "Your {skill} score is {pct} — focus here today.":
+      "{skill} alanın {pct} seviyesinde — bugün buraya odaklan.",
     "days": "gün",
     "from last week": "geçen haftaya göre",
     "players": "oyuncu",

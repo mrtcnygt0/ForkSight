@@ -26,6 +26,7 @@
   const HOST_ID = "forksight-profile-panel-host";
   const PANEL_W = 1080;
   const PANEL_H = 720;
+  const PANEL_POS_KEY = "fs_panel_position";
 
   // V3 nav — primary / secondary / utility grupları.
   // Cache alan adları (weakness/puzzles/leaderboard) korunur; tab id'ler yeni.
@@ -94,6 +95,7 @@
   let coachSubTab = "all"; // all | mine
   let selectedCoachId = "tilki";
   let langUnsub = null;
+  let panelResizeHandler = null;
 
   // In-memory cache (panel kapanırken silinir)
   let cache = {
@@ -140,6 +142,7 @@
       unread: 0,
       readIds: {},
     },
+    coachInsightReady: false,
     arenaChest: { opening: false, opened: false },
     coachPlayGames: null, // null=loading | [] | CoachPlayGame[]
     leaderboard: {
@@ -501,6 +504,37 @@
         transform: scale(0) rotate(-180deg);
         opacity: 0;
         transition: transform .42s cubic-bezier(.18,.89,.32,1.28), opacity .25s ease;
+      }
+      .fs-panel.fs-panel-dragging {
+        transition: none !important;
+        user-select: none;
+      }
+      .fs-panel .fs-brand,
+      .fs-panel .fs-header {
+        cursor: grab;
+        touch-action: none;
+      }
+      .fs-panel.fs-panel-dragging .fs-brand,
+      .fs-panel.fs-panel-dragging .fs-header {
+        cursor: grabbing;
+      }
+      .fs-drag-grip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 18px;
+        opacity: 0.4;
+        color: var(--fs-text-dim);
+        pointer-events: none;
+      }
+      .fs-drag-grip::before {
+        content: "";
+        width: 16px;
+        height: 2px;
+        border-radius: 2px;
+        background: currentColor;
+        box-shadow: 0 5px 0 currentColor, 0 10px 0 currentColor;
       }
       .fs-overlay {
         position: fixed; inset: 0;
@@ -4237,16 +4271,43 @@
       } catch (_) {}
     }
     if (!game) return;
-    let pgn = game.pgn;
+    close();
     if (
-      !pgn &&
+      game.uci_moves &&
+      game.uci_moves.length &&
+      window.ForkSightReview &&
+      typeof window.ForkSightReview._openUciReview === "function"
+    ) {
+      const white =
+        game.player_color === "w" ? game.player_name : game.coach_name;
+      const black =
+        game.player_color === "b" ? game.player_name : game.coach_name;
+      const d = new Date(game.ts || Date.now());
+      try {
+        await window.ForkSightReview._openUciReview(game.uci_moves, {
+          headers: {
+            White: white || "White",
+            Black: black || "Black",
+            Result: game.result || "*",
+            Termination: game.termination || "",
+            ForkSightCoach: game.coach_id || "",
+            ForkSightGameId: game.id || "",
+            Date: d.toISOString().slice(0, 10).replace(/-/g, "."),
+          },
+          parsed: { type: "coach", id: game.id || "coach-" + (game.ts || 0) },
+        });
+        return;
+      } catch (_) {}
+    }
+    let pgn = "";
+    if (
       window.ForkSightCoachPlay &&
       typeof window.ForkSightCoachPlay.buildPgn === "function"
     ) {
       pgn = window.ForkSightCoachPlay.buildPgn(game);
     }
+    if (!pgn) pgn = game.pgn;
     if (!pgn) return;
-    close();
     const direct =
       window.ForkSightReview &&
       typeof window.ForkSightReview._openPgnReview === "function";
@@ -4336,10 +4397,8 @@
 
   function renderCoachMine() {
     const c = getSelectedCoach();
-    const weak = cache.weakness && cache.weakness.report;
-    const issue =
-      (weak && (weak.top_issue || weak.summary)) ||
-      T("Son oyunlarında açılış sonrası plan oluşturmak en büyük fırsatın.");
+    const insight = buildCoachInsight();
+    const issue = insight.plain || T("Son oyunlarında açılış sonrası plan oluşturmak en büyük fırsatın.");
     const voiceNote = c.hasVoice
       ? T("Bu koçun kendi AI sesi var. Seçince seni kendi tarzında karşılar.")
       : T("Bu koç için özel ses yakında.");
@@ -4359,6 +4418,7 @@
             <div class="fs-voice-note">${esc(voiceNote)}</div>
             <button class="fs-btn-gold" data-act="go-training" style="margin-top:12px;width:100%">${T("Çalışmaya Başla →")}</button>
             <button class="fs-btn-outline" data-act="coach-play" type="button" style="margin-top:8px;width:100%;border-color:rgba(76,141,255,.45);color:#c8dcff">${T("Koçunla Oyna →")}</button>
+            <button class="fs-btn-outline" data-act="coach-learn" type="button" style="margin-top:8px;width:100%;border-color:rgba(61,214,140,.45);color:#b8f5d4">${T("Koçla Öğren →")}</button>
           </div>
         </div>
         <div>
@@ -4533,11 +4593,207 @@
     return `<div class="${cls}">${esc((letter || "?").slice(0, 1).toUpperCase())}</div>`;
   }
 
-  function coachSparkHTML() {
-    const heights = [34, 48, 42, 68, 90];
-    return `<div class="fs-coach-spark">${heights
-      .map((h) => `<i style="height:${h}%"></i>`)
+  function coachSparkHTML(heights) {
+    const vals = Array.isArray(heights) && heights.length
+      ? heights
+      : [34, 48, 42, 68, 90];
+    return `<div class="fs-coach-spark">${vals
+      .map((h) => `<i style="height:${Math.max(12, Math.min(98, h))}%"></i>`)
       .join("")}</div>`;
+  }
+
+  function coachInsightHl(n) {
+    return `<span class="fs-coach-hl">%${Math.abs(Math.round(Number(n) || 0))}</span>`;
+  }
+
+  function pickPrimaryWeaknessClass(report) {
+    const groups = (report && report.per_time_class) || {};
+    const order = ["blitz", "rapid", "bullet", "daily"];
+    let best = null;
+    let bestN = 0;
+    for (const id of order) {
+      const n = (groups[id] || {}).total_games || 0;
+      if (n > bestN) {
+        bestN = n;
+        best = id;
+      }
+    }
+    return best || "blitz";
+  }
+
+  function puzzleAccuracyBuckets(attempts) {
+    const now = Date.now();
+    const week = 7 * 86400000;
+    const thisWeek = { c: 0, t: 0 };
+    const lastWeek = { c: 0, t: 0 };
+    const dayMap = new Map();
+    for (const a of attempts || []) {
+      const ts = Number(a.created_at) || 0;
+      if (!ts) continue;
+      const ms = ts * 1000;
+      const age = now - ms;
+      if (age <= week) {
+        thisWeek.t++;
+        if (a.correct) thisWeek.c++;
+      } else if (age <= week * 2) {
+        lastWeek.t++;
+        if (a.correct) lastWeek.c++;
+      }
+      const dayKey = new Date(ms).toISOString().slice(0, 10);
+      if (!dayMap.has(dayKey)) dayMap.set(dayKey, { c: 0, t: 0 });
+      const b = dayMap.get(dayKey);
+      b.t++;
+      if (a.correct) b.c++;
+    }
+    const sparkHeights = [];
+    for (let i = 4; i >= 0; i--) {
+      const d = new Date(now - i * 86400000).toISOString().slice(0, 10);
+      const b = dayMap.get(d) || { c: 0, t: 0 };
+      const acc = b.t ? Math.round((b.c / b.t) * 100) : 0;
+      sparkHeights.push(
+        b.t ? Math.max(22, Math.min(95, Math.round(acc * 0.85 + 10))) : 18,
+      );
+    }
+    return { thisWeek, lastWeek, sparkHeights };
+  }
+
+  function buildCoachInsight() {
+    const stats = (cache.profile && cache.profile.stats) || {};
+    const u = (cache.profile && cache.profile.user) || {};
+    const weakFull = cache.weakness && cache.weakness.report;
+    const attempts = (cache.puzzles && cache.puzzles.history) || [];
+    const recentGames = (cache.profile && cache.profile.recent_games) || [];
+    const skills = skillHeuristic(stats, u);
+    const headline = T("Koçun bir şey fark etti.");
+    const { thisWeek, lastWeek, sparkHeights } = puzzleAccuracyBuckets(attempts);
+
+    const pack = (detail, sidePct, arrow, positive) => ({
+      headline,
+      detail,
+      sidePct,
+      arrow,
+      sparkHeights,
+      positive: !!positive,
+      plain: headline + " " + detail.replace(/<[^>]+>/g, ""),
+    });
+
+    if (thisWeek.t >= 3 && lastWeek.t >= 3) {
+      const accNow = Math.round((thisWeek.c / thisWeek.t) * 100);
+      const accPrev = Math.round((lastWeek.c / lastWeek.t) * 100);
+      const delta = accNow - accPrev;
+      if (Math.abs(delta) >= 2) {
+        const detail =
+          delta >= 0
+            ? T("Bu hafta taktik doğruluğun {pct} arttı.").replace(
+                "{pct}",
+                coachInsightHl(delta),
+              )
+            : T("Bu hafta taktik doğruluğun {pct} düştü — tekrar antrenmana dön.").replace(
+                "{pct}",
+                coachInsightHl(delta),
+              );
+        return pack(
+          detail,
+          (delta >= 0 ? "+" : "") + delta + "%",
+          delta >= 0 ? "↑" : "↓",
+          delta >= 0,
+        );
+      }
+    }
+
+    if (weakFull && weakFull.total_games >= 5) {
+      const cls = pickPrimaryWeaknessClass(weakFull);
+      const r =
+        (weakFull.per_time_class && weakFull.per_time_class[cls]) || weakFull;
+      const phases = r.weak_phases || {};
+      let worst = null;
+      let worstRate = 0;
+      for (const key of ["opening", "middlegame", "endgame"]) {
+        const ph = phases[key] || {};
+        if ((ph.games || 0) < 3) continue;
+        const rate = ph.loss_rate || 0;
+        if (rate > worstRate) {
+          worstRate = rate;
+          worst = key;
+        }
+      }
+      if (worst && worstRate >= 0.35) {
+        const phaseLabel = T((PHASE_INFO[worst] || {}).label || worst);
+        const pct = Math.round(worstRate * 100);
+        const tcLabel =
+          cls === "daily" ? T("Günlük") : cls.charAt(0).toUpperCase() + cls.slice(1);
+        const detail = T("{tc} oyunlarında {phase} fazında kaybetme oranın {pct}.")
+          .replace("{tc}", tcLabel)
+          .replace("{phase}", phaseLabel)
+          .replace("{pct}", coachInsightHl(pct));
+        return pack(detail, pct + "%", "!", false);
+      }
+      const openings = r.weak_openings || [];
+      if (openings.length && (openings[0].loss_rate || 0) >= 0.5) {
+        const op = openings[0];
+        const pct = Math.round((op.loss_rate || 0) * 100);
+        const detail = T("{name} açılışında kaybetme oranın {pct} — repertoarı gözden geçir.")
+          .replace("{name}", esc(op.name || op.eco || ""))
+          .replace("{pct}", coachInsightHl(pct));
+        return pack(detail, pct + "%", "!", false);
+      }
+    }
+
+    if (recentGames.length >= 6) {
+      const wr = (games) => {
+        const w = games.filter((g) => g.result === "win").length;
+        return Math.round((w / games.length) * 100);
+      };
+      const recent5 = recentGames.slice(0, 5);
+      const prev5 = recentGames.slice(5, 10);
+      if (prev5.length >= 3) {
+        const wrNow = wr(recent5);
+        const wrPrev = wr(prev5);
+        const delta = wrNow - wrPrev;
+        if (Math.abs(delta) >= 10) {
+          const detail =
+            delta >= 0
+              ? T("Son 5 oyunda kazanma oranın {pct} — geçen döneme göre {delta} yükseldi.")
+                  .replace("{pct}", coachInsightHl(wrNow))
+                  .replace("{delta}", coachInsightHl(delta))
+              : T("Son 5 oyunda kazanma oranın {pct} — geçen döneme göre {delta} düştü.")
+                  .replace("{pct}", coachInsightHl(wrNow))
+                  .replace("{delta}", coachInsightHl(Math.abs(delta)));
+          return pack(
+            detail,
+            (delta >= 0 ? "+" : "-") + Math.abs(delta) + "%",
+            delta >= 0 ? "↑" : "↓",
+            delta >= 0,
+          );
+        }
+      }
+    }
+
+    if (attempts.length >= 5) {
+      const slice = attempts.slice(0, 30);
+      const correct = slice.filter((a) => a.correct).length;
+      const acc = Math.round((correct / slice.length) * 100);
+      const detail = T("Son {n} bulmacada taktik doğruluğun {pct}.")
+        .replace("{n}", String(slice.length))
+        .replace("{pct}", coachInsightHl(acc));
+      return pack(detail, acc + "%", acc >= 60 ? "↑" : "→", acc >= 60);
+    }
+
+    const puzzleStats = (cache.puzzles && cache.puzzles.stats) || {};
+    const att = Number(puzzleStats.attempt_cnt) || 0;
+    const sol = Number(puzzleStats.solved_cnt) || 0;
+    if (att >= 3 && sol > 0) {
+      const acc = Math.round((sol / att) * 100);
+      const detail = T("Genel bulmaca doğruluğun {pct} — antrenmanla güçlendir.")
+        .replace("{pct}", coachInsightHl(acc));
+      return pack(detail, acc + "%", acc >= 55 ? "↑" : "→", acc >= 55);
+    }
+
+    const lowest = skills.reduce((a, b) => (a.score < b.score ? a : b));
+    const detail = T("{skill} alanın {pct} seviyesinde — bugün buraya odaklan.")
+      .replace("{skill}", esc(lowest.label))
+      .replace("{pct}", coachInsightHl(lowest.score));
+    return pack(detail, lowest.score + "%", "→", lowest.score >= 70);
   }
 
   function revisitRowsHTML(games) {
@@ -4938,12 +5194,9 @@
     const stats = p.stats || {};
     const recent = (p.recent_games || [])[0];
     const skills = skillHeuristic(stats, u);
-    const weak = cache.weakness && cache.weakness.report;
-    const coachHeadline = T("Koçun bir şey fark etti.");
-    const coachDetail =
-      weak && weak.top_issue
-        ? String(weak.top_issue)
-        : T('Bu hafta taktik doğruluğun <span class="fs-coach-hl">%8</span> arttı.');
+    const insight = buildCoachInsight();
+    const coachHeadline = insight.headline;
+    const coachDetail = insight.detail;
     const puzzleDone = Math.min(
       5,
       Number(
@@ -5063,10 +5316,10 @@
           </div>
           <div class="fs-v3-coach-side">
             <div class="fs-coach-side-top">
-              <div class="fs-coach-delta">↑</div>
-              <div class="fs-coach-pct">+8%</div>
+              <div class="fs-coach-delta">${insight.arrow}</div>
+              <div class="fs-coach-pct">${esc(insight.sidePct)}</div>
             </div>
-            ${coachSparkHTML()}
+            ${coachSparkHTML(insight.sparkHeights)}
           </div>
         </div>
       </div>
@@ -5325,7 +5578,7 @@
     items.push({
       id: "local-coach",
       titleKey: "Koç Önerisi",
-      bodyKey: "Koçun bir şey fark etti. Bu hafta taktik doğruluğun %8 arttı.",
+      bodyKey: buildCoachInsight().plain,
       ts: Date.now() / 1000 - 3600,
       local: true,
       act: "go-coach",
@@ -7490,7 +7743,31 @@
     } catch (_) {
       cache.weakness = { report: null };
     }
-    if (activeTab === "coach") renderActive();
+    if (activeTab === "coach" || activeTab === "home") renderActive();
+  }
+
+  async function loadPuzzleStatsForInsight() {
+    try {
+      const r = await send("quiz_stats");
+      if (r && r.ok) {
+        cache.puzzles.stats = r.stats || cache.puzzles.stats;
+        cache.puzzles.history = Array.isArray(r.recent_attempts)
+          ? r.recent_attempts
+          : cache.puzzles.history || [];
+      }
+    } catch (_) {}
+  }
+
+  async function ensureCoachInsightData(force) {
+    if (cache.coachInsightReady && !force) return;
+    const jobs = [];
+    if (!cache.weakness || force) jobs.push(ensureWeakness(force));
+    if (!cache.puzzles.stats || !(cache.puzzles.history || []).length || force) {
+      jobs.push(loadPuzzleStatsForInsight());
+    }
+    await Promise.all(jobs);
+    cache.coachInsightReady = true;
+    if (activeTab === "home" || activeTab === "coach") renderActive();
   }
 
   // ─── Bulmacalar — davranış ────────────────────────────
@@ -8781,13 +9058,14 @@
     if (panelEl) panelEl.classList.remove("fs-panel-quiz");
     activeTab = id;
     renderActive();
-    if (id === "home" || id === "profile" || id === "progress" || id === "settings")
+    if (id === "home" || id === "profile" || id === "progress" || id === "settings") {
       ensureProfile();
-    else if (id === "games") {
+      if (id === "home") ensureCoachInsightData();
+    } else if (id === "games") {
       if (!cache.games.items.length) loadGames(true);
     } else if (id === "coach") {
       ensureProfile();
-      ensureWeakness();
+      ensureCoachInsightData();
       if (coachSubTab === "mine") ensureCoachPlayGames();
     } else if (id === "arena") {
       ensureProfile();
@@ -8828,6 +9106,18 @@
           if (window.ForkSightCoachPlay && typeof window.ForkSightCoachPlay.open === "function") {
             setTimeout(() => {
               window.ForkSightCoachPlay.open({ coach: c, speak: speakCoach });
+            }, 80);
+          }
+        }
+        else if (a === "coach-learn") {
+          const c = getSelectedCoach();
+          if (c && c.comingSoon) return;
+          if (window.ForkSightProfile && typeof window.ForkSightProfile.close === "function") {
+            window.ForkSightProfile.close();
+          }
+          if (window.ForkSightCoachLearn && typeof window.ForkSightCoachLearn.open === "function") {
+            setTimeout(() => {
+              window.ForkSightCoachLearn.open({ coach: c, speak: speakCoach });
             }, 80);
           }
         }
@@ -9081,6 +9371,7 @@
         cache.profile = null;
         cache.games.items = [];
         cache.weakness = null;
+        cache.coachInsightReady = false;
         cache.onboard.step = Math.max(cache.onboard.step, 2);
         startSyncPoll({
           message: T("Chess.com hesabından oyunlar çekiliyor…"),
@@ -9143,6 +9434,7 @@
         cache.profile = null;
         cache.games.items = [];
         cache.weakness = null;
+        cache.coachInsightReady = false;
         if (cache.puzzles) {
           cache.puzzles.stats = null;
           cache.puzzles.totalPuzzles = 0;
@@ -9277,6 +9569,12 @@
       const tab = TABS.find((x) => x.id === activeTab);
       left.innerHTML = `<div class="fs-greet-title">${esc(T(tab ? tab.trLabel : "ForkSight"))}</div><div class="fs-greet-sub">${esc(g.sub)}</div>`;
     }
+    if (activeTab !== "profile" && !left.querySelector(".fs-drag-grip")) {
+      left.insertAdjacentHTML(
+        "afterbegin",
+        '<span class="fs-drag-grip" aria-hidden="true"></span>',
+      );
+    }
     if (pills && u) {
       const level = Math.max(1, Math.floor((Number(u.highest_rating) || 1000) / 80));
       const xpNow = Math.min(2999, (Number(u.streak_count) || 0) * 120 + 1800);
@@ -9365,7 +9663,7 @@
     panelEl.innerHTML = `
       <aside class="fs-sidebar">
         ${atmos ? `<img class="fs-sidebar-atmos" src="${esc(atmos)}" alt="" />` : ""}
-        <div class="fs-brand">
+        <div class="fs-brand" title="${T("Sürükleyerek taşı")}">
           <img class="fs-brand-ico" src="${esc(logo)}" alt="" />
           <span>FORKSIGHT</span>
         </div>
@@ -9386,8 +9684,8 @@
         <button class="fs-premium-pill" data-act="premium" hidden>⭐ ${T("Premium")}</button>
       </aside>
       <main class="fs-main">
-        <div class="fs-header">
-          <div class="fs-header-left"></div>
+        <div class="fs-header" title="${T("Sürükleyerek taşı")}">
+          <div class="fs-header-left"><span class="fs-drag-grip" aria-hidden="true"></span></div>
           <div class="fs-header-right">
             <button class="fs-icon-btn fs-lang-btn" data-act="lang-toggle" aria-label="${T("Dil")}" title="${T("Dil")}">🌐 <span class="fs-lang-code">${langCode}</span></button>
             <div class="fs-notif-wrap">
@@ -9563,6 +9861,146 @@
     }
   }
 
+  function getPanelSize() {
+    if (!panelEl) return { w: PANEL_W, h: PANEL_H };
+    return { w: panelEl.offsetWidth || PANEL_W, h: panelEl.offsetHeight || PANEL_H };
+  }
+
+  function clampPanelPos(left, top) {
+    const { w, h } = getPanelSize();
+    const maxL = Math.max(0, window.innerWidth - w);
+    const maxT = Math.max(0, window.innerHeight - h);
+    return {
+      left: Math.round(Math.max(0, Math.min(left, maxL))),
+      top: Math.round(Math.max(0, Math.min(top, maxT))),
+    };
+  }
+
+  function defaultPanelPosition() {
+    const { w, h } = getPanelSize();
+    return clampPanelPos(
+      (window.innerWidth - w) / 2,
+      (window.innerHeight - h) / 2,
+    );
+  }
+
+  function savePanelPosition(left, top) {
+    const pos = clampPanelPos(left, top);
+    try {
+      chrome.storage.local.set({ [PANEL_POS_KEY]: pos });
+    } catch (_) {}
+  }
+
+  function applyPanelTransformOrigin(anchorRect, pos) {
+    if (!panelEl || !anchorRect) return;
+    const { w, h } = getPanelSize();
+    const acx = anchorRect.left + anchorRect.width / 2;
+    const acy = anchorRect.top + anchorRect.height / 2;
+    const ox = Math.max(0, Math.min(100, ((acx - pos.left) / w) * 100));
+    const oy = Math.max(0, Math.min(100, ((acy - pos.top) / h) * 100));
+    panelEl.style.setProperty("--fs-origin-x", ox + "%");
+    panelEl.style.setProperty("--fs-origin-y", oy + "%");
+  }
+
+  function positionPanelInitial(anchorRect) {
+    const applyPos = (pos) => {
+      panelEl.style.left = pos.left + "px";
+      panelEl.style.top = pos.top + "px";
+      applyPanelTransformOrigin(anchorRect, pos);
+    };
+    applyPos(defaultPanelPosition());
+    try {
+      chrome.storage.local.get([PANEL_POS_KEY], (r) => {
+        if (!panelEl) return;
+        const pos = r && r[PANEL_POS_KEY];
+        if (pos && Number.isFinite(pos.left) && Number.isFinite(pos.top)) {
+          applyPos(clampPanelPos(pos.left, pos.top));
+        }
+      });
+    } catch (_) {}
+  }
+
+  function isPanelDragTarget(el) {
+    if (!el || !el.closest) return false;
+    if (el.closest(".fs-brand")) return !el.closest("button, a, input");
+    const header = el.closest(".fs-header");
+    if (header) return !el.closest(".fs-header-right, button, a, input, .fs-notif-wrap");
+    return false;
+  }
+
+  function setupPanelDrag() {
+    if (!panelEl || panelEl.__fsDragSetup) return;
+    panelEl.__fsDragSetup = true;
+
+    panelEl.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      if (!isPanelDragTarget(e.target)) return;
+
+      e.preventDefault();
+      const rect = panelEl.getBoundingClientRect();
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startLeft = rect.left;
+      const startTop = rect.top;
+      let moved = false;
+
+      panelEl.classList.add("fs-panel-dragging");
+      try {
+        panelEl.setPointerCapture(e.pointerId);
+      } catch (_) {}
+
+      const onMove = (ev) => {
+        if (ev.pointerId !== e.pointerId) return;
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        if (!moved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) moved = true;
+        const pos = clampPanelPos(startLeft + dx, startTop + dy);
+        panelEl.style.left = pos.left + "px";
+        panelEl.style.top = pos.top + "px";
+      };
+
+      const onUp = (ev) => {
+        if (ev.pointerId !== e.pointerId) return;
+        panelEl.classList.remove("fs-panel-dragging");
+        try {
+          panelEl.releasePointerCapture(e.pointerId);
+        } catch (_) {}
+        panelEl.removeEventListener("pointermove", onMove);
+        panelEl.removeEventListener("pointerup", onUp);
+        panelEl.removeEventListener("pointercancel", onUp);
+        if (moved) {
+          const r = panelEl.getBoundingClientRect();
+          savePanelPosition(r.left, r.top);
+        }
+      };
+
+      panelEl.addEventListener("pointermove", onMove);
+      panelEl.addEventListener("pointerup", onUp);
+      panelEl.addEventListener("pointercancel", onUp);
+    });
+  }
+
+  function bindPanelResize() {
+    if (panelResizeHandler) return;
+    panelResizeHandler = () => {
+      if (!panelEl) return;
+      const r = panelEl.getBoundingClientRect();
+      const p = clampPanelPos(r.left, r.top);
+      if (p.left !== r.left || p.top !== r.top) {
+        panelEl.style.left = p.left + "px";
+        panelEl.style.top = p.top + "px";
+        savePanelPosition(p.left, p.top);
+      }
+    };
+    window.addEventListener("resize", panelResizeHandler);
+  }
+
+  function unbindPanelResize() {
+    if (!panelResizeHandler) return;
+    window.removeEventListener("resize", panelResizeHandler);
+    panelResizeHandler = null;
+  }
+
   function buildPanel(anchorRect, opts) {
     opts = opts || {};
     if (hostEl) return;
@@ -9582,23 +10020,12 @@
 
     panelEl = document.createElement("div");
     panelEl.className = "fs-panel";
-    // Konum: ekran ortası
-    const left = Math.round((window.innerWidth - PANEL_W) / 2);
-    const top = Math.round((window.innerHeight - PANEL_H) / 2);
-    panelEl.style.left = left + "px";
-    panelEl.style.top = top + "px";
-    // Transform origin = avatar merkezi (panel'in sol-üstüne göre %)
-    if (anchorRect) {
-      const acx = anchorRect.left + anchorRect.width / 2;
-      const acy = anchorRect.top + anchorRect.height / 2;
-      const ox = Math.max(0, Math.min(100, ((acx - left) / PANEL_W) * 100));
-      const oy = Math.max(0, Math.min(100, ((acy - top) / PANEL_H) * 100));
-      panelEl.style.setProperty("--fs-origin-x", ox + "%");
-      panelEl.style.setProperty("--fs-origin-y", oy + "%");
-    }
 
     renderPanelShell();
     shadow.appendChild(panelEl);
+    positionPanelInitial(anchorRect);
+    setupPanelDrag();
+    bindPanelResize();
 
     // İlk render + animasyon
     if (opts.tab) activeTab = opts.tab;
@@ -9634,6 +10061,7 @@
   }
 
   function close() {
+    unbindPanelResize();
     document.removeEventListener("keydown", onEsc, true);
     if (langUnsub) {
       try {

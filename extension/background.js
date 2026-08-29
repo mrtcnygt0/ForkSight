@@ -865,4 +865,72 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       .catch((err) => sendResponse({ ok: false, error: err.message }));
     return true;
   }
+
+  if (msg.type === "coach_learn_get_progress") {
+    fetch(`${API_BASE}/coach/learn/progress`, {
+      method: "GET",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "coach_learn_save_progress") {
+    const d = msg.data || {};
+    fetch(`${API_BASE}/coach/learn/progress`, {
+      method: "POST",
+      headers: apiHeaders(),
+      body: JSON.stringify({ progress: d.progress || {} }),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "coach_play_get_history") {
+    fetch(`${API_BASE}/coach/play/history`, {
+      method: "GET",
+      headers: apiHeaders(),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
+
+  if (msg.type === "coach_play_save_history") {
+    const d = msg.data || {};
+    fetch(`${API_BASE}/coach/play/history`, {
+      method: "POST",
+      headers: apiHeaders(),
+      body: JSON.stringify({ games: Array.isArray(d.games) ? d.games : [] }),
+    })
+      .then(async (r) => ({
+        status: r.status,
+        body: await r.json().catch(() => ({})),
+      }))
+      .then(({ status, body }) =>
+        sendResponse({ ok: status === 200, status, ...body }),
+      )
+      .catch((err) => sendResponse({ ok: false, error: err.message }));
+    return true;
+  }
 });

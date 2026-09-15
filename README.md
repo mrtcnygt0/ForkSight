@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://chromewebstore.google.com/detail/forksight-%E2%80%94-chess-trainin/nbeldcglpjbmlklbakipohnjcpjmcikd"><img src="https://img.shields.io/badge/Chrome_Web_Store-v3.3.0-f5c542?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Web Store" /></a>
+  <a href="https://chromewebstore.google.com/detail/forksight-%E2%80%94-chess-trainin/nbeldcglpjbmlklbakipohnjcpjmcikd"><img src="https://img.shields.io/badge/Chrome_Web_Store-v3.3.1-f5c542?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Web Store" /></a>
   <a href="https://forksight.net"><img src="https://img.shields.io/badge/Website-forksight.net-0a0c10?style=for-the-badge" alt="Website" /></a>
   <a href="https://forksight.net/premium"><img src="https://img.shields.io/badge/Premium-Gold_&_Diamond-a78bfa?style=for-the-badge" alt="Premium" /></a>
 </p>
@@ -30,6 +30,10 @@ ForkSight turns finished Chess.com games into a daily training loop: coach revie
 
 It never interferes with live play.  
 **Not affiliated with, endorsed by, or sponsored by Chess.com.**
+
+## What's new in v3.3.1
+
+- **PGN castling fix** — `O-O` / `O-O-O` now resolve to UCI arrays (was a bare string that desynced the board and failed later on moves like `Kb1`)
 
 ## What's new in v3.3
 
@@ -123,7 +127,7 @@ Buy / activate: [forksight.net/premium](https://forksight.net/premium) · [GitHu
 ## Repository
 
 ```
-extension/     Chrome extension (Manifest V3) — v3.3.0
+extension/     Chrome extension (Manifest V3) — v3.3.1
 screenshots/   README & store visuals
 videos/        Demo media
 docs/          Chrome Web Store listing copy

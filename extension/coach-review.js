@@ -368,14 +368,18 @@
     let san = String(sanRaw)
       .replace(/[+#!?]+$/g, "")
       .trim();
-    if (!san) return null;
+    // Always return an array — callers iterate / check .length. Returning a
+    // bare UCI string made `for (const uci of options)` walk characters
+    // ("e","1","c","1"), silently desync the board via applyMove's empty-
+    // square soft-skip, then fail later on a normal move like Kb1.
+    if (!san) return [];
     if (san === "O-O" || san === "0-0") {
       const r = pos.turn === "w" ? 1 : 8;
-      return "e" + r + "g" + r;
+      return ["e" + r + "g" + r];
     }
     if (san === "O-O-O" || san === "0-0-0") {
       const r = pos.turn === "w" ? 1 : 8;
-      return "e" + r + "c" + r;
+      return ["e" + r + "c" + r];
     }
     let promo = null;
     const pm = san.match(/=([QRBN])$/i);
@@ -395,9 +399,9 @@
       san = san.slice(1);
     }
     san = san.replace(/x/g, "");
-    if (san.length < 2) return null;
+    if (san.length < 2) return [];
     const targetSq = san.slice(-2);
-    if (!/^[a-h][1-8]$/.test(targetSq)) return null;
+    if (!/^[a-h][1-8]$/.test(targetSq)) return [];
     const targetIdx =
       targetSq.charCodeAt(0) - 97 + (parseInt(targetSq[1], 10) - 1) * 8;
     const disamb = san.slice(0, -2);
@@ -429,7 +433,7 @@
   }
 
   function sanToUci(pos, sanRaw) {
-    const all = sanToUciAll(pos, sanRaw);
+    const all = sanToUciAll(pos, sanRaw) || [];
     return all.length === 1 ? all[0] : null;
   }
 
@@ -594,7 +598,7 @@
   function resolveSanMoves(pos, sanMoves, idx) {
     if (idx >= sanMoves.length) return [];
     const san = sanMoves[idx];
-    const options = sanToUciAll(pos, san);
+    const options = [].concat(sanToUciAll(pos, san) || []);
     if (!options.length) {
       throw new Error(
         'Hamle ayrıştırılamadı: "' + san + '" (hamle #' + (idx + 1) + ").",
@@ -1090,15 +1094,20 @@
     const toIdx = sqToIdx(move.to);
     const piece = pos.board[fromIdx];
     if (!piece) {
-      // Defensive: empty from-square means a previous move desynced the
-      // board. Log it loudly so we can debug instead of silently corrupting
-      // the rest of the timeline.
+      // During PGN SAN resolution, never soft-skip — an empty from-square
+      // means the candidate was invalid (or the board already desynced).
+      if (opts.skipSan) {
+        throw new Error(
+          "Boş kareden hamle: " + (move.uci || move.from + move.to),
+        );
+      }
+      // Live chess.com streams: log and consume the turn so rendering
+      // doesn't shift if a single ply was dropped.
       console.warn(
         "[ForkSightReview] Boş kareden hamle:",
         move.uci || move.from + move.to,
         "— pozisyon güncellenmeden geçildi.",
       );
-      // Still consume the turn so subsequent rendering doesn't shift.
       pos.turn = pos.turn === "w" ? "b" : "w";
       if (pos.turn === "w") pos.full = (prevPos.full || 1) + 1;
       return {

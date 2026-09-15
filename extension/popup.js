@@ -338,13 +338,14 @@ function checkVersion() {
     .then((r) => r.json())
     .then((v) => {
       verInfo.textContent = `Extension v${EXTENSION_VERSION} | Server v${v.server_version}`;
-      chrome.storage.local.get("taktik_is_admin", (r) => {
+      chrome.storage.local.get(["taktik_is_admin", "taktik_token"], (r) => {
         if (r.taktik_is_admin && adminSection) {
           adminSection.style.display = "block";
           const link = document.getElementById("adminLink");
           if (link) {
             link.onclick = () => {
-              chrome.tabs.create({ url: `${apiBase}/admin` });
+              const tok = encodeURIComponent(r.taktik_token || "");
+              chrome.tabs.create({ url: `${apiBase}/admin/enter?t=${tok}` });
             };
           }
         }
